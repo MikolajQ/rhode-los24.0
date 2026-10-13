@@ -1,0 +1,34 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Tue, 13 Oct 2026 19:16:13 +0200
+Subject: [PATCH] sm6225-common: Include system.prop in the build
+
+"Silence spammy log tags" added persist.log.tag.slpi=S and
+persist.log.tag.RBS=S to system.prop, but nothing adds that file to
+TARGET_SYSTEM_PROP: the build only picks up system.prop from
+TARGET_DEVICE_DIR (device/motorola/rhode), so the properties never
+reached the device (checked on rhode 13.10.2026: no persist.log.tag.*
+set, the sensors HAL still logs every ALS/proximity sample under the
+"slpi" tag).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Dr8X39PngEfThUaxTxyj9B
+---
+ BoardConfigCommon.mk | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/BoardConfigCommon.mk b/BoardConfigCommon.mk
+index 5d7dad1..602073b 100644
+--- a/BoardConfigCommon.mk
++++ b/BoardConfigCommon.mk
+@@ -148,6 +148,7 @@ TARGET_USES_INTERACTION_BOOST := true
+ # Properties
+ TARGET_ODM_PROP += $(COMMON_PATH)/odm.prop
+ TARGET_PRODUCT_PROP += $(COMMON_PATH)/product.prop
++TARGET_SYSTEM_PROP += $(COMMON_PATH)/system.prop
+ TARGET_SYSTEM_EXT_PROP += $(COMMON_PATH)/system_ext.prop
+ TARGET_VENDOR_PROP += $(COMMON_PATH)/vendor.prop
+ 
+-- 
+2.56.0
+

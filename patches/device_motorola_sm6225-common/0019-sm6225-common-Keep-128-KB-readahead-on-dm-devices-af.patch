@@ -1,0 +1,63 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Tue, 13 Oct 2026 19:16:35 +0200
+Subject: [PATCH] sm6225-common: Keep 128 KB readahead on dm devices after boot
+
+The rhode tree asks for readahead_size_kb=128 on system, system_ext,
+product, vendor and /data in fstab.qcom, but both boot-completed hooks
+undo it: init.qcom.rc writes 512 to dm-0/dm-1 and post_boot's
+configure_read_ahead_kb_values() writes 512 to every dm device on
+targets with more than 3 GB of RAM. On rhode (6 GB) all dm devices end
+up at 512 KB.
+
+Large readahead on these devices mostly fetches pages nobody asked for:
+over four days of use the phone read 38 GB from storage and refaulted
+20 GB of evicted page cache (pgpgin, workingset_refault, 13.10.2026).
+Keep the 2 MB boost during boot, then settle on the 128 KB the fstab
+requests. mmcblk (SD card) handling is unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Dr8X39PngEfThUaxTxyj9B
+---
+ init/init.qcom.post_boot.sh | 6 ++++++
+ init/init.qcom.rc           | 7 ++++---
+ 2 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/init/init.qcom.post_boot.sh b/init/init.qcom.post_boot.sh
+index 302d689..af97307 100755
+--- a/init/init.qcom.post_boot.sh
++++ b/init/init.qcom.post_boot.sh
+@@ -54,6 +54,12 @@ function configure_read_ahead_kb_values() {
+             echo 512 > $dm
+         done
+     fi
++
++    # Logical partitions and /data (dm-*) keep the 128 KB requested by
++    # readahead_size_kb in fstab.qcom, whatever the RAM size.
++    for dm in /sys/block/dm-*/queue/read_ahead_kb; do
++        echo 128 > $dm
++    done
+ }
+ 
+ function configure_memory_parameters() {
+diff --git a/init/init.qcom.rc b/init/init.qcom.rc
+index 483459e..3c10fe0 100644
+--- a/init/init.qcom.rc
++++ b/init/init.qcom.rc
+@@ -381,9 +381,10 @@ on property:sys.boot_completed=1
+     write /dev/kmsg "Boot completed "
+     #Enable UFS clock scaling back
+     write /sys/bus/platform/devices/${ro.boot.bootdevice}/clkscale_enable 1
+-    #Reset read ahead for dm-0 and dm-1 to 512kb
+-    write /sys/block/dm-0/queue/read_ahead_kb 512
+-    write /sys/block/dm-1/queue/read_ahead_kb 512
++    #Reset read ahead for dm-0, dm-1 and dm-2 to 128kb (readahead_size_kb in fstab.qcom)
++    write /sys/block/dm-0/queue/read_ahead_kb 128
++    write /sys/block/dm-1/queue/read_ahead_kb 128
++    write /sys/block/dm-2/queue/read_ahead_kb 128
+     #WDSP FW boot sysfs node used by STHAL
+     chown media audio /sys/kernel/wdsp0/boot
+     chown media audio /sys/kernel/wcd_cpe0/fw_name
+-- 
+2.56.0
+

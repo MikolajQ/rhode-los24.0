@@ -77,7 +77,7 @@ na pasku stanu, animacje ładowania, sejf w Glimpse, menedżer klientów hotspot
 | Obszar | Decyzja | Patche |
 |---|---|---|
 | Jądro | fork Tomoms + KSU-Next, scalany z LOS przy buildzie | krok w `ham.yml` |
-| Drzewa urządzenia | wszystkie 27 commitów Tomoms (w tym DT2W) | `device_motorola_rhode` 9, `device_motorola_sm6225-common` 18 |
+| Drzewa urządzenia | 26 z 27 commitów Tomoms (w tym DT2W; bez `backpressure`) + 3 nasze poprawki z 13.10 | `device_motorola_rhode` 10, `device_motorola_sm6225-common` 20 |
 | Play Integrity | PIHooks + KeyboxImitation w obrazie (stan jak dziś na telefonie) | `frameworks_base` 21, `bionic` 1, `build_soong` 1, `system_core` 10 |
 | Sieć + bionic (GrapheneOS) | tak | `system_netd` 3, `packages_modules_{Connectivity 8, NetworkStack 2, CaptivePortalLogin 1, Wifi 2}`, `packages_apps_Settings` 2, `frameworks_base` 8 (w tym `ConnectivityUtil`, której wymagają patche VPN lockdown), `bionic` 22 (z cache pliku hosts — ważne przy naszym dużym `/system/etc/hosts`), `tools_metalava` 1 (nowe API bez flag aconfig — bez tego lint `UNFLAGGED_API` zatrzymałby build) |
 | Wyłączanie Wi-Fi/BT po czasie | tak | `frameworks_base` 2, `Wifi` 1, `Bluetooth` 1, `Settings` 1 (złożony ręcznie, z polskimi napisami) |
@@ -156,3 +156,21 @@ w GrapheneOS idzie z łatką openssh), Connectivity 0006 i frameworks_base 0164 
 - Łatkę usuniętą z przepisu na zachowanym serwerze trzeba cofnąć ręcznie (`git revert` w projekcie) — apply-patches.sh
   tylko pomija już nałożone. Wznowienie: `~/bin/rhode/ham-resume.sh -r <przepis> -s <krok>`; NIE od 0, bo ponowny
   `repo sync` ściąga nowsze źródła i ninja przebudowuje prawie wszystko.
+
+## Poprawki po pomiarze energii (13.10.2026)
+
+Pomiar na telefonie (ROM Tomoms 20260922, 4 doby; dane `~/Pulpit/Rhode/perf/analiza-20261013/`) pokazał, że część
+zmian Tomoms w drzewach nigdy nie działała — także na jego własnym ROM-ie:
+
+- **`system.prop` nie trafia do builda.** Łatki 0009 (`persist.log.tag.slpi=S`, `RBS=S`) i 0018
+  (`debug.sf.disable_backpressure=1`) piszą do `sm6225-common/system.prop`, ale `BoardConfigCommon.mk` dodaje tylko
+  odm/product/system_ext/vendor.prop; domyślnie build szuka `system.prop` w katalogu `rhode`. Nowa łatka 0018 dopisuje
+  `TARGET_SYSTEM_PROP`; łatka `backpressure` usunięta (zmienia zachowanie SurfaceFlingera, a na tym telefonie nigdy nie
+  była aktywna, więc nie ma żadnego doświadczenia z nią).
+- **Readahead 128 KB.** `fstab.qcom` (łatki rhode 0008/0009) prosi o 128 KB, ale po starcie `init.qcom.rc` i
+  `init.qcom.post_boot.sh` (> 3 GB RAM) ustawiają 512 KB na wszystkich `dm-*`. Łatka 0019 zostawia 2 MB na czas startu,
+  potem 128 KB. Kontekst: przez 4 doby 38 GB odczytu z pamięci masowej i 20 GB ponownie wczytanych stron.
+- **KTweak.** Zapisy `kernel.sched_*`, `perf_cpu_time_max_percent`, `printk_devkmsg` i `vfs_cache_pressure` blokuje
+  SELinux (vendor_init → `proc_sched`/`proc_perf`/`proc`), więc nigdy nie działały. Łatka 0020 zostawia tylko trzy
+  działające (`dirty_writeback_centisecs`, `tcp_fastopen`, `tcp_syncookies`). Bez zmiany zachowania.
+
