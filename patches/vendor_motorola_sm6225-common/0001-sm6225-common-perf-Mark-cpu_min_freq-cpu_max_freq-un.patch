@@ -1,0 +1,38 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Tue, 13 Oct 2026 20:19:31 +0200
+Subject: [PATCH] sm6225-common: perf: Mark cpu_min_freq/cpu_max_freq
+ unsupported
+
+Our kernel (Tomoms/Sultan fork) has no msm_performance, so every perf
+lock that touches /sys/module/msm_performance/parameters/cpu_{min,max}_freq
+fails and logs "ANDR-PERF-RESOURCEQS: Failed to apply optimization [2, 0]".
+With the LineageOS power HAL sending a scroll boost every ~250 ms of
+touch, that was 300-680 error lines per minute of interaction on rhode
+(13.10.2026), the top writer to the main log buffer. Declare both
+resources unsupported, as the file's own notes suggest, so the perf HAL
+skips them quietly. No behaviour change: the writes never succeeded.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Dr8X39PngEfThUaxTxyj9B
+---
+ proprietary/vendor/etc/perf/targetresourceconfigs.xml | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/proprietary/vendor/etc/perf/targetresourceconfigs.xml b/proprietary/vendor/etc/perf/targetresourceconfigs.xml
+index 0180b1d..09ac543 100644
+--- a/proprietary/vendor/etc/perf/targetresourceconfigs.xml
++++ b/proprietary/vendor/etc/perf/targetresourceconfigs.xml
+@@ -26,6 +26,9 @@ as anyway perflock calls of these resources would fail. -->
+ 
+         <Config MajorValue="0x1" MinorValue="0x2" Node="/proc/sys/kernel/sched_busy_hyst_ns" />
+ 
++        <Config MajorValue="0x2" MinorValue="0x0" Supported="no" /> <!-- cpu_min_freq: no msm_performance in our kernel -->
++        <Config MajorValue="0x2" MinorValue="0x1" Supported="no" /> <!-- cpu_max_freq: no msm_performance in our kernel -->
++
+         <Config MajorValue="0x3" MinorValue="0x3" Supported="no" /> <!-- sched_small_task -->
+         <Config MajorValue="0x3" MinorValue="0x6" Supported="no" /> <!-- sched_init_task_load -->
+         <Config MajorValue="0x3" MinorValue="0xA" Supported="no" /> <!-- sched_add_group -->
+-- 
+2.56.0
+

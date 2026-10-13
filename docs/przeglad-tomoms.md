@@ -173,4 +173,17 @@ zmian Tomoms w drzewach nigdy nie działała — także na jego własnym ROM-ie:
 - **KTweak.** Zapisy `kernel.sched_*`, `perf_cpu_time_max_percent`, `printk_devkmsg` i `vfs_cache_pressure` blokuje
   SELinux (vendor_init → `proc_sched`/`proc_perf`/`proc`), więc nigdy nie działały. Łatka 0020 zostawia tylko trzy
   działające (`dirty_writeback_centisecs`, `tcp_fastopen`, `tcp_syncookies`). Bez zmiany zachowania.
+- **HAL wydajności Qualcomma (bloby `vendor/motorola/sm6225-common`).** Jądro nie ma `msm_performance`, więc każdy
+  boost próbuje zapisać nieistniejące `cpu_min_freq`/`cpu_max_freq` i loguje błąd; kompozytor wysyła podpowiedź co
+  klatkę w trakcie dotyku, więc wychodziło ~76 linii błędów na jedno przesunięcie palcem. Łatka
+  `vendor_motorola_sm6225-common/0001` oznacza te zasoby jako nieobsługiwane (`targetresourceconfigs.xml`): 229 → 8
+  błędów na trzy przesunięcia, boost GPU działa dalej. Bez zmiany zachowania.
+- **Boost GPU przy przewijaniu — zostaje.** Test A/B bez kabla (lista aplikacji, 4 × 47 s): bez minimum GPU 1025 MHz
+  prąd spadł o ~2–6 mA z ~275 mA (1–2%), ale czasy klatek wydłużyły się (p50 8 → 11 ms, p90 11,5 → 15 ms przy
+  budżecie 11,1 ms, szarpnięcia 0,8% → 1,0%). Za mało zysku jak na utratę płynności; łatka nie weszła
+  (`~/build/rhode-devtrees/pending/`).
+- **Minimalne taktowanie CPU (691/1056 MHz) — zostaje.** Energia tej samej pracy na każdej częstotliwości (ekran
+  zgaszony): małe rdzenie najtaniej przy 940 MHz (691 MHz +9%, 300 MHz 3,65×), duże przy 806–1344 MHz (300 MHz 1,59×).
+  Progi Qualcomma leżą w optimum; obniżenie kosztowałoby energię. Bezczynny rdzeń na „zawieszonej” wysokiej częstotliwości
+  nie pobiera mierzalnie więcej prądu (rdzenie są wtedy w power collapse).
 
