@@ -11,10 +11,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 2 deletions(-)
 
 diff --git a/services/surfaceflinger/DisplayHardware/HWComposer.cpp b/services/surfaceflinger/DisplayHardware/HWComposer.cpp
-index f732d25..e0d0274 100644
+index ee4a203..2449fe8 100644
 --- a/services/surfaceflinger/DisplayHardware/HWComposer.cpp
 +++ b/services/surfaceflinger/DisplayHardware/HWComposer.cpp
-@@ -172,8 +172,6 @@ std::optional<PhysicalDisplayId> HWComposer::onVsync(hal::HWDisplayId hwcDisplay
+@@ -170,8 +170,6 @@ std::optional<PhysicalDisplayId> HWComposer::onVsync(hal::HWDisplayId hwcDisplay
          // is a bug in the HWC implementation, but filter the extra events
          // out here so they don't cause havoc downstream.
          if (timestamp == displayData.lastPresentTimestamp) {

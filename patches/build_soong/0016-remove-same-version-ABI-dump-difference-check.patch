@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Dmitry Muhomor <muhomor.dmitry@gmail.com>
 Date: Fri, 24 Jan 2025 23:39:46 +0200
-Subject: [PATCH 16/23] remove same-version ABI dump difference check
+Subject: [PATCH 16/22] remove same-version ABI dump difference check
 
 It always fails on GrapheneOS due to compiler flag differences and due to added symbols. This means
 that both platform and vndk ABI dumps have to be updated for multiple libraries and ABIs during each
@@ -13,10 +13,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 36 deletions(-)
 
 diff --git a/cc/library.go b/cc/library.go
-index d2ff9c27..aab5fc3d 100644
+index 3a0f45b..7bcda09 100644
 --- a/cc/library.go
 +++ b/cc/library.go
-@@ -1536,22 +1536,6 @@ func (library *libraryDecorator) crossVersionAbiDiff(ctx android.ModuleContext,
+@@ -1564,22 +1564,6 @@ func (library *libraryDecorator) crossVersionAbiDiff(ctx android.ModuleContext,
  		isLlndk, true /* allowExtensions */, sourceVersion, errorMessage)
  }
  
@@ -39,7 +39,7 @@ index d2ff9c27..aab5fc3d 100644
  func (library *libraryDecorator) optInAbiDiff(ctx android.ModuleContext,
  	sourceDump, referenceDump android.Path,
  	baseName, nameExt string, refDumpDir string, lsdumpTagName string) {
-@@ -1672,26 +1656,6 @@ func (library *libraryDecorator) linkSAbiDumpFiles(ctx ModuleContext, deps PathD
+@@ -1700,26 +1684,6 @@ func (library *libraryDecorator) linkSAbiDumpFiles(ctx ModuleContext, deps PathD
  				library.crossVersionAbiDiff(ctx, sourceDump, prevDumpFile.Path(),
  					fileName, nameExt+prevVersion, isLlndk, currVersion, prevDumpDir)
  			}

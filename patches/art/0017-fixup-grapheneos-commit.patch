@@ -9,10 +9,10 @@ Change-Id: Icd45a291426b50ae7ddc92220b555b86390a8c0d
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/libartservice/service/java/com/android/server/art/BackgroundDexoptJob.java b/libartservice/service/java/com/android/server/art/BackgroundDexoptJob.java
-index 16073ca..7d2bc66 100644
+index 08b7b81..81a32bd 100644
 --- a/libartservice/service/java/com/android/server/art/BackgroundDexoptJob.java
 +++ b/libartservice/service/java/com/android/server/art/BackgroundDexoptJob.java
-@@ -135,7 +135,7 @@ public class BackgroundDexoptJob implements ArtServiceJobInterface {
+@@ -174,7 +174,7 @@ public class BackgroundDexoptJob implements ArtServiceJobInterface {
              throw new IllegalStateException("This job cannot be scheduled");
          }
  

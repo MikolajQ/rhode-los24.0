@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Fred Underwood <underwoodfred@proton.me>
 Date: Fri, 6 Jun 2025 09:29:46 +1000
-Subject: [PATCH] add ConnectivityUtil
+Subject: [PATCH 032/220] add ConnectivityUtil
 
 Squshed with f965102b7e3bbfb170864f2ab8752bb98947b675
 
@@ -13,10 +13,10 @@ Change-Id: I225fd020be514151fe23cd9e43ae51705c0ef782
  create mode 100644 core/java/android/ext/ConnectivityUtil.java
 
 diff --git a/core/api/module-lib-current.txt b/core/api/module-lib-current.txt
-index 23e18b9ff5..2f906e70b9 100644
+index 4b3e7f835..09153cb46 100644
 --- a/core/api/module-lib-current.txt
 +++ b/core/api/module-lib-current.txt
-@@ -145,6 +145,15 @@ package android.content.pm {
+@@ -141,6 +141,15 @@ package android.content.pm {
  
  }
  
@@ -34,7 +34,7 @@ index 23e18b9ff5..2f906e70b9 100644
    @RestrictedForEnvironment(environments=android.annotation.RestrictedForEnvironment.ENVIRONMENT_SDK_RUNTIME, from=android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) public class UsbManager {
 diff --git a/core/java/android/ext/ConnectivityUtil.java b/core/java/android/ext/ConnectivityUtil.java
 new file mode 100644
-index 0000000000..75777dcb00
+index 000000000..75777dcb0
 --- /dev/null
 +++ b/core/java/android/ext/ConnectivityUtil.java
 @@ -0,0 +1,46 @@

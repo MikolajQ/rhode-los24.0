@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Krunal Soni <ksoni@codeaurora.org>
 Date: Sun, 29 Oct 2023 12:20:34 +0100
-Subject: [PATCH 04/18] sm6225-common: wifi: Remove obsoleted INI called
+Subject: [PATCH 04/20] sm6225-common: wifi: Remove obsoleted INI called
  gFixedRate
 
 Latest driver is not using "gFixedRate" INI anymore and this INI

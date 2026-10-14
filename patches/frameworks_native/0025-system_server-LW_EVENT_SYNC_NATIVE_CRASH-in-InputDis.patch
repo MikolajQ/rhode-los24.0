@@ -27,10 +27,10 @@ Signed-off-by: Shailendra Gupta <sgupta96@ford.com>
  1 file changed, 4 insertions(+)
 
 diff --git a/services/inputflinger/dispatcher/InputDispatcher.cpp b/services/inputflinger/dispatcher/InputDispatcher.cpp
-index b8d9807..6551d3c 100644
+index 162a544..2637db5 100644
 --- a/services/inputflinger/dispatcher/InputDispatcher.cpp
 +++ b/services/inputflinger/dispatcher/InputDispatcher.cpp
-@@ -700,6 +700,10 @@ std::vector<TouchedWindow> getHoveringWindowsLocked(const TouchState* oldState,
+@@ -709,6 +709,10 @@ std::vector<TouchedWindow> getHoveringWindowsLocked(const TouchState* oldState,
                      // has known inconsistencies, so log ERROR instead of
                      // crashing the device with FATAL.
                      severity = android::base::LogSeverity::ERROR;

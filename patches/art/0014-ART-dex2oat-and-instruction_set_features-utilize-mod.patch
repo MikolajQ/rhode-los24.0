@@ -21,10 +21,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  2 files changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/dex2oat/dex2oat.cc b/dex2oat/dex2oat.cc
-index d279e93..0f4bb01 100644
+index 16e9c66..9e3de6f 100644
 --- a/dex2oat/dex2oat.cc
 +++ b/dex2oat/dex2oat.cc
-@@ -821,6 +821,13 @@ class Dex2Oat final {
+@@ -822,6 +822,13 @@ class Dex2Oat final {
      if (compiler_options_->instruction_set_ == kRuntimeISA) {
        std::unique_ptr<const InstructionSetFeatures> runtime_features(
            InstructionSetFeatures::FromCppDefines());

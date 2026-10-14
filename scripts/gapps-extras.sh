@@ -23,8 +23,8 @@ unzip -o -q "$ZIP" -d "$DEST"
 [ -d "$DEST/product/priv-app" ] || { echo "brak product/priv-app w zipie"; exit 1; }
 
 bp="$DEST/Android.bp"; mk="$DEST/splits/Android.mk"; pmk="$DEST/extras.mk"; mods=()
-printf '// Wygenerowane przez rhode-los23.2/scripts/gapps-extras.sh — nie edytować ręcznie.\nsoong_namespace {}\n' > "$bp"
-printf '# Wygenerowane przez rhode-los23.2/scripts/gapps-extras.sh — prebuilty ETC dla katalogów ze splitami.\nLOCAL_PATH := $(call my-dir)/..\n' > "$mk"
+printf '// Wygenerowane przez rhode-los24.0/scripts/gapps-extras.sh — nie edytować ręcznie.\nsoong_namespace {}\n' > "$bp"
+printf '# Wygenerowane przez rhode-los24.0/scripts/gapps-extras.sh — prebuilty ETC dla katalogów ze splitami.\nLOCAL_PATH := $(call my-dir)/..\n' > "$mk"
 
 for dir in "$DEST"/product/priv-app/*/; do
   name=$(basename "$dir")
@@ -87,7 +87,7 @@ BP
   done
 done
 {
-  echo "# Wygenerowane przez rhode-los23.2/scripts/gapps-extras.sh"
+  echo "# Wygenerowane przez rhode-los24.0/scripts/gapps-extras.sh"
   echo "PRODUCT_SOONG_NAMESPACES += vendor/gapps-extras"
   echo "PRODUCT_PACKAGES += \\"
   for m in "${mods[@]}"; do echo "    $m \\"; done

@@ -14,7 +14,7 @@ tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 curl -fsSL --retry 5 --retry-all-errors --retry-delay 10 "$BASE/alternates/porn-only/hosts"   > "$tmp/porn"
 curl -fsSL --retry 5 --retry-all-errors --retry-delay 10 "$BASE/alternates/social-only/hosts" > "$tmp/social"
 {
-  echo "# hosts wygenerowany przez rhode-los23.2/scripts/fetch-hosts.sh"
+  echo "# hosts wygenerowany przez rhode-los24.0/scripts/fetch-hosts.sh"
   echo "# StevenBlack/hosts @$SB_COMMIT (porn-only + social-only) + lists/communicators-block.txt - lists/allow.txt"
   echo "127.0.0.1 localhost"
   echo "::1 ip6-localhost"

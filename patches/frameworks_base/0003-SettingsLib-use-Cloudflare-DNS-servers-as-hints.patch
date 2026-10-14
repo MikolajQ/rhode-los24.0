@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Daniel Micay <danielmicay@gmail.com>
 Date: Mon, 2 Apr 2018 10:37:46 -0400
-Subject: [PATCH 03/31] SettingsLib: use Cloudflare DNS servers as hints
+Subject: [PATCH 003/220] SettingsLib: use Cloudflare DNS servers as hints
 
 Cloudflare DNS has a better privacy policy than Google Public DNS while
 still supporting DNS over TLS.
@@ -10,10 +10,10 @@ still supporting DNS over TLS.
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/packages/SettingsLib/res/values/strings.xml b/packages/SettingsLib/res/values/strings.xml
-index bdc08f6949..8421949d6f 100644
+index 9e824b8ef..3bc801713 100644
 --- a/packages/SettingsLib/res/values/strings.xml
 +++ b/packages/SettingsLib/res/values/strings.xml
-@@ -1312,9 +1312,9 @@
+@@ -1318,9 +1318,9 @@
      <!-- Hint text for the IP address -->
      <string name="wifi_ip_address_hint" translatable="false">192.168.1.128</string>
      <!-- Hint text for DNS -->

@@ -37,6 +37,8 @@ Example of this commit in action:
 [Jyotiraditya Panda <jyotiraditya@aospa.co>]
   - Adapt to AOSPA/uvite (Android 14)
 
+[MikolajQ: Ported to Android 17: the min/max mode iterators are now split into config group and global ones]
+
 Change-Id: I27dc60f35821ee4a5726f67f9b538b394194d00c
 Co-authored-by: Jyotiraditya Panda <jyotiraditya@aospa.co>
 Signed-off-by: Jyotiraditya Panda <jyotiraditya@aospa.co>
@@ -48,7 +50,7 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  2 files changed, 43 insertions(+), 2 deletions(-)
 
 diff --git a/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp b/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
-index aa6d034..68fa6d2 100644
+index 3893a94..5b85b5c 100644
 --- a/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
 +++ b/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
 @@ -36,6 +36,7 @@
@@ -59,7 +61,7 @@ index aa6d034..68fa6d2 100644
  #include <scheduler/FrameRateMode.h>
  
  #include "RefreshRateSelector.h"
-@@ -709,6 +710,8 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -716,6 +717,8 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
      int seamedFocusedLayers = 0;
      int categorySmoothSwitchOnlyLayers = 0;
  
@@ -68,7 +70,7 @@ index aa6d034..68fa6d2 100644
      for (const auto* layerPtr : layers) {
          const auto& layer = *layerPtr;
          switch (layer.vote) {
-@@ -778,6 +781,7 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -785,6 +788,7 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
          const auto ranking = rankFrameRates(anchorGroup, RefreshRateOrder::Descending);
          SFTRACE_FORMAT_INSTANT("%s (Touch Boost)",
                                 to_string(ranking.front().frameRateMode.fps).c_str());
@@ -76,7 +78,7 @@ index aa6d034..68fa6d2 100644
          return {ranking, GlobalSignals{.touch = true}};
      }
  
-@@ -789,6 +793,7 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -796,6 +800,7 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
          ALOGV("Idle");
          const auto ranking = rankFrameRates(activeMode.getGroup(), RefreshRateOrder::Ascending);
          SFTRACE_FORMAT_INSTANT("%s (Idle)", to_string(ranking.front().frameRateMode.fps).c_str());
@@ -84,7 +86,7 @@ index aa6d034..68fa6d2 100644
          return {ranking, GlobalSignals{.idle = true}};
      }
  
-@@ -1008,6 +1013,31 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -1015,6 +1020,31 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
                         return ScoredFrameRate{score.frameRateMode, score.overallScore};
                     });
  
@@ -116,7 +118,7 @@ index aa6d034..68fa6d2 100644
      const bool noLayerScore = std::all_of(scores.begin(), scores.end(), [](RefreshRateScore score) {
          return score.overallScore == 0;
      });
-@@ -1026,7 +1056,7 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -1033,7 +1063,7 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
              ALOGV("primaryRangeIsSingleRate");
              SFTRACE_FORMAT_INSTANT("%s (primaryRangeIsSingleRate)",
                                     to_string(ranking.front().frameRateMode.fps).c_str());
@@ -125,7 +127,7 @@ index aa6d034..68fa6d2 100644
          }
      }
  
-@@ -1077,7 +1107,7 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -1084,7 +1114,7 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
  
      ALOGV("%s (scored)", to_string(ranking.front().frameRateMode.fps).c_str());
      SFTRACE_FORMAT_INSTANT("%s (scored)", to_string(ranking.front().frameRateMode.fps).c_str());
@@ -134,7 +136,7 @@ index aa6d034..68fa6d2 100644
  }
  
  auto RefreshRateSelector::getFrameRateOverrides(const std::vector<LayerRequirement>& allLayers,
-@@ -1683,6 +1713,16 @@ void RefreshRateSelector::constructAvailableRefreshRates() {
+@@ -1653,6 +1683,16 @@ void RefreshRateSelector::constructAvailableRefreshRates() {
                              "render range. policy: %s",
                              rangeName, policy->toString().c_str());
  
@@ -152,13 +154,13 @@ index aa6d034..68fa6d2 100644
              std::string str;
              for (const auto& frameRateMode : frameRateModes) {
 diff --git a/services/surfaceflinger/Scheduler/RefreshRateSelector.h b/services/surfaceflinger/Scheduler/RefreshRateSelector.h
-index e23928e..2ba35c0 100644
+index 2d1415c..10eb812 100644
 --- a/services/surfaceflinger/Scheduler/RefreshRateSelector.h
 +++ b/services/surfaceflinger/Scheduler/RefreshRateSelector.h
-@@ -530,6 +530,7 @@ private:
- 
-     DisplayModeIterator mMinRefreshRateModeIt GUARDED_BY(mLock);
-     DisplayModeIterator mMaxRefreshRateModeIt GUARDED_BY(mLock);
+@@ -536,6 +536,7 @@ private:
+     DisplayModeIterator mConfigGroupMaxRefreshRateModeIt GUARDED_BY(mLock);
+     DisplayModeIterator mGlobalMinRefreshRateModeIt GUARDED_BY(mLock);
+     DisplayModeIterator mGlobalMaxRefreshRateModeIt GUARDED_BY(mLock);
 +    DisplayModeIterator mIdleRefreshRateModeIt GUARDED_BY(mLock);
  
      // Display modes that satisfy the Policy's ranges, filtered and sorted by refresh rate.

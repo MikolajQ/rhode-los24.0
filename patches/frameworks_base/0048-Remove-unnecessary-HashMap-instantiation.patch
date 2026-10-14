@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Josep del Rio <joseprio@google.com>
 Date: Wed, 24 Aug 2022 11:00:59 +0000
-Subject: [PATCH 048/226] Remove unnecessary HashMap instantiation
+Subject: [PATCH 048/220] Remove unnecessary HashMap instantiation
 
 Was investigating something else, but noticed something that could be a tiny bit better; return an empty map from `Collections.emptyMap` instead of using a real `HashMap` to send an empty one.
 
@@ -14,10 +14,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/telephony/java/android/telephony/TelephonyManager.java b/telephony/java/android/telephony/TelephonyManager.java
-index b8087c3b02..1b51e3adcb 100644
+index 5265eddc7..62da6f4d2 100644
 --- a/telephony/java/android/telephony/TelephonyManager.java
 +++ b/telephony/java/android/telephony/TelephonyManager.java
-@@ -15250,7 +15250,6 @@ public class TelephonyManager {
+@@ -15174,7 +15174,6 @@ public class TelephonyManager {
          PackageManager.FEATURE_TELEPHONY_MESSAGING
      })
      public Map<Integer, List<EmergencyNumber>> getEmergencyNumberList() {
@@ -25,7 +25,7 @@ index b8087c3b02..1b51e3adcb 100644
          try {
              ITelephony telephony = getITelephony();
              if (telephony != null) {
-@@ -15263,7 +15262,7 @@ public class TelephonyManager {
+@@ -15187,7 +15186,7 @@ public class TelephonyManager {
              Log.e(TAG, "getEmergencyNumberList RemoteException", ex);
              ex.rethrowAsRuntimeException();
          }

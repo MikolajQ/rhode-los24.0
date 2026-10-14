@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: John Galt <johngaltfirstrun@gmail.com>
 Date: Sat, 17 May 2025 09:29:06 -0400
-Subject: [PATCH 10/23] afdo: further optimize AFDO modules
+Subject: [PATCH 10/22] afdo: further optimize AFDO modules
 
 These are performance sensitive by nature
 ---
@@ -9,7 +9,7 @@ These are performance sensitive by nature
  1 file changed, 4 insertions(+)
 
 diff --git a/cc/afdo.go b/cc/afdo.go
-index 9be39185..1104674d 100644
+index 0b90af7..d662942 100644
 --- a/cc/afdo.go
 +++ b/cc/afdo.go
 @@ -100,6 +100,10 @@ func (afdo *afdo) flags(ctx ModuleContext, flags Flags) Flags {
@@ -21,5 +21,5 @@ index 9be39185..1104674d 100644
 +		flags.Local.LdFlags = append([]string{"-Wl,-O3"}, flags.Local.LdFlags...)
 +		flags.Local.LdFlags = append([]string{"-Wl,--lto-O3"}, flags.Local.LdFlags...)
  	}
- 	if fdoProfilePath := getFdoProfilePathFromDep(ctx); fdoProfilePath != "" {
- 		// The flags are prepended to allow overriding.
+ 	if fdoProfileInfo, ok := getFdoProfileInfoFromDep(ctx); ok && fdoProfileInfo.Path != nil {
+ 		fdoProfilePath := fdoProfileInfo.Path.String()

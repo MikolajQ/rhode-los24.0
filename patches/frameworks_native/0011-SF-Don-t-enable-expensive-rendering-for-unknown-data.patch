@@ -15,10 +15,10 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/services/surfaceflinger/CompositionEngine/src/Output.cpp b/services/surfaceflinger/CompositionEngine/src/Output.cpp
-index 6809295..ac01f1e 100644
+index 28250e0..2dba786 100644
 --- a/services/surfaceflinger/CompositionEngine/src/Output.cpp
 +++ b/services/surfaceflinger/CompositionEngine/src/Output.cpp
-@@ -1449,7 +1449,8 @@ std::optional<base::unique_fd> Output::composeSurfaces(
+@@ -1466,7 +1466,8 @@ std::optional<base::unique_fd> Output::composeSurfaces(
              std::any_of(clientCompositionLayers.begin(), clientCompositionLayers.end(),
                          [outputDataspace =
                                   clientCompositionDisplay.outputDataspace](const auto& layer) {

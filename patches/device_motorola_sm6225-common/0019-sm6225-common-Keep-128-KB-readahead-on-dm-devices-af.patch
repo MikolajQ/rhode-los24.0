@@ -1,7 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: MikolajQ <mikolaj.q@wp.pl>
 Date: Tue, 13 Oct 2026 19:16:35 +0200
-Subject: [PATCH] sm6225-common: Keep 128 KB readahead on dm devices after boot
+Subject: [PATCH 19/20] sm6225-common: Keep 128 KB readahead on dm devices
+ after boot
 
 The rhode tree asks for readahead_size_kb=128 on system, system_ext,
 product, vendor and /data in fstab.qcom, but both boot-completed hooks
@@ -58,6 +59,3 @@ index 483459e..3c10fe0 100644
      #WDSP FW boot sysfs node used by STHAL
      chown media audio /sys/kernel/wdsp0/boot
      chown media audio /sys/kernel/wcd_cpe0/fw_name
--- 
-2.56.0
-

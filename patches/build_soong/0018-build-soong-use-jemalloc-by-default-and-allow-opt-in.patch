@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Juhyung Park <qkrwngud825@gmail.com>
 Date: Sun, 12 Jun 2022 02:45:42 +0900
-Subject: [PATCH 18/23] build: soong: use jemalloc by default and allow opt-in
+Subject: [PATCH 18/22] build: soong: use jemalloc by default and allow opt-in
  to scudo (2/4)
 
 Also, clean up broken DisableScudo/PRODUCT_DISABLE_SCUDO.
@@ -12,6 +12,8 @@ in external/jemalloc_new. Change accordingly.
 Detailed reason for switching to jemalloc by default is written in the
 bionic commit.
 
+[MikolajQ: Ported to Android 17: kept the new Malloc_scudo_tsds_max and XOM variables]
+
 Change-Id: Id5afcf064a5db6011676dc7141c71fd5bb0007cb
 Signed-off-by: Juhyung Park <qkrwngud825@gmail.com>
 ---
@@ -20,10 +22,10 @@ Signed-off-by: Juhyung Park <qkrwngud825@gmail.com>
  2 files changed, 13 insertions(+), 3 deletions(-)
 
 diff --git a/android/config.go b/android/config.go
-index e820ec00..61c045b9 100644
+index 1cef8c9..7ea4dbf 100644
 --- a/android/config.go
 +++ b/android/config.go
-@@ -1560,7 +1560,7 @@ func (c *config) EnableCFI() bool {
+@@ -1654,7 +1654,7 @@ func (c *config) EnableCFI() bool {
  }
  
  func (c *config) DisableScudo() bool {
@@ -31,13 +33,13 @@ index e820ec00..61c045b9 100644
 +	return Bool(c.productVariables.Malloc_use_jemalloc)
  }
  
- func (c *config) Android64() bool {
+ func (c *config) EnableXOM() bool {
 diff --git a/android/variable.go b/android/variable.go
-index 9ce91ad9..56a85aa7 100644
+index baaa7f6..6ec32a3 100644
 --- a/android/variable.go
 +++ b/android/variable.go
-@@ -75,6 +75,16 @@ type variableProperties struct {
- 			Header_libs         []string `android:"arch_variant"`
+@@ -79,6 +79,16 @@ type variableProperties struct {
+ 			Cflags []string `android:"arch_variant"`
  		} `android:"arch_variant"`
  
 +		Malloc_use_jemalloc struct {
@@ -54,26 +56,26 @@ index 9ce91ad9..56a85aa7 100644
  			Cflags []string `android:"arch_variant"`
  		} `android:"arch_variant"`
 @@ -293,6 +303,7 @@ type ProductVariables struct {
- 	Always_use_prebuilt_sdks     *bool    `json:",omitempty"`
  	Skip_boot_jars_check         *bool    `json:",omitempty"`
  	Malloc_low_memory            *bool    `json:",omitempty"`
+ 	Malloc_scudo_tsds_max        *bool    `json:",omitempty"`
 +	Malloc_use_jemalloc          *bool    `json:",omitempty"`
  	Malloc_zero_contents         *bool    `json:",omitempty"`
  	Malloc_pattern_fill_contents *bool    `json:",omitempty"`
  	Safestack                    *bool    `json:",omitempty"`
-@@ -329,8 +340,6 @@ type ProductVariables struct {
- 	CFIExcludePaths []string `json:",omitempty"`
- 	CFIIncludePaths []string `json:",omitempty"`
+@@ -328,8 +339,6 @@ type ProductVariables struct {
+ 	EnableXOM       *bool    `json:",omitempty"`
+ 	XOMExcludePaths []string `json:",omitempty"`
  
 -	DisableScudo *bool `json:",omitempty"`
 -
  	MemtagHeapExcludePaths      []string `json:",omitempty"`
  	MemtagHeapAsyncIncludePaths []string `json:",omitempty"`
  	MemtagHeapSyncIncludePaths  []string `json:",omitempty"`
-@@ -858,6 +867,7 @@ func (v *ProductVariables) SetDefaultConfig() {
- 		AAPTPrebuiltDPI:     []string{"xhdpi", "xxhdpi"},
+@@ -874,6 +883,7 @@ func (v *ProductVariables) SetDefaultConfig() {
  
  		Malloc_low_memory:            boolPtr(false),
+ 		Malloc_scudo_tsds_max:        boolPtr(false),
 +		Malloc_use_jemalloc:          boolPtr(true),
  		Malloc_zero_contents:         boolPtr(true),
  		Malloc_pattern_fill_contents: boolPtr(false),

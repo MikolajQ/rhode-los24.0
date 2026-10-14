@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Chet Kener <Cl3Kener@gmail.com>
 Date: Tue, 6 Oct 2015 09:45:11 -0400
-Subject: [PATCH 091/226] Speed up Orientation Listener
+Subject: [PATCH 091/220] Speed up Orientation Listener
 
 Change-Id: I3d2fc1f89fa64e1d9151efc0e10a0b7fafd6ff0a
 Signed-off-by: Chet Kener <Cl3Kener@gmail.com>
@@ -12,7 +12,7 @@ Signed-off-by: Pranav <npv12@iitbbs.ac.in>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/services/core/java/com/android/server/wm/WindowOrientationListener.java b/services/core/java/com/android/server/wm/WindowOrientationListener.java
-index d26616edfb..b64e19a2a4 100644
+index d26616edf..b64e19a2a 100644
 --- a/services/core/java/com/android/server/wm/WindowOrientationListener.java
 +++ b/services/core/java/com/android/server/wm/WindowOrientationListener.java
 @@ -459,22 +459,22 @@ public abstract class WindowOrientationListener {

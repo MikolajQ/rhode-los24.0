@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: MikolajQ <mikolaj.q@wp.pl>
 Date: Tue, 13 Oct 2026 19:16:13 +0200
-Subject: [PATCH] sm6225-common: Include system.prop in the build
+Subject: [PATCH 18/20] sm6225-common: Include system.prop in the build
 
 "Silence spammy log tags" added persist.log.tag.slpi=S and
 persist.log.tag.RBS=S to system.prop, but nothing adds that file to
@@ -18,10 +18,10 @@ Claude-Session: https://claude.ai/code/session_01Dr8X39PngEfThUaxTxyj9B
  1 file changed, 1 insertion(+)
 
 diff --git a/BoardConfigCommon.mk b/BoardConfigCommon.mk
-index 5d7dad1..602073b 100644
+index d6bf6d0..5280cce 100644
 --- a/BoardConfigCommon.mk
 +++ b/BoardConfigCommon.mk
-@@ -148,6 +148,7 @@ TARGET_USES_INTERACTION_BOOST := true
+@@ -147,6 +147,7 @@ TARGET_USES_INTERACTION_BOOST := true
  # Properties
  TARGET_ODM_PROP += $(COMMON_PATH)/odm.prop
  TARGET_PRODUCT_PROP += $(COMMON_PATH)/product.prop
@@ -29,6 +29,3 @@ index 5d7dad1..602073b 100644
  TARGET_SYSTEM_EXT_PROP += $(COMMON_PATH)/system_ext.prop
  TARGET_VENDOR_PROP += $(COMMON_PATH)/vendor.prop
  
--- 
-2.56.0
-

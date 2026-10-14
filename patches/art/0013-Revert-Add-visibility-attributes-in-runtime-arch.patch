@@ -221,7 +221,7 @@ index 1e857db..0226c4e 100644
  namespace testing {
  
 diff --git a/runtime/arch/stub_test.cc b/runtime/arch/stub_test.cc
-index 69f65c0..511edde 100644
+index 9c9d77a..7e0d115 100644
 --- a/runtime/arch/stub_test.cc
 +++ b/runtime/arch/stub_test.cc
 @@ -32,7 +32,7 @@

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: minaripenguin <minaripenguin@users.noreply.github.com>
 Date: Thu, 14 Nov 2024 10:32:23 +0800
-Subject: [PATCH 098/226] ActivityTaskManager: Reduce max recent tasks
+Subject: [PATCH 098/220] ActivityTaskManager: Reduce max recent tasks
 
 Signed-off-by: minaripenguin <minaripenguin@users.noreply.github.com>
 ---
@@ -10,7 +10,7 @@ Signed-off-by: minaripenguin <minaripenguin@users.noreply.github.com>
  2 files changed, 5 insertions(+), 12 deletions(-)
 
 diff --git a/core/java/android/app/ActivityTaskManager.java b/core/java/android/app/ActivityTaskManager.java
-index ad171a8579..747f652c03 100644
+index ad171a857..747f652c0 100644
 --- a/core/java/android/app/ActivityTaskManager.java
 +++ b/core/java/android/app/ActivityTaskManager.java
 @@ -202,7 +202,7 @@ public class ActivityTaskManager {
@@ -23,10 +23,10 @@ index ad171a8579..747f652c03 100644
          return sMaxRecentTasks;
      }
 diff --git a/services/core/java/com/android/server/wm/RecentTasks.java b/services/core/java/com/android/server/wm/RecentTasks.java
-index 6f3f08cf4e..1b668392ef 100644
+index ff9b5f284..cebbe4ff8 100644
 --- a/services/core/java/com/android/server/wm/RecentTasks.java
 +++ b/services/core/java/com/android/server/wm/RecentTasks.java
-@@ -385,17 +385,10 @@ class RecentTasks {
+@@ -397,17 +397,10 @@ class RecentTasks {
       */
      @VisibleForTesting
      void loadParametersFromResources(Resources res) {

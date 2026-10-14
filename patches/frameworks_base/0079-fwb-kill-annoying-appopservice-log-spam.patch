@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Dmitrii <bankersenator@gmail.com>
 Date: Sun, 12 Jan 2025 11:07:45 -0500
-Subject: [PATCH 079/226] fwb: kill annoying appopservice log spam
+Subject: [PATCH 079/220] fwb: kill annoying appopservice log spam
 
 01-12 21:02:28.335  1537  1728 E AppOpService: Blocked setUidMode call for runtime permission app op: uid = 1001, code = FINE_LOCATION, mode = foreground, callingUid = 1000, oldMode = allow
 01-12 21:02:28.335  1537  1728 E AppOpService: java.lang.RuntimeException
@@ -23,23 +23,43 @@ Subject: [PATCH 079/226] fwb: kill annoying appopservice log spam
 01-12 21:02:28.335  1537  1728 E AppOpService: 	at android.os.HandlerThread.run(HandlerThread.java:85)
 01-12 21:02:28.335  1537  1728 E AppOpService: 	at com.android.server.ServiceThread.run(go/retraceme 4d3c0e336f7cd1696c0929859f3884314450873bd7d16c85595f3b014722d011:13)
 
+[MikolajQ: Ported to Android 17: upstream now logs only blocked calls, with a stack trace; the log and the state read that only fed it are gone]
+
 Signed-off-by: Dmitrii <bankersenator@gmail.com>
 ---
- .../android/server/permission/access/appop/AppOpService.kt   | 5 -----
- 1 file changed, 5 deletions(-)
+ .../permission/access/appop/AppOpService.kt      | 16 ----------------
+ 1 file changed, 16 deletions(-)
 
 diff --git a/services/permission/java/com/android/server/permission/access/appop/AppOpService.kt b/services/permission/java/com/android/server/permission/access/appop/AppOpService.kt
-index 73f1033f36..6fdf97bf0e 100644
+index f4cea89f5..c396d0bfd 100644
 --- a/services/permission/java/com/android/server/permission/access/appop/AppOpService.kt
 +++ b/services/permission/java/com/android/server/permission/access/appop/AppOpService.kt
-@@ -269,11 +269,6 @@ class AppOpService(private val service: AccessCheckingService) : AppOpsCheckingS
-                     " mode = ${AppOpsManager.modeToName(mode)}," +
-                     " callingUid = ${Binder.getCallingUid()}," +
-                     " oldMode = ${AppOpsManager.modeToName(oldMode)}"
+@@ -18,7 +18,6 @@ package com.android.server.permission.access.appop
+ 
+ import android.app.AppOpsManager
+ import android.companion.virtual.VirtualDeviceManager
+-import android.os.Binder
+ import android.os.Handler
+ import android.os.UserHandle
+ import android.permission.PermissionManager
+@@ -258,21 +257,6 @@ class AppOpService(private val service: AccessCheckingService) : AppOpsCheckingS
+         val appOpName = AppOpsManager.opToPublicName(code)
+ 
+         if (code in runtimeAppOpToPermissionNames) {
+-            val oldMode =
+-                service.getState { with(appIdPolicy) { getAppOpMode(appId, userId, appOpName) } }
+-            val wouldHaveChanged = oldMode != mode
 -            if (wouldHaveChanged) {
--                Slog.e(LOG_TAG, logMessage, RuntimeException())
--            } else {
--                Slog.w(LOG_TAG, logMessage)
+-                Slog.e(
+-                    LOG_TAG,
+-                    "Blocked setUidMode call for runtime permission app op:" +
+-                        " uid = $uid," +
+-                        " code = ${AppOpsManager.opToName(code)}," +
+-                        " mode = ${AppOpsManager.modeToName(mode)}," +
+-                        " callingUid = ${Binder.getCallingUid()}," +
+-                        " oldMode = ${AppOpsManager.modeToName(oldMode)}",
+-                    RuntimeException(),
+-                )
 -            }
              return false
          }

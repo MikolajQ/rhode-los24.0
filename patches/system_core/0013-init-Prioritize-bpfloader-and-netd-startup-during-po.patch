@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: "trieu2.huynh" <trieu2.huynh@lge.com>
 Date: Thu, 26 Feb 2026 10:32:00 -0800
-Subject: [PATCH 13/19] init: Prioritize bpfloader and netd startup during
+Subject: [PATCH 13/18] init: Prioritize bpfloader and netd startup during
  post-fs-data
 
 Relocate bpfloader execution from the load-bpf-programs event trigger
@@ -35,14 +35,14 @@ Test: Check early netd availability.
 Change-Id: I06e6513fee3bcb6806fe14b9adf0e720989dc8a8
 Signed-off-by: trieu2.huynh <trieu2.huynh@lge.com>
 ---
- rootdir/init.rc | 56 ++++++++++++++++++++++++++-----------------------
- 1 file changed, 30 insertions(+), 26 deletions(-)
+ rootdir/init.rc | 31 ++++++++++++++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
 
 diff --git a/rootdir/init.rc b/rootdir/init.rc
-index c6a517f..c7bc98e 100644
+index d33dd5e..4f70c58 100644
 --- a/rootdir/init.rc
 +++ b/rootdir/init.rc
-@@ -575,7 +575,9 @@ on late-init
+@@ -585,7 +585,9 @@ on late-init
      # /data, which in turn can only be loaded when system properties are present.
      trigger post-fs-data
  
@@ -51,9 +51,9 @@ index c6a517f..c7bc98e 100644
 +    # Though, we should keep the event still being triggered, so which want to
 +    # start ASAP can be notified, still.
      trigger load-bpf-programs
-     trigger bpf-progs-loaded
  
-@@ -1072,6 +1074,33 @@ on post-fs-data
+     # Now we can start zygote.
+@@ -1078,6 +1080,33 @@ on post-fs-data
      exec_start mainline_aconfigd_init
      start mainline_aconfigd_socket_service
  
@@ -87,35 +87,3 @@ index c6a517f..c7bc98e 100644
      # Create directories for boot animation.
      mkdir /data/misc/bootanim 0755 system system
  
-@@ -1124,31 +1153,6 @@ on post-fs-data
- on property:vold.checkpoint_committed=1
-     trigger post-fs-data-checkpointed
- 
--# It is important that we start bpfloader after:
--#   - /sys/fs/bpf is already mounted,
--#   - apex (incl. rollback) is initialized (so that we can load bpf
--#     programs shipped as part of apex mainline modules)
--#   - logd is ready for us to log stuff
--#
--# At the same time we want to be as early as possible to reduce races and thus
--# failures (before memory is fragmented, and cpu is busy running tons of other
--# stuff) and we absolutely want to be before netd and the system boot slot is
--# considered to have booted successfully.
--on load-bpf-programs
--    # Temporarily relax access to kallsyms so that bpfloader can resolve kernel symbols
--    # at load time.
--    #
--    # NOTE: Still requires CAP_SYSLOG and sepolicy allow rules to read /proc/kallsyms
--    write /proc/sys/kernel/kptr_restrict 1
--
--    exec_start bpfloader
--
--    # Restore kallsyms protection after bpf programs have been loaded.
--    write /proc/sys/kernel/kptr_restrict 2
--
--on bpf-progs-loaded
--    start netd
--
- # It is recommended to put unnecessary data/ initialization from post-fs-data
- # to start-zygote in device's init.rc to unblock zygote start.
- on zygote-start

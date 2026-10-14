@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Tommaso Fonda <fondatommaso2@gmail.com>
 Date: Sun, 4 Feb 2024 19:38:32 +0100
-Subject: [PATCH 11/18] sm6225-common: Unlock 60fps video recording in Aperture
+Subject: [PATCH 11/20] sm6225-common: Unlock 60fps video recording in Aperture
 
 Change-Id: Iefddf531588f5b395e3bb811ad5345541cbca2a0
 ---

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: John Galt <johngaltfirstrun@gmail.com>
 Date: Wed, 1 May 2024 09:12:22 -0400
-Subject: [PATCH 102/226] libservices.core-libs: explicit ThinLTO
+Subject: [PATCH 102/220] libservices.core-libs: explicit ThinLTO
 
 For further optimization than just DCE
 ---
@@ -9,7 +9,7 @@ For further optimization than just DCE
  1 file changed, 3 insertions(+)
 
 diff --git a/services/core/jni/Android.bp b/services/core/jni/Android.bp
-index 109abd5330..844a8c3af9 100644
+index ace9e77dc..a55aa4bc4 100644
 --- a/services/core/jni/Android.bp
 +++ b/services/core/jni/Android.bp
 @@ -232,6 +232,9 @@ cc_defaults {

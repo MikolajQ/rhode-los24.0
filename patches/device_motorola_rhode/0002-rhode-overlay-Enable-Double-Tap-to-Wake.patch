@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: "(electimon" <electimon@gmail.com>
 Date: Fri, 7 Jul 2023 09:47:55 +0000
-Subject: [PATCH 2/9] rhode: overlay: Enable Double Tap to Wake
+Subject: [PATCH 02/10] rhode: overlay: Enable Double Tap to Wake
 
 Change-Id: I68a51d79c02e0d3bb57a6ecff4488f8840461182
 ---

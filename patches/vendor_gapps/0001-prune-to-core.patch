@@ -1,14 +1,13 @@
 diff --git a/arm64/arm64-vendor.mk b/arm64/arm64-vendor.mk
-index af0154a..d1ccdb3 100644
+index 8880865..0d0b410 100644
 --- a/arm64/arm64-vendor.mk
 +++ b/arm64/arm64-vendor.mk
 @@ -6,16 +6,11 @@ PRODUCT_SOONG_NAMESPACES += \
  
  PRODUCT_PACKAGES += \
-     GmsCore \
--    Phonesky \
--    libjni_latinimegoogle
-+    Phonesky
+     Phonesky \
+-    libjni_latinimegoogle \
+     com.google.android.gmssystem.prodvic
  
  ifeq ($(TARGET_IS_GROUPER),)
  PRODUCT_PACKAGES += \
@@ -22,10 +21,10 @@ index af0154a..d1ccdb3 100644
  
  ifneq ($(filter %tangorpro,$(TARGET_PRODUCT)),)
 diff --git a/common/common-vendor.mk b/common/common-vendor.mk
-index ba808c9..45fe24a 100644
+index 6f4321e..f101631 100644
 --- a/common/common-vendor.mk
 +++ b/common/common-vendor.mk
-@@ -8,12 +8,8 @@ PRODUCT_PACKAGES += \
+@@ -8,13 +8,9 @@ PRODUCT_PACKAGES += \
      AndroidAutoStub \
      GoogleCalendarSyncAdapter \
      GoogleContactsSyncAdapter \
@@ -34,11 +33,12 @@ index ba808c9..45fe24a 100644
      GoogleServicesFramework \
 -    PrebuiltExchange3Google \
 -    com.google.android.dialer.support \
+     allowed_apex_com.google.android.gmssystem.xml \
 -    com.google.android.dialer.support.xml \
      d2d_cable_migration_feature.xml \
      default-permissions-google.xml \
      default-permissions-mtg.xml \
-@@ -26,13 +22,6 @@ PRODUCT_PACKAGES += \
+@@ -27,13 +23,6 @@ PRODUCT_PACKAGES += \
      privapp-permissions-mtg.xml \
      sysconfig-mtg.xml
  

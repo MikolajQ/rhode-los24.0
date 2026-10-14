@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Tommaso Fonda <fondatommaso2@gmail.com>
 Date: Sun, 8 Feb 2026 15:31:19 +0100
-Subject: [PATCH 06/31] Switch to GrapheneOS's SUPL server
+Subject: [PATCH 006/220] Switch to GrapheneOS's SUPL server
 
 Change-Id: I26a13db0ab152c21eb301b785259423d61135d80
 ---
@@ -10,10 +10,10 @@ Change-Id: I26a13db0ab152c21eb301b785259423d61135d80
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/core/res/res/values/config.xml b/core/res/res/values/config.xml
-index 6fbc3dc07b..e05f44db15 100644
+index 6626fa1d8..d8b6d7dfd 100644
 --- a/core/res/res/values/config.xml
 +++ b/core/res/res/values/config.xml
-@@ -7131,7 +7131,7 @@
+@@ -7318,7 +7318,7 @@
      <!-- GNSS configurations to override carrier config. Empty by default-->
      <string-array name="config_gnssParameters" translatable="false">
          <!-- Add configurations here, example: -->
@@ -23,10 +23,10 @@ index 6fbc3dc07b..e05f44db15 100644
  
      <integer name="config_chooser_max_targets_per_row">4</integer>
 diff --git a/telephony/java/android/telephony/CarrierConfigManager.java b/telephony/java/android/telephony/CarrierConfigManager.java
-index a10fae15c0..f23e745712 100644
+index 54df02668..229471ecc 100644
 --- a/telephony/java/android/telephony/CarrierConfigManager.java
 +++ b/telephony/java/android/telephony/CarrierConfigManager.java
-@@ -5067,7 +5067,7 @@ public class CarrierConfigManager {
+@@ -5154,7 +5154,7 @@ public class CarrierConfigManager {
  
          /**
           * SUPL server host for SET Initiated & non-ES Network-Initiated SUPL requests.
@@ -35,7 +35,7 @@ index a10fae15c0..f23e745712 100644
           * @hide
           */
          public static final String KEY_SUPL_HOST_STRING = KEY_PREFIX + "supl_host";
-@@ -5203,7 +5203,7 @@ public class CarrierConfigManager {
+@@ -5290,7 +5290,7 @@ public class CarrierConfigManager {
          private static PersistableBundle getDefaults() {
              PersistableBundle defaults = new PersistableBundle();
              defaults.putBoolean(KEY_PERSIST_LPP_MODE_BOOL, true);

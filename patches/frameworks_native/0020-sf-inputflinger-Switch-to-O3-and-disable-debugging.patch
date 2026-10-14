@@ -11,7 +11,7 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  2 files changed, 4 insertions(+)
 
 diff --git a/services/inputflinger/Android.bp b/services/inputflinger/Android.bp
-index 3390782..f2e3637 100644
+index 66d84fc..9cd94a7 100644
 --- a/services/inputflinger/Android.bp
 +++ b/services/inputflinger/Android.bp
 @@ -41,6 +41,8 @@ cc_defaults {
@@ -24,10 +24,10 @@ index 3390782..f2e3637 100644
      sanitize: {
          misc_undefined: [
 diff --git a/services/surfaceflinger/Android.bp b/services/surfaceflinger/Android.bp
-index d39f7ad..034f037 100644
+index f69e5bc..a7f4084 100644
 --- a/services/surfaceflinger/Android.bp
 +++ b/services/surfaceflinger/Android.bp
-@@ -38,6 +38,8 @@ cc_defaults {
+@@ -104,6 +104,8 @@ cc_defaults {
          "-Wthread-safety",
          "-Wunreachable-code",
          "-Wunused",

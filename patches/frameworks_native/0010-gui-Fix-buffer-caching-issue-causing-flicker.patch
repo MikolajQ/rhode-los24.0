@@ -16,10 +16,10 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/libs/gui/SurfaceComposerClient.cpp b/libs/gui/SurfaceComposerClient.cpp
-index 8546b0c..517c224 100644
+index d10624d..558b227 100644
 --- a/libs/gui/SurfaceComposerClient.cpp
 +++ b/libs/gui/SurfaceComposerClient.cpp
-@@ -1072,7 +1072,7 @@ void SurfaceComposerClient::Transaction::cacheBuffers() {
+@@ -1078,7 +1078,7 @@ void SurfaceComposerClient::Transaction::cacheBuffers() {
  
          uint64_t cacheId = 0;
          status_t ret = BufferCache::getInstance().getCacheId(s->bufferData->buffer, &cacheId);

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Podpisywanie builda własnymi kluczami — procedura z wiki LineageOS "Signing builds" (23.x):
+# Podpisywanie builda własnymi kluczami — procedura z wiki LineageOS "Signing builds" (23.x/24.x):
 #   mka target-files-package otatools  ->  sign_target_files_apks  ->  ota_from_target_files
 # Klucze: /root/.android-certs (rozpakowane z keys_zip przez ham.yml): <nazwa>.pk8 + .x509.pem dla APK,
 # <apex>.pk8 + .x509.pem (RSA 4096) + <apex>.pem (PKCS8) dla APEX-ów. Listy apexapks/apexes = wiki, stan 2026-09-17.
@@ -29,7 +29,7 @@ echo "== sign_target_files_apks ($(basename "$TF"))"
 sign_target_files_apks -o -d "$CERTS" "${args[@]}" "$TF" "$OUT/signed-target_files.zip"
 
 DATE=$(date -u +%Y%m%d)
-ZIP="$OUT/lineage-23.2-${DATE}-UNOFFICIAL-${DEVICE}-signed.zip"   # ro.lineage.version nie istnieje w tym drzewie - wlasna nazwa
+ZIP="$OUT/lineage-${LOS_VERSION}-${DATE}-UNOFFICIAL-${DEVICE}-signed.zip"   # ro.lineage.version nie istnieje w tym drzewie - wlasna nazwa
 echo "== ota_from_target_files -> $(basename "$ZIP")"
 ota_from_target_files -k "$CERTS/releasekey" --block --backup=true "$OUT/signed-target_files.zip" "$ZIP"
 ls -la "$ZIP" | awk '{print $5" B", $9}'
@@ -46,6 +46,18 @@ for img in $RELEASE_IMAGES; do
   [ -s "$OUT/signed-images/$img.img" ] || { echo "brak IMAGES/$img.img w signed-target_files.zip"; exit 1; }
   echo "  signed-images/$img.img: $(stat -c %s "$OUT/signed-images/$img.img") B"
 done
+
+# Recovery do partycji BOOT (RECOVERY_FOR_BOOT_SIZE z device.env; A50s 14.10: wejście do recovery klawiszami albo
+# przez adb reboot recovery bywa zawodne, a recovery wgrane heimdallem do BOOT startuje zawsze; zip i tak nagrywa
+# potem właściwy boot.img). Treść recovery (~52 MiB) mieści się w BOOT (55 MiB) — przepisana stopka AVB (algorytm
+# NONE, jak w obrazie z builda) na rozmiar BOOT; identyczne z ręcznie zrobionym obrazem użytym przy bring-upie.
+if [ -n "${RECOVERY_FOR_BOOT_SIZE:-}" ]; then
+  rfb="$OUT/signed-images/recovery-for-boot.img"
+  cp "$OUT/signed-images/recovery.img" "$rfb"
+  avbtool erase_footer --image "$rfb"
+  avbtool add_hash_footer --image "$rfb" --partition_size "$RECOVERY_FOR_BOOT_SIZE" --partition_name boot
+  echo "  signed-images/recovery-for-boot.img: $(stat -c %s "$rfb") B (heimdall flash --BOOT)"
+fi
 
 # Kontrola po podpisie (13.10: sign.sh z innego urządzenia padł dopiero na samym końcu): obrazy w zipie
 # (OTA bez A/B trzyma je wprost; A/B ma payload.bin — wtedy tylko obecność) = te, które pójdą do release'u.

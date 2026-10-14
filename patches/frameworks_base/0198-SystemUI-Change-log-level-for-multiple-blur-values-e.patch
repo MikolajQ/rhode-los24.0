@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: NurKeinNeid <nurkeinneid@derpfest.org>
+Date: Sun, 18 Jan 2026 19:25:50 +0100
+Subject: [PATCH 198/220] SystemUI: Change log level for multiple blur values
+ emitted warning to debug
+
+[MikolajQ: Ported to Android 17: the per-frame blur scheduling moved to BlurChoreographer]
+
+Signed-off-by: NurKeinNeid <nurkeinneid@derpfest.org>
+---
+ .../src/com/android/systemui/window/ui/BlurChoreographer.kt     | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/window/ui/BlurChoreographer.kt b/packages/SystemUI/src/com/android/systemui/window/ui/BlurChoreographer.kt
+index 03ff5345d..62b5a2cbf 100644
+--- a/packages/SystemUI/src/com/android/systemui/window/ui/BlurChoreographer.kt
++++ b/packages/SystemUI/src/com/android/systemui/window/ui/BlurChoreographer.kt
+@@ -108,7 +108,7 @@ class DefaultBlurChoreographer(
+         if (wasUpdateScheduledForThisFrame) {
+             // Update this value so that the frame callback picks up this value when it runs
+             if (lastScheduledBlurEffect != blurEffect) {
+-                Log.w(TAG, "Multiple blur values emitted in the same frame")
++                Log.d(TAG, "Multiple blur values emitted in the same frame")
+             }
+             lastScheduledBlurEffect = blurEffect
+             return

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mathieu Chartier <mathieuc@google.com>
 Date: Sun, 22 Aug 2021 16:31:23 +0800
-Subject: [PATCH 03/14] config: Speed profile services and wifi-service to
+Subject: [PATCH 03/15] config: Speed profile services and wifi-service to
  reduce RAM and storage
 
 Change-Id: I1d907b24cb2760ddd9cc65ac4335730c8e61a0a3
@@ -11,10 +11,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 3 insertions(+)
 
 diff --git a/config/common.mk b/config/common.mk
-index 7433c34..c897fd0 100644
+index d3b3e72..3f37a21 100644
 --- a/config/common.mk
 +++ b/config/common.mk
-@@ -266,6 +266,9 @@ endif
+@@ -272,6 +272,9 @@ endif
  # Audio files
  $(call inherit-product, vendor/lineage/audio/audio.mk)
  
@@ -23,4 +23,4 @@ index 7433c34..c897fd0 100644
 +
  # SetupWizard
  PRODUCT_PRODUCT_PROPERTIES += \
-     setupwizard.theme=glif_v4 \
+     setupwizard.theme=glif_expressive \

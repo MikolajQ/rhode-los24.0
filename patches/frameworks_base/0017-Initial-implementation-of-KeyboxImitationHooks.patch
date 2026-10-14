@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Jyotiraditya Panda <jyotiraditya@aospa.co>
 Date: Sat, 24 Aug 2024 01:04:33 +0530
-Subject: [PATCH 17/31] Initial implementation of KeyboxImitationHooks
+Subject: [PATCH 017/220] Initial implementation of KeyboxImitationHooks
 
 Co-authored-by: chiteroman <querveros999@gmail.com>
 Co-authored-by: Fabian Leutenegger <fabian.leutenegger@bluewin.ch>
@@ -21,7 +21,7 @@ Signed-off-by: Ritesh <SahanyRitesh@proton.me>
 
 diff --git a/core/java/com/android/internal/util/IKeyboxProvider.java b/core/java/com/android/internal/util/IKeyboxProvider.java
 new file mode 100644
-index 0000000000..3463fcce57
+index 000000000..3463fcce5
 --- /dev/null
 +++ b/core/java/com/android/internal/util/IKeyboxProvider.java
 @@ -0,0 +1,56 @@
@@ -83,7 +83,7 @@ index 0000000000..3463fcce57
 +}
 diff --git a/core/java/com/android/internal/util/KeyProviderManager.java b/core/java/com/android/internal/util/KeyProviderManager.java
 new file mode 100644
-index 0000000000..2e0b7f8e17
+index 000000000..2e0b7f8e1
 --- /dev/null
 +++ b/core/java/com/android/internal/util/KeyProviderManager.java
 @@ -0,0 +1,104 @@
@@ -193,7 +193,7 @@ index 0000000000..2e0b7f8e17
 +}
 diff --git a/core/java/com/android/internal/util/KeyboxImitationHooks.java b/core/java/com/android/internal/util/KeyboxImitationHooks.java
 new file mode 100644
-index 0000000000..9b2e95dfa2
+index 000000000..9b2e95dfa
 --- /dev/null
 +++ b/core/java/com/android/internal/util/KeyboxImitationHooks.java
 @@ -0,0 +1,211 @@
@@ -409,7 +409,7 @@ index 0000000000..9b2e95dfa2
 +    }
 +}
 diff --git a/core/res/res/values/extra_config.xml b/core/res/res/values/extra_config.xml
-index 2d6708e7d1..c7bea1c67e 100644
+index 2d6708e7d..c7bea1c67 100644
 --- a/core/res/res/values/extra_config.xml
 +++ b/core/res/res/values/extra_config.xml
 @@ -13,4 +13,20 @@
@@ -434,7 +434,7 @@ index 2d6708e7d1..c7bea1c67e 100644
 +    </string-array>
  </resources>
 diff --git a/core/res/res/values/extra_symbols.xml b/core/res/res/values/extra_symbols.xml
-index 86f7bf1064..7082bca1e0 100644
+index 86f7bf106..7082bca1e 100644
 --- a/core/res/res/values/extra_symbols.xml
 +++ b/core/res/res/values/extra_symbols.xml
 @@ -2,4 +2,7 @@
@@ -446,7 +446,7 @@ index 86f7bf1064..7082bca1e0 100644
 +    <java-symbol type="array" name="config_certifiedKeybox" />
  </resources>
 diff --git a/keystore/java/android/security/KeyStore2.java b/keystore/java/android/security/KeyStore2.java
-index ff687c1be7..5ddbfcc238 100644
+index ff687c1be..5ddbfcc23 100644
 --- a/keystore/java/android/security/KeyStore2.java
 +++ b/keystore/java/android/security/KeyStore2.java
 @@ -32,6 +32,8 @@ import android.system.keystore2.KeyEntryResponse;

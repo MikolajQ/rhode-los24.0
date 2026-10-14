@@ -9,10 +9,10 @@ Subject: [PATCH 05/21] raise concurrency from 1 to 2 for pre-reboot and
  1 file changed, 4 insertions(+)
 
 diff --git a/libartservice/service/java/com/android/server/art/ReasonMapping.java b/libartservice/service/java/com/android/server/art/ReasonMapping.java
-index f27c518..86a248b 100644
+index 6ba1872..6e5c0f2 100644
 --- a/libartservice/service/java/com/android/server/art/ReasonMapping.java
 +++ b/libartservice/service/java/com/android/server/art/ReasonMapping.java
-@@ -222,6 +222,10 @@ public class ReasonMapping {
+@@ -234,6 +234,10 @@ public class ReasonMapping {
       * @hide
       */
      public static int getConcurrencyForReason(@NonNull @BatchDexoptReason String reason) {

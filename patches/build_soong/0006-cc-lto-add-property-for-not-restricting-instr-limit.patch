@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: John Galt <johngaltfirstrun@gmail.com>
 Date: Tue, 14 May 2024 10:38:12 -0400
-Subject: [PATCH 06/23] cc/lto: add property for not restricting instr limit
+Subject: [PATCH 06/22] cc/lto: add property for not restricting instr limit
 
 There are cases where the 40 instr limit harms performance, thus far
 seen with libbinder and app launch times. The minimal increase in memory
@@ -13,7 +13,7 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/cc/lto.go b/cc/lto.go
-index 5acaf4a4..e144e8d4 100644
+index 7d91dd4..94d11dd 100644
 --- a/cc/lto.go
 +++ b/cc/lto.go
 @@ -57,6 +57,7 @@ type LTOProperties struct {

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Adithya R <gh0strider.2k18.reborn@gmail.com>
 Date: Sat, 18 Nov 2023 20:08:08 +0530
-Subject: [PATCH 09/31] PIHooks: Allow setting any field in certified build
+Subject: [PATCH 009/220] PIHooks: Allow setting any field in certified build
  props
 
 Brand and manufacturer may also be used for attestation checks, as seen
@@ -18,7 +18,7 @@ Change-Id: I16dc8e18a67ffd8fdba8eb9c6928447f82b7d810
  2 files changed, 33 insertions(+), 15 deletions(-)
 
 diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
-index 871edaa661..0d8b493da7 100644
+index 871edaa66..0d8b493da 100644
 --- a/core/java/com/android/internal/util/PropImitationHooks.java
 +++ b/core/java/com/android/internal/util/PropImitationHooks.java
 @@ -89,22 +89,27 @@ public class PropImitationHooks {
@@ -88,7 +88,7 @@ index 871edaa661..0d8b493da7 100644
          try {
              final ActivityTaskManager.RootTaskInfo focusedTask =
 diff --git a/core/res/res/values/extra_config.xml b/core/res/res/values/extra_config.xml
-index 2d3b52919f..a7038f072f 100644
+index 2d3b52919..a7038f072 100644
 --- a/core/res/res/values/extra_config.xml
 +++ b/core/res/res/values/extra_config.xml
 @@ -3,10 +3,14 @@

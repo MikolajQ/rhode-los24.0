@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Andrzej Perczak <linux@andrzejperczak.com>
 Date: Wed, 15 Jun 2022 11:34:36 +0200
-Subject: [PATCH 04/14] config: Optimize Launcher3 and Settings for speed
+Subject: [PATCH 04/15] config: Optimize Launcher3 and Settings for speed
 
 Change-Id: Ia306a1aa04ca84989cccc66dee0c3868f9c17533
 Signed-off-by: Andrzej Perczak <linux@andrzejperczak.com>
@@ -10,10 +10,10 @@ Signed-off-by: Andrzej Perczak <linux@andrzejperczak.com>
  1 file changed, 2 insertions(+)
 
 diff --git a/config/common.mk b/config/common.mk
-index c897fd0..afad605 100644
+index 3f37a21..b0cdfe9 100644
 --- a/config/common.mk
 +++ b/config/common.mk
-@@ -253,6 +253,8 @@ endif
+@@ -259,6 +259,8 @@ endif
  # SystemUI
  PRODUCT_DEXPREOPT_SPEED_APPS += \
      CarSystemUI \

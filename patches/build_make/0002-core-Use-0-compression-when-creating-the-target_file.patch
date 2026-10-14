@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Park Ju Hyung <qkrwngud825@gmail.com>
 Date: Fri, 31 Mar 2017 15:23:11 +0900
-Subject: [PATCH 02/10] core: Use 0 compression when creating the target_files
+Subject: [PATCH 2/9] core: Use 0 compression when creating the target_files
  package
 
 The zip file under $OUT/obj/PACKAGING/target_files_intermediate
@@ -26,10 +26,10 @@ Signed-off-by: Adithya <gh0strider.2k18.reborn@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/core/Makefile b/core/Makefile
-index a4ea3ec..950c2da 100644
+index 98d1118..7b50388 100644
 --- a/core/Makefile
 +++ b/core/Makefile
-@@ -7146,7 +7146,7 @@ endif
+@@ -7239,7 +7239,7 @@ endif
  
  $(BUILT_TARGET_FILES_PACKAGE): $(BUILT_TARGET_FILES_DIR)
  	@echo "Packaging target files: $@"

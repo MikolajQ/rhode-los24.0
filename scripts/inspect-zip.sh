@@ -3,10 +3,10 @@
 # Sprawdza to, czego nie da się zobaczyć w emulatorze (obraz rhode na nim nie wstanie):
 # czy w obrazie jest wszystko, co build miał dodać, i nic z tego, co miał wyciąć.
 #
-# Użycie: inspect-zip.sh lineage-23.2-YYYYMMDD-UNOFFICIAL-rhode.zip [katalog-roboczy]
+# Użycie: inspect-zip.sh lineage-24.0-YYYYMMDD-UNOFFICIAL-rhode.zip [katalog-roboczy]
 # Wymaga: unzip, debugfs (e2fsprogs), payload-dumper-go (https://github.com/ssut/payload-dumper-go/releases
 # — binarka do ~/bin; obrazy rhode są ext4, więc debugfs wystarcza do czytania).
-set -uo pipefail
+set -u   # bez pipefail: grep -q kończy się po pierwszym trafieniu, a SIGPIPE pisarza nie jest błędem kontroli
 ZIP=${1:?zip OTA}
 WORK=${2:-"${XDG_CACHE_HOME:-$HOME/.cache}/rhode-inspect/$(basename "$ZIP" .zip)"}
 pass=0; fail=0; warn=0
@@ -41,7 +41,7 @@ HOSTS=$(sysp /etc/hosts); n=$(dcat system.img "$HOSTS" | grep -c '^0\.0\.0\.0 ')
 dcat system.img "$HOSTS" | grep -qE '(whatsapp\.(com|net)|whatsapp-cdn[^ ]*\.fbcdn\.net|signal\.org)$' && bad "hosts blokuje WhatsApp/Signal" || ok "hosts: WhatsApp i Signal wolne"
 dcat system.img "$HOSTS" | grep -qE ' www\.instagram\.com$' && ok "hosts: Instagram zablokowany" || warn "hosts: brak www.instagram.com — lista social nie weszła?"
 BP=$(sysp /build.prop); dcat system.img "$BP" | grep -E '^ro\.build\.(version\.release|version\.security_patch|date\.utc|version\.incremental)=' | sed 's/^/     /'
-dcat system.img "$BP" | grep -q '^ro.build.version.release=16' && ok "Android 16" || bad "to nie Android 16"
+dcat system.img "$BP" | grep -q '^ro.build.version.release=17' && ok "Android 17" || bad "to nie Android 17"
 FDR=$(sysp /etc/org.fdroid.fdroid/additional_repos.xml)
 dcat system.img "$FDR" | grep -q 'izzysoft' && ok "additional_repos.xml (IzzyOnDroid) — czytane przez Droid-ify" || warn "brak additional_repos.xml z IzzyOnDroid (ścieżka $FDR)"
 
@@ -49,7 +49,10 @@ echo "== system_ext"
 dcat system_ext.img /etc/build.prop | grep -q 'lineage.updater.uri=.*MikolajQ/rhode_releases' && ok "OTA wskazuje na rhode_releases" || bad "lineage.updater.uri nie wskazuje na MikolajQ/rhode_releases (Updater podsunąłby buildy Tomoms)"
 
 echo "== product: GApps i dodatki"
-for d in GmsCore Phonesky GmsSupervision AndroidAutoStub; do dls product.img /priv-app | grep -qx "$d" && ok "priv-app/$d" || bad "brak priv-app/$d"; done
+# MindTheGapps cinnamonbun (A17): GmsCore siedzi w APEX-ie com.google.android.gmssystem.prodvic (PrebuiltGmsCoreVic), nie w priv-app
+dls product.img /apex | grep -qx 'com.google.android.gmssystem.prodvic.apex' && ok "apex/com.google.android.gmssystem.prodvic.apex (GmsCore)" || bad "brak APEX-a gmssystem (GmsCore)"
+dls product.img /etc/sysconfig | grep -qx 'allowed_apex_com.google.android.gmssystem.xml' && ok "sysconfig allowed_apex gmssystem" || bad "brak sysconfig/allowed_apex_com.google.android.gmssystem.xml — APEX GMS się nie aktywuje"
+for d in Phonesky GmsSupervision AndroidAutoStub; do dls product.img /priv-app | grep -qx "$d" && ok "priv-app/$d" || bad "brak priv-app/$d"; done
 n=$(dls product.img /priv-app/GmsSupervision | grep -c '\.apk$'); [ "$n" -ge 1 ] && ok "GmsSupervision: $n plik(ów) .apk — stub 0.1.453788429, Play nadpisze pełną wersją" || bad "GmsSupervision: brak .apk"
 for d in Velvet VelvetTitan GoogleRestore Wellbeing SpeechServicesByGoogle talkback; do dls product.img /priv-app | grep -qx "$d" && bad "priv-app/$d — miało być wycięte patchem MTG" || ok "brak $d (wycięte)"; done
 for d in Bellis LogViewer; do { dls product.img /app; dls product.img /priv-app; dls system.img /system/app; dls system.img /system/priv-app; } | grep -qx "$d" && bad "$d w obrazie" || ok "brak $d"; done

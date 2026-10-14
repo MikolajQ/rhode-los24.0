@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Adithya R <gh0strider.2k18.reborn@gmail.com>
 Date: Sun, 19 Oct 2025 21:37:58 +0545
-Subject: [PATCH 13/31] PIHooks: Spoof Google Photos
+Subject: [PATCH 013/220] PIHooks: Spoof Google Photos
 
 Imported from I2e66cba7c9098dd0063123db103407b2955d1c80.
 
@@ -12,18 +12,18 @@ Change-Id: Ia216cbd711f6c8cac09aad60af11a0a049c5ff9d
  2 files changed, 61 insertions(+), 1 deletion(-)
 
 diff --git a/core/java/android/app/ApplicationPackageManager.java b/core/java/android/app/ApplicationPackageManager.java
-index 71477f5ac9..26f5b73c6f 100644
+index ce6929f0a..a6182a5cc 100644
 --- a/core/java/android/app/ApplicationPackageManager.java
 +++ b/core/java/android/app/ApplicationPackageManager.java
-@@ -134,6 +134,7 @@ import com.android.internal.annotations.GuardedBy;
- import com.android.internal.annotations.VisibleForTesting;
+@@ -143,6 +143,7 @@ import com.android.internal.annotations.VisibleForTesting;
+ import com.android.internal.os.ApplicationSharedMemory;
  import com.android.internal.os.SomeArgs;
  import com.android.internal.pm.RoSystemFeatures;
 +import com.android.internal.util.PropImitationHooks;
  import com.android.internal.util.UserIcons;
  
- import com.nvidia.NvAppProfileService;
-@@ -856,7 +857,8 @@ public class ApplicationPackageManager extends PackageManager {
+ import dalvik.system.VMRuntime;
+@@ -858,7 +859,8 @@ public class ApplicationPackageManager extends PackageManager {
                  return maybeHasSystemFeature;
              }
          }
@@ -34,7 +34,7 @@ index 71477f5ac9..26f5b73c6f 100644
  
      /** @hide */
 diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
-index 2229b899fa..1182d3b234 100644
+index 2229b899f..1182d3b23 100644
 --- a/core/java/com/android/internal/util/PropImitationHooks.java
 +++ b/core/java/com/android/internal/util/PropImitationHooks.java
 @@ -35,6 +35,8 @@ import com.android.internal.R;

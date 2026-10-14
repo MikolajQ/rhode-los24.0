@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: John Galt <johngaltfirstrun@gmail.com>
 Date: Wed, 25 Feb 2026 14:30:34 -0500
-Subject: [PATCH 06/13] Launcher3: AllAppsRecyclerView: preinflate more app
+Subject: [PATCH 06/10] Launcher3: AllAppsRecyclerView: preinflate more app
  icons
 
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
@@ -10,10 +10,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/src/com/android/launcher3/recyclerview/AllAppsRecyclerViewPool.kt b/src/com/android/launcher3/recyclerview/AllAppsRecyclerViewPool.kt
-index 8b355bfaf..cd86b02a6 100644
+index e6f17de..29a374e 100644
 --- a/src/com/android/launcher3/recyclerview/AllAppsRecyclerViewPool.kt
 +++ b/src/com/android/launcher3/recyclerview/AllAppsRecyclerViewPool.kt
-@@ -190,8 +190,8 @@ constructor(
+@@ -193,8 +193,8 @@ constructor(
          private const val NULL_LAYOUT_MANAGER_ERROR_STRING =
              "activeRv's layoutManager should not be null"
  

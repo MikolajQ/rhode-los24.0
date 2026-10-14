@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Dmitrii <bankersenator@gmail.com>
 Date: Fri, 25 Aug 2023 05:34:50 +0000
-Subject: [PATCH 053/226] fwb: downgrade kernelwakelockreader spam to debug
+Subject: [PATCH 053/220] fwb: downgrade kernelwakelockreader spam to debug
 
 Signed-off-by: Dmitrii <bankersenator@gmail.com>
 ---
@@ -9,7 +9,7 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/services/core/java/com/android/server/power/stats/KernelWakelockReader.java b/services/core/java/com/android/server/power/stats/KernelWakelockReader.java
-index 3fffcf713c..aa1c777e79 100644
+index 3fffcf713..aa1c777e7 100644
 --- a/services/core/java/com/android/server/power/stats/KernelWakelockReader.java
 +++ b/services/core/java/com/android/server/power/stats/KernelWakelockReader.java
 @@ -84,7 +84,7 @@ public class KernelWakelockReader {

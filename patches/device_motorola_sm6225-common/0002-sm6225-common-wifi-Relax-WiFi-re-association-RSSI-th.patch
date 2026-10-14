@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: kerneltoast <sultan@kerneltoast.com>
 Date: Wed, 20 Jan 2021 10:42:31 +0000
-Subject: [PATCH 02/18] sm6225-common: wifi: Relax WiFi re-association RSSI
+Subject: [PATCH 02/20] sm6225-common: wifi: Relax WiFi re-association RSSI
  thresholds
 
 Change-Id: I073f08eed69b2454e1fd2350c8f7e8bb8983641b

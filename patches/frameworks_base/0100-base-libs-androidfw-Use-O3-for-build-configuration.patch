@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Akane Beneckendorff <akane@akanework.org>
 Date: Mon, 23 Oct 2023 20:54:35 +0800
-Subject: [PATCH 100/226] base: libs: androidfw: Use '-O3' for build
+Subject: [PATCH 100/220] base: libs: androidfw: Use '-O3' for build
  configuration
 
 Signed-off-by: Akane Beneckendorff <akane@akanework.org>
@@ -10,10 +10,10 @@ Signed-off-by: Akane Beneckendorff <akane@akanework.org>
  1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/libs/androidfw/Android.bp b/libs/androidfw/Android.bp
-index 889d85fb16..05f79a5a17 100644
+index 664ca38cc..4411ba5d3 100644
 --- a/libs/androidfw/Android.bp
 +++ b/libs/androidfw/Android.bp
-@@ -41,6 +41,7 @@ cc_defaults {
+@@ -51,16 +51,17 @@ cc_defaults {
      name: "libandroidfw_defaults",
      cpp_std: "gnu++2b",
      cflags: [
@@ -21,7 +21,6 @@ index 889d85fb16..05f79a5a17 100644
          "-Werror",
          "-Wunreachable-code",
      ],
-@@ -50,10 +51,10 @@ cc_defaults {
      target: {
          windows: {
              // The Windows compiler warns incorrectly for value initialization with {}.
@@ -34,7 +33,7 @@ index 889d85fb16..05f79a5a17 100644
          },
      },
  }
-@@ -193,6 +194,7 @@ cc_test {
+@@ -207,6 +208,7 @@ cc_test {
      host_supported: true,
      defaults: ["libandroidfw_defaults"],
      cppflags: [

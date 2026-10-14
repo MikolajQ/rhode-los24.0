@@ -15,15 +15,16 @@
 set -euo pipefail
 D=$(dirname "$0")
 source "$D/device.env"
+export LOS_VERSION
 ROOT=${1:?korzeń drzewa}
 REL_REPO=${UPLOAD_REPO:-$REL_REPO}
-JSON_PATH=${UPLOAD_JSON:-23.x/$DEVICE.json}
+JSON_PATH=${UPLOAD_JSON:-${LOS_VERSION%%.*}.x/$DEVICE.json}   # 24.x: 23.2 na telefonach nie dostanie skoku 16 -> 17
 OUT=${OUT:-$ROOT/out/target/product/$DEVICE}
 export GH_TOKEN   # HAM ustawia go z argumentu gh_token
 : "${GH_TOKEN:?brak GH_TOKEN}"
 MAX=2147483647    # limit GitHuba: każdy plik wydania < 2 GiB
 
-ZIP=$(ls -t "$OUT"/lineage-23.2-*-"$DEVICE"*.zip | grep -v -- '-ota\|-img' | head -1)
+ZIP=$(ls -t "$OUT"/lineage-"$LOS_VERSION"-*-"$DEVICE"*.zip | grep -v -- '-ota\|-img' | head -1)
 [ -s "$ZIP" ] || { echo "brak zipa ROM-u w $OUT"; exit 1; }
 NAME=$(basename "$ZIP")
 DATE=$(echo "$NAME" | grep -oE '[0-9]{8}' | head -1)
@@ -58,6 +59,7 @@ for img in $RELEASE_IMAGES; do
 done
 # np. dtb A50s: osobna partycja, poza IMAGES/ target-files, bez otacerts — wersja z $OUT jest spójna
 for img in $EXTRA_IMAGES; do [ -s "$OUT/$img.img" ] && assets+=("$OUT/$img.img"); done
+[ -s "$OUT/signed-images/recovery-for-boot.img" ] && assets+=("$OUT/signed-images/recovery-for-boot.img")   # sign.sh, gdy RECOVERY_FOR_BOOT_SIZE
 # vmstat z całego builda (krok „vmstat w tle”) — jedyna kopia, serwer zaraz się kasuje
 [ -s "$ROOT/vmstat.log" ] && cp "$ROOT/vmstat.log" "$OUT/vmstat-$TAG.log" && assets+=("$OUT/vmstat-$TAG.log")
 # przypięty manifest i lista patchy: odtworzenie dokładnie tego builda
@@ -78,8 +80,8 @@ done
 
 # --- wydanie i upload
 if [ "$STATE" = new ]; then
-  gh release create "$TAG" --repo "$REL_REPO" --title "lineage-23.2 $TAG $DEVICE" \
-    --notes "Build LineageOS lineage-23.2 + patche przepisu z $(date -u +%F). $RELEASE_NOTES
+  gh release create "$TAG" --repo "$REL_REPO" --title "lineage-$LOS_VERSION $TAG $DEVICE" \
+    --notes "Build LineageOS lineage-$LOS_VERSION + patche przepisu z $(date -u +%F). $RELEASE_NOTES
 zip sha256: $ZIP_SHA"
 fi
 remote() { gh api "repos/$REL_REPO/releases/tags/$TAG" --jq '.assets[] | "\(.name) \(.digest)"'; }
@@ -138,7 +140,7 @@ print(json.dumps([{
         "url": f"https://github.com/{repo}/releases/download/{tag}/{name}",
     }],
     "type": "UNOFFICIAL",
-    "version": "23.2",
+    "version": os.environ["LOS_VERSION"],
 }], indent=2))
 PY
 )

@@ -31,7 +31,7 @@ unzip -o -q "$ZIP" -d "$DEST"
 [ -d "$DEST/product/priv-app/MotCamera4" ] || { echo "brak product/priv-app/MotCamera4 w zipie"; exit 1; }
 
 bp="$DEST/Android.bp"; pmk="$DEST/extras.mk"; mods=()
-printf '// Wygenerowane przez rhode-los23.2/scripts/motocam-extras.sh — nie edytować ręcznie.\nsoong_namespace {}\n' > "$bp"
+printf '// Wygenerowane przez rhode-los24.0/scripts/motocam-extras.sh — nie edytować ręcznie.\nsoong_namespace {}\n' > "$bp"
 
 # product/priv-app/<Nazwa>/<jeden apk> — privileged, product_specific (MotCamera4)
 for dir in "$DEST"/product/priv-app/*/; do
@@ -148,7 +148,7 @@ BP
 done
 
 {
-  echo "# Wygenerowane przez rhode-los23.2/scripts/motocam-extras.sh"
+  echo "# Wygenerowane przez rhode-los24.0/scripts/motocam-extras.sh"
   echo "PRODUCT_SOONG_NAMESPACES += vendor/motocam-extras"
   echo "PRODUCT_PACKAGES += \\"
   for m in "${mods[@]}"; do echo "    $m \\"; done

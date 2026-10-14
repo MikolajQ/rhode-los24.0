@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Daniel Micay <daniel.micay@grapheneos.org>
+Date: Fri, 2 Feb 2024 18:54:40 -0500
+Subject: [PATCH 168/220] run full explicit GC in SystemUI and system_server
+ after locking
+
+ART has special support for System.gc() and Android already uses this to
+purge memory after unlocking. It makes sense to purge as much as we can
+when locking too.
+
+[MikolajQ: Ported to Android 17: KeyguardStateMonitor is gone, the system_server side now lives in the KeyguardServiceDelegate state callback]
+
+Change-Id: I000f49bcf4ca0ae374062a9da6e0d4c98b1abd69
+---
+ .../com/android/systemui/keyguard/KeyguardViewMediator.java | 3 +++
+ .../server/policy/keyguard/KeyguardServiceDelegate.java     | 6 ++++++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/keyguard/KeyguardViewMediator.java b/packages/SystemUI/src/com/android/systemui/keyguard/KeyguardViewMediator.java
+index cf7475590..942dc489e 100644
+--- a/packages/SystemUI/src/com/android/systemui/keyguard/KeyguardViewMediator.java
++++ b/packages/SystemUI/src/com/android/systemui/keyguard/KeyguardViewMediator.java
+@@ -3293,6 +3293,9 @@ public class KeyguardViewMediator implements CoreStartable,
+             userActivity();
+             mUpdateMonitor.setKeyguardGoingAway(false);
+             mKeyguardViewControllerLazy.get().setKeyguardGoingAwayState(false);
++            System.gc();
++            System.runFinalization();
++            System.gc();
+             mShowKeyguardWakeLock.release();
+         }
+         mKeyguardDisplayManager.show();
+diff --git a/services/core/java/com/android/server/policy/keyguard/KeyguardServiceDelegate.java b/services/core/java/com/android/server/policy/keyguard/KeyguardServiceDelegate.java
+index 2d25ee154..bb724b17c 100644
+--- a/services/core/java/com/android/server/policy/keyguard/KeyguardServiceDelegate.java
++++ b/services/core/java/com/android/server/policy/keyguard/KeyguardServiceDelegate.java
+@@ -139,6 +139,12 @@ public class KeyguardServiceDelegate {
+                 public void onShowingStateChanged(boolean showing, @UserIdInt int userId) {
+                     if (userId != mKeyguardState.userId) return;
+                     KeyguardServiceDelegate.this.onShowingStateChanged(showing);
++
++                    if (showing) {
++                        System.gc();
++                        System.runFinalization();
++                        System.gc();
++                    }
+                 }
+ 
+                 @Override

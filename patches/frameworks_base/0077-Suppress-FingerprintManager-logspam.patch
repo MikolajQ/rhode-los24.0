@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Harsh Shandilya <msfjarvis@gmail.com>
 Date: Fri, 23 Jun 2017 12:05:02 +0530
-Subject: [PATCH 077/226] Suppress FingerprintManager logspam
+Subject: [PATCH 077/220] Suppress FingerprintManager logspam
 
 If FingerprintManager#isFingerprintHardwareDetected fails to detect
 a fingerprint sensor, it emits a warning in the logcat warn stream.
@@ -27,10 +27,10 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/core/java/android/hardware/fingerprint/FingerprintManager.java b/core/java/android/hardware/fingerprint/FingerprintManager.java
-index 1932910e66..e662f04fd7 100644
+index 8007eb3e8..3b865ec0e 100644
 --- a/core/java/android/hardware/fingerprint/FingerprintManager.java
 +++ b/core/java/android/hardware/fingerprint/FingerprintManager.java
-@@ -100,6 +100,7 @@ import javax.crypto.Mac;
+@@ -101,6 +101,7 @@ import javax.crypto.Mac;
  @RequiresFeature(PackageManager.FEATURE_FINGERPRINT)
  public class FingerprintManager implements BiometricAuthenticator, BiometricFingerprintConstants {
      private static final String TAG = "FingerprintManager";
@@ -38,7 +38,7 @@ index 1932910e66..e662f04fd7 100644
  
      /**
       * @hide
-@@ -1205,7 +1206,7 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
+@@ -1225,7 +1226,7 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
                  throw e.rethrowFromSystemServer();
              }
          } else {

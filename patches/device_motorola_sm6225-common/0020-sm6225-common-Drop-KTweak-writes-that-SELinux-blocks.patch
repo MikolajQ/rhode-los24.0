@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: MikolajQ <mikolaj.q@wp.pl>
 Date: Tue, 13 Oct 2026 19:16:51 +0200
-Subject: [PATCH] sm6225-common: Drop KTweak writes that SELinux blocks
+Subject: [PATCH 20/20] sm6225-common: Drop KTweak writes that SELinux blocks
 
 vendor_init may not write proc_sched, proc_perf or plain proc nodes, so
 the kernel.sched_*, perf_cpu_time_max_percent, printk_devkmsg and
@@ -49,6 +49,3 @@ index 5d49fa8..d9856c6 100755
  
  #Load WLAN driver
      insmod /vendor/lib/modules/qca_cld3_wlan.ko
--- 
-2.56.0
-

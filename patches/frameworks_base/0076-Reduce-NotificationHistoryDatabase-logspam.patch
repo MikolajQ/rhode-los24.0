@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: SpiritCroc <dev@spiritcroc.de>
 Date: Tue, 3 Aug 2021 12:44:52 +0200
-Subject: [PATCH 076/226] Reduce NotificationHistoryDatabase logspam
+Subject: [PATCH 076/220] Reduce NotificationHistoryDatabase logspam
 
 If the file is not there, we do not need the whole stacktrace.
 
@@ -12,7 +12,7 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  1 file changed, 14 insertions(+), 1 deletion(-)
 
 diff --git a/services/core/java/com/android/server/notification/NotificationHistoryDatabase.java b/services/core/java/com/android/server/notification/NotificationHistoryDatabase.java
-index 40c0a53553..9c74535066 100644
+index 40c0a5355..9c7453506 100644
 --- a/services/core/java/com/android/server/notification/NotificationHistoryDatabase.java
 +++ b/services/core/java/com/android/server/notification/NotificationHistoryDatabase.java
 @@ -178,6 +178,8 @@ public class NotificationHistoryDatabase {

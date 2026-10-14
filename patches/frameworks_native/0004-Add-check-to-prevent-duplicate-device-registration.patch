@@ -27,10 +27,10 @@ Change-Id: If0ecd823394eb3287f1b29efa1e6f144bf1bacad
  1 file changed, 6 insertions(+)
 
 diff --git a/services/inputflinger/reader/EventHub.cpp b/services/inputflinger/reader/EventHub.cpp
-index c6054e7..ed8d576 100644
+index ca79fc5..ef40805 100644
 --- a/services/inputflinger/reader/EventHub.cpp
 +++ b/services/inputflinger/reader/EventHub.cpp
-@@ -2336,6 +2336,12 @@ void EventHub::openDeviceLocked(const std::string& devicePath) {
+@@ -2447,6 +2447,12 @@ void EventHub::openDeviceLocked(const std::string& devicePath) {
      // is possible that the same input event node (for example, /dev/input/event3) will be noticed
      // in both 'inotify' callback and also in the 'scanDirLocked' pass. To prevent duplicate devices
      // from getting registered, ensure that this path is not already covered by an existing device.

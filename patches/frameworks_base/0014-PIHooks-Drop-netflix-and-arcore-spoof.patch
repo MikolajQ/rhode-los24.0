@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: AdarshGrewal <adarshgrewal@gmail.com>
 Date: Thu, 26 Dec 2024 20:32:09 +0530
-Subject: [PATCH 14/31] PIHooks: Drop netflix and arcore spoof
+Subject: [PATCH 014/220] PIHooks: Drop netflix and arcore spoof
 
 Change-Id: I80e636e2d9c3c40c75a8b024c38a4e95281c6c9e
 ---
@@ -11,7 +11,7 @@ Change-Id: I80e636e2d9c3c40c75a8b024c38a4e95281c6c9e
  3 files changed, 1 insertion(+), 21 deletions(-)
 
 diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
-index 1182d3b234..967b80bd68 100644
+index 1182d3b23..967b80bd6 100644
 --- a/core/java/com/android/internal/util/PropImitationHooks.java
 +++ b/core/java/com/android/internal/util/PropImitationHooks.java
 @@ -52,11 +52,9 @@ public class PropImitationHooks {
@@ -66,7 +66,7 @@ index 1182d3b234..967b80bd68 100644
      }
  
 diff --git a/core/res/res/values/extra_config.xml b/core/res/res/values/extra_config.xml
-index a7038f072f..2d6708e7d1 100644
+index a7038f072..2d6708e7d 100644
 --- a/core/res/res/values/extra_config.xml
 +++ b/core/res/res/values/extra_config.xml
 @@ -13,10 +13,4 @@
@@ -81,7 +81,7 @@ index a7038f072f..2d6708e7d1 100644
 -    <string name="config_netflixSpoofModel" translatable="false"></string>
  </resources>
 diff --git a/core/res/res/values/extra_symbols.xml b/core/res/res/values/extra_symbols.xml
-index d7cb105b08..86f7bf1064 100644
+index d7cb105b0..86f7bf106 100644
 --- a/core/res/res/values/extra_symbols.xml
 +++ b/core/res/res/values/extra_symbols.xml
 @@ -1,6 +1,5 @@

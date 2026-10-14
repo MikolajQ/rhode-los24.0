@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: TheHardGamer <gamelovr695@gmail.com>
+Date: Mon, 24 Apr 2023 10:36:45 +0530
+Subject: [PATCH 207/220] jobscheduler: disable debug
+
+Signed-off-by: Dmitrii <bankersenator@gmail.com>
+Signed-off-by: Ghosuto <clash.raja10@gmail.com>
+---
+ .../java/com/android/server/job/JobSchedulerService.java        | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/apex/jobscheduler/service/java/com/android/server/job/JobSchedulerService.java b/apex/jobscheduler/service/java/com/android/server/job/JobSchedulerService.java
+index d5de43003..90a030629 100644
+--- a/apex/jobscheduler/service/java/com/android/server/job/JobSchedulerService.java
++++ b/apex/jobscheduler/service/java/com/android/server/job/JobSchedulerService.java
+@@ -214,7 +214,7 @@ public class JobSchedulerService extends com.android.server.SystemService
+     private static final int DEFAULT_MAX_JOBS_PER_APP = 150;
+     private final int mMaxJobsPerApp;
+     /** The number of the most recently completed jobs to keep track of for debugging purposes. */
+-    private static final int NUM_COMPLETED_JOB_HISTORY = 20;
++    private static final int NUM_COMPLETED_JOB_HISTORY = 5;
+ 
+     @GuardedBy("mLock")
+     private final ArrayMap<String, SparseIntArray> mProxiedJobsCounts =

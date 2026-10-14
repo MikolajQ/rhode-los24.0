@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Tommaso Fonda <fondatommaso2@gmail.com>
 Date: Wed, 18 Feb 2026 14:16:16 +0100
-Subject: [PATCH 25/31] KeyProviderManager: Rename certifiedKeybox overlay
+Subject: [PATCH 025/220] KeyProviderManager: Rename certifiedKeybox overlay
 
 Change-Id: I2db8056f19b5086d4358164c8ac5a78cdaff1acb
 ---
@@ -11,7 +11,7 @@ Change-Id: I2db8056f19b5086d4358164c8ac5a78cdaff1acb
  3 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/core/java/com/android/internal/util/KeyProviderManager.java b/core/java/com/android/internal/util/KeyProviderManager.java
-index acdca1ebf4..ea253b0cf3 100644
+index acdca1ebf..ea253b0cf 100644
 --- a/core/java/com/android/internal/util/KeyProviderManager.java
 +++ b/core/java/com/android/internal/util/KeyProviderManager.java
 @@ -140,7 +140,7 @@ public final class KeyProviderManager {
@@ -24,7 +24,7 @@ index acdca1ebf4..ea253b0cf3 100644
                  if (parts.length == 2) {
                      keyboxData.put(parts[0], parts[1]);
 diff --git a/core/res/res/values/extra_config.xml b/core/res/res/values/extra_config.xml
-index 23e7fe5a51..774628ee05 100644
+index 23e7fe5a5..774628ee0 100644
 --- a/core/res/res/values/extra_config.xml
 +++ b/core/res/res/values/extra_config.xml
 @@ -1,7 +1,7 @@
@@ -37,7 +37,7 @@ index 23e7fe5a51..774628ee05 100644
          Keybox entries for EC and RSA keys and certificates.
          These should be populated with valid data for device certification.
 diff --git a/core/res/res/values/extra_symbols.xml b/core/res/res/values/extra_symbols.xml
-index 4df7178c63..305e309359 100644
+index 4df7178c6..305e30935 100644
 --- a/core/res/res/values/extra_symbols.xml
 +++ b/core/res/res/values/extra_symbols.xml
 @@ -1,5 +1,5 @@

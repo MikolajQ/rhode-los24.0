@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Tommaso Fonda <fondatommaso2@gmail.com>
 Date: Sat, 22 Jul 2023 08:53:57 +0200
-Subject: [PATCH 1/9] rhode: Set my custom build ID
+Subject: [PATCH 01/10] rhode: Set my custom build ID
 
 Change-Id: Iedadbb073c4f9a4eac4fc30df270ba80cfc18c77
 ---

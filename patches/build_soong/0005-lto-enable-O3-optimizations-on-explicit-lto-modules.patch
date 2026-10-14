@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: John Galt <johngaltfirstrun@gmail.com>
 Date: Sat, 6 Apr 2024 01:33:32 -0400
-Subject: [PATCH 05/23] lto: enable O3 optimizations on explicit lto modules
+Subject: [PATCH 05/22] lto: enable O3 optimizations on explicit lto modules
 
 Change-Id: Ia635a98b1c241a3b90029148fcd761c4dffb8d6b
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
@@ -10,7 +10,7 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 5 insertions(+)
 
 diff --git a/cc/lto.go b/cc/lto.go
-index 984ada3e..5acaf4a4 100644
+index b8d7e1a..7d91dd4 100644
 --- a/cc/lto.go
 +++ b/cc/lto.go
 @@ -107,11 +107,15 @@ func (lto *lto) flags(ctx ModuleContext, flags Flags) Flags {
@@ -29,7 +29,7 @@ index 984ada3e..5acaf4a4 100644
  		}
  
  		if Bool(lto.Properties.Whole_program_vtables) {
-@@ -157,6 +161,7 @@ func (lto *lto) flags(ctx ModuleContext, flags Flags) Flags {
+@@ -159,6 +163,7 @@ func (lto *lto) flags(ctx ModuleContext, flags Flags) Flags {
  		flags.Local.AsFlags = append(flags.Local.AsFlags, ltoCFlags...)
  		flags.Local.LdFlags = append(flags.Local.LdFlags, ltoCFlags...)
  		flags.Local.LdFlags = append(flags.Local.LdFlags, ltoLdFlags...)

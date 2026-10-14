@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Daniel Micay <danielmicay@gmail.com>
 Date: Thu, 23 Apr 2020 16:34:04 -0400
-Subject: [PATCH 11/23] use SCHED_BATCH for the build
+Subject: [PATCH 11/22] use SCHED_BATCH for the build
 
 Signed-off-by: anupritaisno1 <www.anuprita804@gmail.com>
 ---
@@ -9,7 +9,7 @@ Signed-off-by: anupritaisno1 <www.anuprita804@gmail.com>
  1 file changed, 2 insertions(+)
 
 diff --git a/soong_ui.bash b/soong_ui.bash
-index 08e60eb6..149f3217 100755
+index 08e60eb..149f321 100755
 --- a/soong_ui.bash
 +++ b/soong_ui.bash
 @@ -14,6 +14,8 @@

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Alexander Koskovich <akoskovich@pm.me>
 Date: Sun, 29 Oct 2023 11:14:18 +0100
-Subject: [PATCH 3/9] rhode: Switch to /vendor_dlkm for kernel modules
+Subject: [PATCH 03/10] rhode: Switch to /vendor_dlkm for kernel modules
 
  * This lets us flash /vendor regardless of the kernel situation.
 

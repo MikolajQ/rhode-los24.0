@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Yurical <yurical1@outlook.com>
 Date: Tue, 14 Oct 2025 20:00:09 +0800
-Subject: [PATCH 10/14] config: Do not include other java mini debug info
+Subject: [PATCH 10/15] config: Do not include other java mini debug info
 
 In the same manner of PRODUCT_SYSTEM_SERVER_DEBUG_INFO.
 We explicitly add PRODUCT_OTHER_JAVA_DEBUG_INFO here since
@@ -15,7 +15,7 @@ Signed-off-by: Yurical <yurical1@outlook.com>
  1 file changed, 3 insertions(+)
 
 diff --git a/config/common.mk b/config/common.mk
-index e179ac9..82bdc37 100644
+index 9b27d34..c8eb6f4 100644
 --- a/config/common.mk
 +++ b/config/common.mk
 @@ -158,6 +158,9 @@ WITH_DEXPREOPT_DEBUG_INFO := false

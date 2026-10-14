@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Jyotiraditya Panda <jyotiraditya@aospa.co>
 Date: Wed, 7 Aug 2024 21:35:48 +0530
-Subject: [PATCH 11/31] PropImitationHooks: Allow user to disable prop
+Subject: [PATCH 011/220] PropImitationHooks: Allow user to disable prop
  imitation
 
  - Prevents spoofing props, bypassing task perms and blocking key attestation for GMS.
@@ -16,7 +16,7 @@ Co-authored-by: Adithya R <gh0strider.2k18.reborn@gmail.com>
  1 file changed, 23 insertions(+), 1 deletion(-)
 
 diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
-index 595afacb94..adc69bc232 100644
+index 595afacb9..adc69bc23 100644
 --- a/core/java/com/android/internal/util/PropImitationHooks.java
 +++ b/core/java/com/android/internal/util/PropImitationHooks.java
 @@ -27,6 +27,7 @@ import android.content.res.Resources;

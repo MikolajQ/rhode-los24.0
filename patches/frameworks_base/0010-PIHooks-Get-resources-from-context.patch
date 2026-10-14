@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Adithya R <gh0strider.2k18.reborn@gmail.com>
 Date: Sat, 2 Dec 2023 23:43:18 +0530
-Subject: [PATCH 10/31] PIHooks: Get resources from context
+Subject: [PATCH 010/220] PIHooks: Get resources from context
 
 Allows updating overlays on the fly.
 
@@ -11,7 +11,7 @@ Change-Id: Idb85918af06400559e3b17317b3ab88a25828fae
  1 file changed, 13 insertions(+), 9 deletions(-)
 
 diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
-index 0d8b493da7..595afacb94 100644
+index 0d8b493da..595afacb9 100644
 --- a/core/java/com/android/internal/util/PropImitationHooks.java
 +++ b/core/java/com/android/internal/util/PropImitationHooks.java
 @@ -40,15 +40,6 @@ public class PropImitationHooks {

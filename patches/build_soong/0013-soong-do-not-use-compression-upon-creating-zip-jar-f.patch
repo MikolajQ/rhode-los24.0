@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Park Ju Hyung <qkrwngud825@gmail.com>
 Date: Fri, 3 Jan 2020 00:11:47 +0900
-Subject: [PATCH 13/23] soong: do not use compression upon creating zip(jar)
+Subject: [PATCH 13/22] soong: do not use compression upon creating zip(jar)
  files
 
 A lot of zip files are created during builds for intermediate purposes
@@ -23,7 +23,7 @@ Signed-off-by: Park Ju Hyung <qkrwngud825@gmail.com>
  4 files changed, 3 insertions(+), 19 deletions(-)
 
 diff --git a/cmd/zip2zip/zip2zip_test.go b/cmd/zip2zip/zip2zip_test.go
-index 85a69efe..5cf6fa0d 100644
+index 85a69ef..5cf6fa0 100644
 --- a/cmd/zip2zip/zip2zip_test.go
 +++ b/cmd/zip2zip/zip2zip_test.go
 @@ -17,7 +17,6 @@ package main
@@ -49,7 +49,7 @@ index 85a69efe..5cf6fa0d 100644
  	}
  }
 diff --git a/third_party/zip/writer.go b/third_party/zip/writer.go
-index 8a957e16..5eb77d7d 100644
+index 8a957e1..5eb77d7 100644
 --- a/third_party/zip/writer.go
 +++ b/third_party/zip/writer.go
 @@ -202,7 +202,7 @@ func (w *Writer) Close() error {
@@ -62,7 +62,7 @@ index 8a957e16..5eb77d7d 100644
  	return w.CreateHeader(header)
  }
 diff --git a/zip/zip.go b/zip/zip.go
-index 22b77047..24120b3d 100644
+index 22b7704..24120b3 100644
 --- a/zip/zip.go
 +++ b/zip/zip.go
 @@ -465,10 +465,7 @@ func fillPathPairs(fa FileArg, src string, pathMappings *[]pathMapping,
@@ -87,7 +87,7 @@ index 22b77047..24120b3d 100644
  		jarSort(pathMappings)
  	} else {
 diff --git a/zip/zip_test.go b/zip/zip_test.go
-index 8f100d8d..47f93361 100644
+index 8f100d8..47f9336 100644
 --- a/zip/zip_test.go
 +++ b/zip/zip_test.go
 @@ -664,11 +664,6 @@ func TestZip(t *testing.T) {

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Abhay Singh Gill <abhaygill017@gmail.com>
 Date: Wed, 11 Jun 2025 15:41:40 +0530
-Subject: [PATCH 20/31] base: Allow user to provide keybox data [1/2]
+Subject: [PATCH 020/220] base: Allow user to provide keybox data [1/2]
 
 Handle PKCS#1 RSA keys for keybox spoofing as well
 
@@ -17,10 +17,10 @@ Signed-off-by: aswin7469 <aswinas@pixysos.com>
  4 files changed, 149 insertions(+), 20 deletions(-)
 
 diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
-index 36e2193cec..10179e9f5f 100644
+index 090c41d92..922299116 100644
 --- a/core/java/android/provider/Settings.java
 +++ b/core/java/android/provider/Settings.java
-@@ -13334,6 +13334,13 @@ public final class Settings {
+@@ -13687,6 +13687,13 @@ public final class Settings {
          public static final String HBM_SETTING_KEY =
                  "com.android.server.display.HBM_SETTING_KEY";
  
@@ -35,7 +35,7 @@ index 36e2193cec..10179e9f5f 100644
           * Keys we no longer back up under the current schema, but want to continue to
           * process when restoring historical backup datasets.
 diff --git a/core/java/com/android/internal/util/KeyProviderManager.java b/core/java/com/android/internal/util/KeyProviderManager.java
-index 2e0b7f8e17..4da3f43db6 100644
+index 2e0b7f8e1..4da3f43db 100644
 --- a/core/java/com/android/internal/util/KeyProviderManager.java
 +++ b/core/java/com/android/internal/util/KeyProviderManager.java
 @@ -6,10 +6,14 @@ package com.android.internal.util;
@@ -190,7 +190,7 @@ index 2e0b7f8e17..4da3f43db6 100644
          }
  
 diff --git a/core/java/com/android/internal/util/KeyboxUtils.java b/core/java/com/android/internal/util/KeyboxUtils.java
-index cc31268694..84fabdf8da 100644
+index cc3126869..84fabdf8d 100644
 --- a/core/java/com/android/internal/util/KeyboxUtils.java
 +++ b/core/java/com/android/internal/util/KeyboxUtils.java
 @@ -10,7 +10,9 @@ import android.system.keystore2.KeyEntryResponse;
@@ -261,13 +261,13 @@ index cc31268694..84fabdf8da 100644
              throw new IllegalArgumentException("Unsupported algorithm: " + algorithm);
          }
 diff --git a/packages/SettingsProvider/src/android/provider/settings/validators/SecureSettingsValidators.java b/packages/SettingsProvider/src/android/provider/settings/validators/SecureSettingsValidators.java
-index a7508c30f8..2e14ca580c 100644
+index e31847d77..bc740d774 100644
 --- a/packages/SettingsProvider/src/android/provider/settings/validators/SecureSettingsValidators.java
 +++ b/packages/SettingsProvider/src/android/provider/settings/validators/SecureSettingsValidators.java
-@@ -521,5 +521,6 @@ public class SecureSettingsValidators {
-                 new InclusiveIntegerRangeValidator(0, 1));
-         VALIDATORS.put(Secure.IDENTITY_CHECK_NOTIFICATION_VIEW_DETAILS_CLICKED,
-                 new InclusiveIntegerRangeValidator(0, 1));
+@@ -553,5 +553,6 @@ public class SecureSettingsValidators {
+         VALIDATORS.put(Secure.IME_SWITCHER_BUTTON_IN_NAVBAR_ENABLED, BOOLEAN_VALIDATOR);
+         VALIDATORS.put(Secure.RAISE_TRIGGER_DEFAULT_ASSISTANT,
+                 COLON_SEPARATED_COMPONENT_LIST_VALIDATOR);
 +        VALIDATORS.put(Secure.KEYBOX_DATA, ANY_STRING_VALIDATOR);
      }
  }

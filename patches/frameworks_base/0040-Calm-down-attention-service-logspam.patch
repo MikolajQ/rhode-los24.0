@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Adhitya Mohan <me@adhityamohan.in>
 Date: Sat, 27 Jun 2020 16:36:27 +0530
-Subject: [PATCH 040/226] Calm down attention service logspam
+Subject: [PATCH 040/220] Calm down attention service logspam
 
 Change-Id: Ie5f04a7a875d918db9b09f5aa1ed0b0592a1d48c
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
@@ -10,10 +10,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/services/core/java/com/android/server/attention/AttentionManagerService.java b/services/core/java/com/android/server/attention/AttentionManagerService.java
-index 5edbaa9396..195070e7c6 100644
+index 889795c14..7645bbed4 100644
 --- a/services/core/java/com/android/server/attention/AttentionManagerService.java
 +++ b/services/core/java/com/android/server/attention/AttentionManagerService.java
-@@ -472,7 +472,7 @@ public class AttentionManagerService extends SystemService {
+@@ -497,7 +497,7 @@ public class AttentionManagerService extends SystemService {
  
          final ResolveInfo resolveInfo = context.getPackageManager().resolveService(intent, flags);
          if (resolveInfo == null || resolveInfo.serviceInfo == null) {

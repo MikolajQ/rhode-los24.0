@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Danny Lin <danny@kdrag0n.dev>
 Date: Sat, 9 Oct 2021 14:37:44 -0700
-Subject: [PATCH 02/14] overlay: Offload WM shell to another thread
+Subject: [PATCH 02/15] overlay: Offload WM shell to another thread
 
 Android 12 added this config to offload some window management to a
 dedicated thread. Enable it to improve performance when the main System

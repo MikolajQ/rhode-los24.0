@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: zljing <zljing@codeaurora.org>
 Date: Wed, 2 Aug 2017 15:10:40 +0800
-Subject: [PATCH 063/226] ShutdownThread: Shorten wait time for shutdown time
+Subject: [PATCH 063/220] ShutdownThread: Shorten wait time for shutdown time
  optimization
 
 Default 500ms delay is waitting shutdown actions done in while cycle.
@@ -21,10 +21,10 @@ Change-Id: Ieb34034652c3cba1c41eadc00500d1f211c2a009
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/services/core/java/com/android/server/power/ShutdownThread.java b/services/core/java/com/android/server/power/ShutdownThread.java
-index ec9e276c31..0587bfba37 100644
+index b44ae9c1c..f0673ea7d 100644
 --- a/services/core/java/com/android/server/power/ShutdownThread.java
 +++ b/services/core/java/com/android/server/power/ShutdownThread.java
-@@ -88,7 +88,7 @@ public final class ShutdownThread extends Thread {
+@@ -90,7 +90,7 @@ public final class ShutdownThread extends Thread {
      private static final int MOUNT_SERVICE_STOP_PERCENT = 20;
  
      // length of vibration before shutting down

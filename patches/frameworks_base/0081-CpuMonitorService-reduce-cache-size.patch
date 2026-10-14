@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: rmp22 <195054967+rmp22@users.noreply.github.com>
 Date: Thu, 1 May 2025 11:06:05 +0800
-Subject: [PATCH 081/226] CpuMonitorService: reduce cache size
+Subject: [PATCH 081/220] CpuMonitorService: reduce cache size
 
 Change-Id: Ic7ba1db1a0845242cecb55e6012bf56f4329a30d
 Signed-off-by: Ghosuto <clash.raja10@gmail.com>
@@ -11,7 +11,7 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/services/core/java/com/android/server/cpu/CpuMonitorService.java b/services/core/java/com/android/server/cpu/CpuMonitorService.java
-index 2cadbc58d0..9843d96047 100644
+index 2cadbc58d..9843d9604 100644
 --- a/services/core/java/com/android/server/cpu/CpuMonitorService.java
 +++ b/services/core/java/com/android/server/cpu/CpuMonitorService.java
 @@ -76,7 +76,7 @@ public final class CpuMonitorService extends SystemService {

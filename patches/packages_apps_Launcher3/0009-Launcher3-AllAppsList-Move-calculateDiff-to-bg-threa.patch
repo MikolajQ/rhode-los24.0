@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: John Galt <johngaltfirstrun@gmail.com>
 Date: Mon, 18 May 2026 13:01:19 -0400
-Subject: [PATCH 09/13] Launcher3: AllAppsList: Move calculateDiff to bg thread
+Subject: [PATCH 09/10] Launcher3: AllAppsList: Move calculateDiff to bg thread
 
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
 ---
@@ -9,7 +9,7 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 14 insertions(+), 2 deletions(-)
 
 diff --git a/src/com/android/launcher3/allapps/AlphabeticalAppsList.java b/src/com/android/launcher3/allapps/AlphabeticalAppsList.java
-index e566ef0ab..0a974c522 100644
+index b0e467f..1e2a753 100644
 --- a/src/com/android/launcher3/allapps/AlphabeticalAppsList.java
 +++ b/src/com/android/launcher3/allapps/AlphabeticalAppsList.java
 @@ -25,6 +25,8 @@ import static com.android.launcher3.allapps.SectionDecorationInfo.ROUND_BOTTOM_R
@@ -21,7 +21,7 @@ index e566ef0ab..0a974c522 100644
  
  import android.content.Context;
  import android.text.Spannable;
-@@ -357,8 +359,18 @@ public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
+@@ -358,8 +360,18 @@ public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
          }
  
          if (mAdapter != null) {

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Ravi Kumar Bokka <brkum@codeaurora.org>
 Date: Sun, 29 Oct 2023 12:19:09 +0100
-Subject: [PATCH 03/18] sm6225-common: wifi: Remove obsolete McastBcastFilter
+Subject: [PATCH 03/20] sm6225-common: wifi: Remove obsolete McastBcastFilter
  config
 
 Remove obsolete McastBcastFilter ini feature

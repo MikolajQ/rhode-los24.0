@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Wed, 14 Oct 2026 21:34:51 +0200
+Subject: [PATCH] extra: Point the updater at the LineageOS 24.0 channel
+
+Android 17 builds get their own updater JSON (24.x/{device}.json), so phones on
+LineageOS 23.2 are not offered a major upgrade through the Updater, which needs
+the manual sideload procedure.
+---
+ product.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/product.mk b/product.mk
+index 4ee40d5..be570d2 100644
+--- a/product.mk
++++ b/product.mk
+@@ -36,7 +36,7 @@ endif
+ 
+ # OTA: własne release'y
+ PRODUCT_SYSTEM_EXT_PROPERTIES += \
+-    lineage.updater.uri=https://raw.githubusercontent.com/MikolajQ/rhode_releases/main/23.x/{device}.json
++    lineage.updater.uri=https://raw.githubusercontent.com/MikolajQ/rhode_releases/main/24.x/{device}.json
+ 
+ # Default ADB shell prompt
+ PRODUCT_SYSTEM_EXT_PROPERTIES += \

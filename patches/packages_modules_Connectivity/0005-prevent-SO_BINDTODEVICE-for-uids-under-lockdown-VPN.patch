@@ -1,8 +1,9 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Fred Underwood <underwoodfred@proton.me>
 Date: Tue, 15 Oct 2024 15:19:44 +1000
-Subject: [PATCH 5/8] prevent SO_BINDTODEVICE for uids under lockdown VPN
+Subject: [PATCH 5/7] prevent SO_BINDTODEVICE for uids under lockdown VPN
 
+[MikolajQ: Android 17 version from GrapheneOS 17 (4cf9ccdf76)]
 ---
  bpf/progs/netd.c                                  | 15 +++++++++++++++
  bpf/progs/netd.h                                  |  1 +
@@ -11,43 +12,36 @@ Subject: [PATCH 5/8] prevent SO_BINDTODEVICE for uids under lockdown VPN
  4 files changed, 28 insertions(+), 1 deletion(-)
 
 diff --git a/bpf/progs/netd.c b/bpf/progs/netd.c
-index 5c68357e..ebb8fbff 100644
+index c9b88c0..c81f692 100644
 --- a/bpf/progs/netd.c
 +++ b/bpf/progs/netd.c
-@@ -950,6 +950,9 @@ DEFINE_NETD_V_BPF_PROG_KVER(getsockopt, prog, , 5_8)
- // group prior to being under a lockdown VPN and then becomes under a lockdown VPN. In this case the
- // IGMP/MLD will be generated when the kernel destroys the thread. This is considered very low
- // severity.
-+//
-+// This program also prevents SO_BINDTODEVICE from being triggered by a UID that is under a lockdown
-+// VPN as this can leak unicast traffic.
- DEFINE_NETD_V_BPF_PROG_KVER(setsockopt, prog, , 5_8)
- (struct bpf_sockopt* ctx) {
-     // Force use of original userspace value in setsockopt call, otherwise will have problems with
-@@ -967,6 +970,18 @@ DEFINE_NETD_V_BPF_PROG_KVER(setsockopt, prog, , 5_8)
+@@ -1522,6 +1522,21 @@ function int inet_setsockopt(struct bpf_sockopt *ctx,
          return SETSOCKOPT_ALLOWED;
      }
  
-+    // Prevent unicast leaks. Can only do this for regular apps as core system and system apps rely
-+    // on this being allowed.
-+    // TODO: Review IP_UNICAST_IF and IP_PKTINFO.
-+    // TODO: Review PermissionMonitor#hasRestrictedNetworkPermission to see if this covers all of
-+    //  the system uids that need to SO_BINDTODEVICE. These uids do not have LOCKDOWN_VPN_MATCH.
-+    if ((uidRule & LOCKDOWN_VPN_REGULAR_APP_MATCH)
-+            && ctx->level == SOL_SOCKET
-+            && ctx->optname == SO_BINDTODEVICE) {
-+        return SETSOCKOPT_EPERM;
++    {
++        // Prevent SO_BINDTODEVICE from being triggered by a UID that is under a lockdown VPN as
++        // this can leak unicast traffic. Can only do this for regular apps as some core system and
++        // system apps rely on this being allowed.
++        // TODO: Review IP_UNICAST_IF and IP_PKTINFO.
++        // TODO: Review PermissionMonitor#hasRestrictedNetworkPermission to see if this covers all
++        //  of the system uids that need to SO_BINDTODEVICE. These uids do not have
++        //  LOCKDOWN_VPN_MATCH.
++        if ((uidRule & LOCKDOWN_VPN_REGULAR_APP_MATCH)
++                && ctx->level == SOL_SOCKET
++                && ctx->optname == SO_BINDTODEVICE) {
++            return SETSOCKOPT_EPERM;
++        }
 +    }
 +
-+    // Prevent multicast leaks.
-     if (ctx->level == IPPROTO_IP
-             && (ctx->optname == IP_ADD_MEMBERSHIP
-             || ctx->optname == IP_ADD_SOURCE_MEMBERSHIP
+     {
+         // Prevent kernel-generated multicast traffic (IGMP, MLD) from being triggered by a
+         // UID that is under a lockdown VPN. A known leak that still exists is when a UID joins a multicast
 diff --git a/bpf/progs/netd.h b/bpf/progs/netd.h
-index 1848759e..e9a0f116 100644
+index f0d1384..2a9c7e2 100644
 --- a/bpf/progs/netd.h
 +++ b/bpf/progs/netd.h
-@@ -194,6 +194,7 @@ enum UidOwnerMatchType : uint32_t {
+@@ -270,6 +270,7 @@ enum UidOwnerMatchType : uint32_t {
      OEM_DENY_3_MATCH = (1 << 11),
      BACKGROUND_MATCH = (1 << 12),
      PENALTY_BOX_ADMIN_MATCH = (1 << 13),
@@ -56,10 +50,10 @@ index 1848759e..e9a0f116 100644
  // LINT.ThenChange(../framework/src/android/net/BpfNetMapsConstants.java)
  
 diff --git a/framework/src/android/net/BpfNetMapsConstants.java b/framework/src/android/net/BpfNetMapsConstants.java
-index f1a6f002..454658f8 100644
+index b58425c..1819c9c 100644
 --- a/framework/src/android/net/BpfNetMapsConstants.java
 +++ b/framework/src/android/net/BpfNetMapsConstants.java
-@@ -88,6 +88,7 @@ public class BpfNetMapsConstants {
+@@ -109,6 +109,7 @@ public class BpfNetMapsConstants {
      public static final long OEM_DENY_3_MATCH = (1 << 11);
      public static final long BACKGROUND_MATCH = (1 << 12);
      public static final long PENALTY_BOX_ADMIN_MATCH = (1 << 13);
@@ -67,7 +61,7 @@ index f1a6f002..454658f8 100644
  
      public static final List<Pair<Long, String>> MATCH_LIST = Arrays.asList(
              Pair.create(HAPPY_BOX_MATCH, "HAPPY_BOX_MATCH"),
-@@ -103,7 +104,8 @@ public class BpfNetMapsConstants {
+@@ -124,7 +125,8 @@ public class BpfNetMapsConstants {
              Pair.create(OEM_DENY_2_MATCH, "OEM_DENY_2_MATCH"),
              Pair.create(OEM_DENY_3_MATCH, "OEM_DENY_3_MATCH"),
              Pair.create(BACKGROUND_MATCH, "BACKGROUND_MATCH"),
@@ -78,18 +72,18 @@ index f1a6f002..454658f8 100644
  
      /**
 diff --git a/service/src/com/android/server/BpfNetMaps.java b/service/src/com/android/server/BpfNetMaps.java
-index a9681938..a0ea2e28 100644
+index c1a4799..426a356 100644
 --- a/service/src/com/android/server/BpfNetMaps.java
 +++ b/service/src/com/android/server/BpfNetMaps.java
-@@ -28,6 +28,7 @@ import static android.net.BpfNetMapsConstants.INGRESS_DISCARD_MAP_PATH;
- import static android.net.BpfNetMapsConstants.LOCAL_NET_ACCESS_MAP_PATH;
- import static android.net.BpfNetMapsConstants.LOCAL_NET_BLOCKED_UID_MAP_PATH;
- import static android.net.BpfNetMapsConstants.LOCKDOWN_VPN_MATCH;
+@@ -37,6 +37,7 @@ import static android.net.BpfNetMapsConstants.LOOPBACK_ACCESS_METRICS_ENABLED_MA
+ import static android.net.BpfNetMapsConstants.LOOPBACK_CHECKS_ENABLED_MAP_PATH;
+ import static android.net.BpfNetMapsConstants.PERMISSION_PROPAGATION_ENABLED_MAP_PATH;
+ import static android.net.BpfNetMapsConstants.UID_MIGRATION_ENABLED_MAP_PATH;
 +import static android.net.BpfNetMapsConstants.LOCKDOWN_VPN_REGULAR_APP_MATCH;
  import static android.net.BpfNetMapsConstants.UID_OWNER_MAP_PATH;
+ import static android.net.BpfNetMapsConstants.UID_PERMISSION_CHUNK_MAP_PATH;
  import static android.net.BpfNetMapsConstants.UID_PERMISSION_MAP_PATH;
- import static android.net.BpfNetMapsConstants.UID_RULES_CONFIGURATION_KEY;
-@@ -54,6 +55,7 @@ import android.annotation.Nullable;
+@@ -100,6 +101,7 @@ import android.annotation.Nullable;
  import android.app.StatsManager;
  import android.content.Context;
  import android.net.BpfNetMapsUtils;
@@ -97,16 +91,16 @@ index a9681938..a0ea2e28 100644
  import android.net.INetd;
  import android.net.UidOwnerValue;
  import android.os.Build;
-@@ -148,6 +150,8 @@ public class BpfNetMaps {
-     );
-     private final InterfaceTracker mInterfaceTracker;
+@@ -287,6 +289,8 @@ public class BpfNetMaps {
+         return sL4sSupported;
+     }
  
 +    private Context mContext;
 +
      /**
       * Set configurationMap for test.
       */
-@@ -449,6 +453,7 @@ public class BpfNetMaps {
+@@ -977,6 +981,7 @@ public class BpfNetMaps {
          mNetd = netd;
          mDeps = deps;
          mInterfaceTracker = interfaceTracker;
@@ -114,7 +108,7 @@ index a9681938..a0ea2e28 100644
      }
  
      private void maybeThrow(final int err, final String msg) {
-@@ -822,8 +827,12 @@ public class BpfNetMaps {
+@@ -1353,8 +1358,12 @@ public class BpfNetMaps {
  
          if (add) {
              addRule(uid, LOCKDOWN_VPN_MATCH, "updateUidLockdownRule");

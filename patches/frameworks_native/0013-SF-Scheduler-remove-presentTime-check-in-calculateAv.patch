@@ -16,7 +16,7 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  1 file changed, 5 deletions(-)
 
 diff --git a/services/surfaceflinger/Scheduler/LayerInfo.cpp b/services/surfaceflinger/Scheduler/LayerInfo.cpp
-index 8efda7c..2ef73ae 100644
+index 3ff0050..17bbef7 100644
 --- a/services/surfaceflinger/Scheduler/LayerInfo.cpp
 +++ b/services/surfaceflinger/Scheduler/LayerInfo.cpp
 @@ -231,11 +231,6 @@ std::optional<nsecs_t> LayerInfo::calculateAverageFrameTime() const {

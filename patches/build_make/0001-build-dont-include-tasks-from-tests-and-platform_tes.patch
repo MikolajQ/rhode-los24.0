@@ -1,8 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: maxwen <max.weninger@gmail.com>
 Date: Tue, 1 Dec 2020 21:16:51 +0100
-Subject: [PATCH 01/10] build: dont include tasks from tests and
- platform_testing
+Subject: [PATCH 1/9] build: dont include tasks from tests and platform_testing
 
 Change-Id: I36fe03fb9e26622a4b47ca011a25c02c6ab56c56
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
@@ -11,10 +10,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/core/Makefile b/core/Makefile
-index b8c4189..a4ea3ec 100644
+index 65c45cb..98d1118 100644
 --- a/core/Makefile
 +++ b/core/Makefile
-@@ -8019,9 +8019,9 @@ task_makefiles := \
+@@ -8110,9 +8110,9 @@ task_makefiles := \
  	$(sort $(wildcard product/*/build/tasks/*.mk)) \
  	$(sort $(wildcard vendor/*/*/build/tasks/*.mk)) \
  	$(sort $(wildcard device/*/*/build/tasks/*.mk)) \

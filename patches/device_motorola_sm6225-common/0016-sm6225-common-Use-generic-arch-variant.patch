@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Anton Hansson <hansson@google.com>
 Date: Thu, 8 Aug 2024 19:30:31 +0200
-Subject: [PATCH 16/18] sm6225-common: Use generic arch variant
+Subject: [PATCH 16/20] sm6225-common: Use generic arch variant
 
 Follow blueline which has not demonstrated any regressions
 after switching to a generic arch variant.
@@ -14,7 +14,7 @@ Change-Id: I9e23963fcfa5ccaa912f2930a632458c4d2a692d
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/BoardConfigCommon.mk b/BoardConfigCommon.mk
-index 5f08ff0..5cf1653 100644
+index 6551a30..e86f497 100644
 --- a/BoardConfigCommon.mk
 +++ b/BoardConfigCommon.mk
 @@ -16,7 +16,7 @@ TARGET_2ND_ARCH := arm

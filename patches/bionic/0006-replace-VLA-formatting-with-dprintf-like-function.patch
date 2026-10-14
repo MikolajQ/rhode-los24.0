@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Daniel Micay <danielmicay@gmail.com>
 Date: Sat, 16 Jul 2016 23:55:16 -0400
-Subject: [PATCH 06/23] replace VLA formatting with dprintf-like function
+Subject: [PATCH 06/32] replace VLA formatting with dprintf-like function
 
 Signed-off-by: anupritaisno1 <www.anuprita804@gmail.com>
 ---

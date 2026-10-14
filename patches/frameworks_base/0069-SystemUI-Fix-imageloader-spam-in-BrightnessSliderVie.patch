@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Pranav Vashi <neobuddy89@gmail.com>
 Date: Thu, 23 Oct 2025 01:53:41 +0530
-Subject: [PATCH 069/226] SystemUI: Fix imageloader spam in
+Subject: [PATCH 069/220] SystemUI: Fix imageloader spam in
  BrightnessSliderViewModel
 
 * Image decoder cannot handle vector XML.
@@ -28,47 +28,50 @@ Log:
 10-23 00:02:52.472 W/ImageLoader(2485): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:651)
 10-23 00:02:52.472 W/ImageLoader(2485): 	at java.lang.Thread.run(Thread.java:1119)
 
+[MikolajQ: Ported to Android 17: the view model is a HydratedActivatable now]
+
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
 Signed-off-by: Dmitrii <bankersenator@gmail.com>
 ---
- .../ui/viewmodel/BrightnessSliderViewModel.kt       | 13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ .../ui/viewmodel/BrightnessSliderViewModel.kt      | 14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
 diff --git a/packages/SystemUI/src/com/android/systemui/brightness/ui/viewmodel/BrightnessSliderViewModel.kt b/packages/SystemUI/src/com/android/systemui/brightness/ui/viewmodel/BrightnessSliderViewModel.kt
-index 36efeaa1bc..4082193657 100644
+index 79b96bc84..38f450a7c 100644
 --- a/packages/SystemUI/src/com/android/systemui/brightness/ui/viewmodel/BrightnessSliderViewModel.kt
 +++ b/packages/SystemUI/src/com/android/systemui/brightness/ui/viewmodel/BrightnessSliderViewModel.kt
-@@ -21,6 +21,7 @@ import androidx.annotation.DrawableRes
- import androidx.annotation.FloatRange
+@@ -22,6 +22,7 @@ import androidx.annotation.FloatRange
  import androidx.annotation.StringRes
  import androidx.compose.runtime.getValue
+ import com.android.systemui.brightness.domain.interactor.BrightnessMirrorShowingInteractor
 +import androidx.core.content.res.ResourcesCompat
  import com.android.systemui.brightness.domain.interactor.BrightnessPolicyEnforcementInteractor
  import com.android.systemui.brightness.domain.interactor.ScreenBrightnessInteractor
- import com.android.systemui.brightness.shared.model.GammaBrightness
-@@ -28,7 +29,6 @@ import com.android.systemui.classifier.Classifier
+ import com.android.systemui.brightness.domain.model.GammaBrightness
+@@ -29,7 +30,6 @@ import com.android.systemui.classifier.Classifier
  import com.android.systemui.classifier.domain.interactor.FalsingInteractor
  import com.android.systemui.common.shared.model.Icon
  import com.android.systemui.common.shared.model.asIcon
 -import com.android.systemui.graphics.ImageLoader
  import com.android.systemui.haptics.slider.compose.ui.SliderHapticsViewModel
- import com.android.systemui.lifecycle.ExclusiveActivatable
- import com.android.systemui.lifecycle.Hydrator
-@@ -62,7 +62,6 @@ constructor(
+ import com.android.systemui.lifecycle.HydratedActivatable
+ import com.android.systemui.res.R
+@@ -61,7 +61,6 @@ constructor(
      private val falsingInteractor: FalsingInteractor,
-     @Assisted private val supportsMirroring: Boolean,
+     @Assisted val supportsMirroring: Boolean,
      private val brightnessWarningToast: BrightnessWarningToast,
 -    private val imageLoader: ImageLoader,
- ) : ExclusiveActivatable() {
+ ) : HydratedActivatable() {
  
      init {
-@@ -110,13 +109,9 @@ constructor(
+@@ -101,14 +100,9 @@ constructor(
  
      suspend fun loadImage(@DrawableRes resId: Int, context: Context): Icon.Loaded? {
          return withTimeoutOrNull(500L) {
 -            imageLoader
 -                .loadDrawable(
 -                    android.graphics.drawable.Icon.createWithResource(context, resId),
+-                    context = context,
 -                    maxHeight = 200,
 -                    maxWidth = 200,
 -                )

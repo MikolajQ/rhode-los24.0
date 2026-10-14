@@ -9,7 +9,7 @@ This reverts commit c7f5eb7654a9689f03dc0f038ad802758ed24623.
  1 file changed, 31 insertions(+)
 
 diff --git a/runtime/Android.bp b/runtime/Android.bp
-index 66fe919..dd3e078 100644
+index d914820..0331222 100644
 --- a/runtime/Android.bp
 +++ b/runtime/Android.bp
 @@ -44,6 +44,37 @@ cc_defaults {

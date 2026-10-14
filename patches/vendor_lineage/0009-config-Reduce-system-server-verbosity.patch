@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mathieu Chartier <mathieuc@google.com>
 Date: Tue, 14 Oct 2025 19:58:39 +0800
-Subject: [PATCH 09/14] config: Reduce system server verbosity
+Subject: [PATCH 09/15] config: Reduce system server verbosity
 
 Test: lunch statix_cannon-user && m
 Change-Id: I58d2e993ae9a7213e94661d22b47c28b0a2243e8
@@ -12,7 +12,7 @@ Reviewed-on: https://review.statixos.com/c/android_vendor_statix/+/13531
  1 file changed, 3 insertions(+)
 
 diff --git a/config/common.mk b/config/common.mk
-index 705002b..e179ac9 100644
+index a66bd9e..9b27d34 100644
 --- a/config/common.mk
 +++ b/config/common.mk
 @@ -155,6 +155,9 @@ TARGET_VNDK_USE_CORE_VARIANT := true

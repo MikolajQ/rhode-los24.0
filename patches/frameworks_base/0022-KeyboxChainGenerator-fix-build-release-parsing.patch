@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Sim=C3=A3o=20Gomes=20Viana?= <devel@superboring.dev>
 Date: Thu, 7 Aug 2025 23:13:49 +0200
-Subject: [PATCH 22/31] KeyboxChainGenerator: fix build release parsing
+Subject: [PATCH 022/220] KeyboxChainGenerator: fix build release parsing
 
 And return 16 by default, just as a fallback for the worst case.
 ---
@@ -9,7 +9,7 @@ And return 16 by default, just as a fallback for the worst case.
  1 file changed, 12 insertions(+), 4 deletions(-)
 
 diff --git a/core/java/com/android/internal/util/KeyboxChainGenerator.java b/core/java/com/android/internal/util/KeyboxChainGenerator.java
-index b157cb6a15..ed7f4beb9b 100644
+index b157cb6a1..ed7f4beb9 100644
 --- a/core/java/com/android/internal/util/KeyboxChainGenerator.java
 +++ b/core/java/com/android/internal/util/KeyboxChainGenerator.java
 @@ -1,6 +1,7 @@

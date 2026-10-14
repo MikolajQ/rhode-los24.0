@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Tommaso Fonda <fondatommaso2@gmail.com>
 Date: Thu, 8 Aug 2024 17:09:19 +0200
-Subject: [PATCH 14/18] sm6225-common: rootdir: Apply some tweaks from KTweak
+Subject: [PATCH 14/20] sm6225-common: rootdir: Apply some tweaks from KTweak
  on init
 
 Change-Id: If0de5ad30f0b71e7a78d0694f38dfe739e55428c

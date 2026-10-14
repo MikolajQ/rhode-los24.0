@@ -11,10 +11,10 @@ Change-Id: I818ff20b8eee8a172cfedfd39d67a9533e25b590
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/libs/binder/IPCThreadState.cpp b/libs/binder/IPCThreadState.cpp
-index 12c91ae..c0e1f65 100644
+index 6c4dd46..d6b3cd4 100644
 --- a/libs/binder/IPCThreadState.cpp
 +++ b/libs/binder/IPCThreadState.cpp
-@@ -797,7 +797,7 @@ void IPCThreadState::processPendingDerefs()
+@@ -801,7 +801,7 @@ void IPCThreadState::processPendingDerefs()
              while (mPendingWeakDerefs.size() > 0) {
                  RefBase::weakref_type* refs = mPendingWeakDerefs[0];
                  mPendingWeakDerefs.removeAt(0);
@@ -23,7 +23,7 @@ index 12c91ae..c0e1f65 100644
              }
  
              if (mPendingStrongDerefs.size() > 0) {
-@@ -807,7 +807,7 @@ void IPCThreadState::processPendingDerefs()
+@@ -811,7 +811,7 @@ void IPCThreadState::processPendingDerefs()
                  // the decWeak() first.
                  BBinder* obj = mPendingStrongDerefs[0];
                  mPendingStrongDerefs.removeAt(0);

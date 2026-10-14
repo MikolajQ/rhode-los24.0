@@ -28,6 +28,8 @@ longer than 3 seconds.
 
 [gotenksIN - Adapt to 14]
 
+[MikolajQ: Ported to Android 17: promotePacesetterDisplayLocked() was folded into promotePacesetterDisplay(), the heuristic idle timer starts there after the idle timer]
+
 Change-Id: I065250bbbe3f0b9ff071779bcc43a4499463ef24
 Co-authored-by: Juhyung Park <qkrwngud825@gmail.com>
 Signed-off-by: Adithya R <gh0strider.2k18.reborn@gmail.com>
@@ -41,10 +43,10 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  4 files changed, 40 insertions(+), 3 deletions(-)
 
 diff --git a/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp b/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
-index 3d7cd6e..a7f62cc 100644
+index a8765cc..82a3697 100644
 --- a/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
 +++ b/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
-@@ -907,7 +907,18 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -914,7 +914,18 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
                  continue;
              }
  
@@ -65,7 +67,7 @@ index 3d7cd6e..a7f62cc 100644
  
              // Layer with fixed source has a special consideration which depends on the
 diff --git a/services/surfaceflinger/Scheduler/RefreshRateSelector.h b/services/surfaceflinger/Scheduler/RefreshRateSelector.h
-index 2ba35c0..8c8828c 100644
+index 10eb812..2eab148 100644
 --- a/services/surfaceflinger/Scheduler/RefreshRateSelector.h
 +++ b/services/surfaceflinger/Scheduler/RefreshRateSelector.h
 @@ -219,12 +219,15 @@ public:
@@ -86,10 +88,10 @@ index 2ba35c0..8c8828c 100644
  
          auto toString() const {
 diff --git a/services/surfaceflinger/Scheduler/Scheduler.cpp b/services/surfaceflinger/Scheduler/Scheduler.cpp
-index 18e6fcc..3462169 100644
+index d53c93d..db6e47d 100644
 --- a/services/surfaceflinger/Scheduler/Scheduler.cpp
 +++ b/services/surfaceflinger/Scheduler/Scheduler.cpp
-@@ -77,6 +77,7 @@ Scheduler::~Scheduler() {
+@@ -74,6 +74,7 @@ Scheduler::~Scheduler() {
      // Stop timers and wait for their threads to exit.
      mDisplayPowerTimers.clear();
      mTouchTimer.reset();
@@ -97,7 +99,7 @@ index 18e6fcc..3462169 100644
  
      // Stop idle timer and clear callbacks, as the RefreshRateSelector may outlive the Scheduler.
      demotePacesetterDisplay(
-@@ -1099,6 +1100,9 @@ void Scheduler::onTouchHint() {
+@@ -1126,6 +1127,9 @@ void Scheduler::onTouchHint() {
          mTouchTimer->reset();
          pacesetterSelectorPtr()->resetKernelIdleTimer();
      }
@@ -107,7 +109,7 @@ index 18e6fcc..3462169 100644
  }
  
  bool Scheduler::setDisplayPowerMode(PhysicalDisplayId id, hal::PowerMode powerMode) {
-@@ -1206,6 +1210,11 @@ void Scheduler::idleTimerCallback(PhysicalDisplayId displayId, TimerState state)
+@@ -1230,6 +1234,11 @@ void Scheduler::idleTimerCallback(PhysicalDisplayId displayId, TimerState state)
      SFTRACE_INT("ExpiredIdleTimer", static_cast<int>(state));
  }
  
@@ -119,21 +121,21 @@ index 18e6fcc..3462169 100644
  void Scheduler::touchTimerCallback(TimerState state) {
      const TouchState touch = state == TimerState::Reset ? TouchState::Active : TouchState::Inactive;
      // Touch event will boost the refresh rate to performance.
-@@ -1395,6 +1404,13 @@ std::shared_ptr<VsyncSchedule> Scheduler::promotePacesetterDisplayLocked(
-             pacesetter.selectorPtr->startIdleTimer();
-         }
+@@ -1411,6 +1420,13 @@ void Scheduler::promotePacesetterDisplay(PromotionParams params,
+         pacesetter.selectorPtr->startIdleTimer();
+     }
  
-+        mHeuristicIdleTimer.emplace(
-+                "heuristicIdleTimer",
-+                std::max(HEURISTIC_TIMEOUT, pacesetter.selectorPtr->getIdleTimerTimeout()),
-+                [this] { heuristicIdleTimerCallback(TimerState::Reset); },
-+                [this] { heuristicIdleTimerCallback(TimerState::Expired); });
-+        mHeuristicIdleTimer->start();
++    mHeuristicIdleTimer.emplace(
++            "heuristicIdleTimer",
++            std::max(HEURISTIC_TIMEOUT, pacesetter.selectorPtr->getIdleTimerTimeout()),
++            [this] { heuristicIdleTimerCallback(TimerState::Reset); },
++            [this] { heuristicIdleTimerCallback(TimerState::Expired); });
++    mHeuristicIdleTimer->start();
 +
-         newVsyncSchedulePtr = pacesetter.schedulePtr;
- 
-         constexpr bool kForce = true;
-@@ -1721,7 +1737,8 @@ GlobalSignals Scheduler::makeGlobalSignals(PhysicalDisplayId displayId) const {
+     constexpr bool kForce = true;
+     const auto pacesetterActiveModePtr = pacesetter.selectorPtr->getActiveMode().modePtr;
+     pacesetter.schedulePtr->onDisplayModeChanged(pacesetterActiveModePtr, kForce);
+@@ -1745,7 +1761,8 @@ GlobalSignals Scheduler::makeGlobalSignals(PhysicalDisplayId displayId) const {
  
      return {.touch = mTouchTimer && mPolicy.touch == TouchState::Active,
              .idle = displayIdle,
@@ -144,10 +146,10 @@ index 18e6fcc..3462169 100644
  
  FrameRateMode Scheduler::getPreferredDisplayMode() {
 diff --git a/services/surfaceflinger/Scheduler/Scheduler.h b/services/surfaceflinger/Scheduler/Scheduler.h
-index c9410f9..ff96aca 100644
+index 47772a8..2b1d39a 100644
 --- a/services/surfaceflinger/Scheduler/Scheduler.h
 +++ b/services/surfaceflinger/Scheduler/Scheduler.h
-@@ -418,6 +418,7 @@ private:
+@@ -405,6 +405,7 @@ private:
      void idleTimerCallback(PhysicalDisplayId, TimerState);
      void touchTimerCallback(TimerState);
      void displayPowerTimerCallback(PhysicalDisplayId, TimerState);
@@ -155,7 +157,7 @@ index c9410f9..ff96aca 100644
  
      // VsyncSchedule delegate.
      void onHardwareVsyncRequest(PhysicalDisplayId, bool enable);
-@@ -567,6 +568,10 @@ private:
+@@ -549,6 +550,10 @@ private:
  
      bool mShouldStartPowerTimers GUARDED_BY(kMainThreadContext) = false;
  
@@ -166,7 +168,7 @@ index c9410f9..ff96aca 100644
      // Injected delay prior to compositing, for simulating jank.
      float mPacesetterFrameDurationFractionToSkip GUARDED_BY(kMainThreadContext) = 0.f;
  
-@@ -658,6 +663,7 @@ private:
+@@ -652,6 +657,7 @@ private:
          // Policy for choosing the display mode.
          LayerHistory::Summary contentRequirements;
          ui::PhysicalDisplayMap<PhysicalDisplayId, TimerState> idleTimers;

@@ -1,0 +1,80 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: rmp22 <195054967+rmp22@users.noreply.github.com>
+Date: Tue, 29 Apr 2025 07:16:32 +0800
+Subject: [PATCH 130/220] SystemUI: clean heap memory on screen off
+
+Change-Id: If1ed8a9a02c190ba9fb056c093c21b8b91c85161
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+---
+ .../statusbar/phone/CentralSurfacesImpl.java  | 23 +++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/phone/CentralSurfacesImpl.java b/packages/SystemUI/src/com/android/systemui/statusbar/phone/CentralSurfacesImpl.java
+index 315fe3420..1d246a1b8 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/phone/CentralSurfacesImpl.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/phone/CentralSurfacesImpl.java
+@@ -51,6 +51,7 @@ import android.metrics.LogMaker;
+ import android.net.Uri;
+ import android.os.Bundle;
+ import android.os.Handler;
++import android.os.Looper;
+ import android.os.PowerManager;
+ import android.os.RemoteException;
+ import android.os.ServiceManager;
+@@ -382,6 +383,8 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
+     private final NotificationsController mNotificationsController;
+     private final StatusBarHideIconsForBouncerManager mStatusBarHideIconsForBouncerManager;
+ 
++    private final Handler mHandler = new Handler(Looper.getMainLooper());
++
+     /** Controller for the Shade. */
+     private final ShadeSurface mShadeSurface;
+     private final ShadeLogger mShadeLogger;
+@@ -407,6 +410,9 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
+ 
+     private final DisplayMetrics mDisplayMetrics;
+ 
++    private static final long GC_INTERVAL_MS = 10 * 60 * 1000L; // 10 minutes
++    private long lastGcTime = 0L;
++
+     // XXX: gesture research
+     private final GestureRecorder mGestureRec = DEBUG_GESTURES
+         ? new GestureRecorder("/sdcard/statusbar_gestures.dat")
+@@ -2130,6 +2136,8 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
+                         () -> mCommandQueueCallbacks.onEmergencyActionLaunchGestureDetected());
+             }
+             updateIsKeyguard();
++            // make sure we do garbage collection at screen off but delay it to avoid black wallpaper
++            mHandler.postDelayed(mSystemUiGcOpt, 5000);
+         }
+ 
+         @Override
+@@ -2177,6 +2185,7 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
+                 }
+             });
+             DejankUtils.stopDetectingBlockingIpcs(tag);
++            mHandler.removeCallbacks(mSystemUiGcOpt);
+         }
+ 
+         /**
+@@ -2240,6 +2249,20 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
+         }
+     };
+ 
++    private final Runnable mSystemUiGcOpt = new Runnable() {
++        @Override
++        public void run() {
++            long currentTime = System.currentTimeMillis();
++            if (lastGcTime == 0L || currentTime - lastGcTime > GC_INTERVAL_MS) {
++                Log.v("GcOpt", "performing garbage collection for SystemUI");
++                System.gc();
++                System.runFinalization();
++                System.gc();
++                lastGcTime = currentTime;
++            }
++        }
++    };
++
+     /**
+      * We need to disable touch events because these might
+      * collapse the panel after we expanded it, and thus we would end up with a blank

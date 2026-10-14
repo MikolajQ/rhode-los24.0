@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: 1582130940 <19632674+1582130940@users.noreply.github.com>
 Date: Mon, 17 Jul 2023 17:24:09 +0800
-Subject: [PATCH 06/14] config: Sets Android Go recommended default product
+Subject: [PATCH 06/15] config: Sets Android Go recommended default product
  options
 
 * Speed profile services and wifi-service to reduce RAM and storage
@@ -19,7 +19,7 @@ Signed-off-by: Tommaso Fonda <fondatommaso2@gmail.com>
  1 file changed, 11 insertions(+)
 
 diff --git a/config/common.mk b/config/common.mk
-index 595e375..7b14e3e 100644
+index 3111484..c326acd 100644
 --- a/config/common.mk
 +++ b/config/common.mk
 @@ -139,6 +139,17 @@ ifneq ($(TARGET_DISABLE_EPPE),true)

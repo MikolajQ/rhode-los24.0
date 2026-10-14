@@ -1,7 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Daniel Micay <danielmicay@gmail.com>
 Date: Mon, 2 Apr 2018 12:59:51 -0400
-Subject: [PATCH 02/31] core/config: use Cloudflare DNS as the default fallback
+Subject: [PATCH 002/220] core/config: use Cloudflare DNS as the default
+ fallback
 
 Cloudflare DNS has a better privacy policy than Google Public DNS while
 still supporting DNS over TLS.
@@ -10,10 +11,10 @@ still supporting DNS over TLS.
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/core/res/res/values/config.xml b/core/res/res/values/config.xml
-index fbe4c3280e..6fbc3dc07b 100644
+index a19202ff1..6626fa1d8 100644
 --- a/core/res/res/values/config.xml
 +++ b/core/res/res/values/config.xml
-@@ -2552,7 +2552,7 @@
+@@ -2594,7 +2594,7 @@
      <string name="config_overrideComponentUiPackage" translatable="false">com.android.stk</string>
  
      <!-- IP address of the dns server to use if nobody else suggests one -->

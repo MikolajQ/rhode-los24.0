@@ -1,14 +1,14 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Dmitry Muhomor <muhomor.dmitry@gmail.com>
 Date: Wed, 24 May 2023 13:09:08 +0300
-Subject: [PATCH 3/8] extend connectivity checks setting to Dns{Tls,Udp}Check
+Subject: [PATCH 3/7] extend connectivity checks setting to Dns{Tls,Udp}Check
 
 ---
  .../connectivity/NetworkDiagnostics.java      | 77 +++++++++++++++++--
  1 file changed, 70 insertions(+), 7 deletions(-)
 
 diff --git a/service/src/com/android/server/connectivity/NetworkDiagnostics.java b/service/src/com/android/server/connectivity/NetworkDiagnostics.java
-index 704740ee..594038e0 100644
+index db3dceb..4f72885 100644
 --- a/service/src/com/android/server/connectivity/NetworkDiagnostics.java
 +++ b/service/src/com/android/server/connectivity/NetworkDiagnostics.java
 @@ -30,6 +30,7 @@ import static com.android.net.module.util.NetworkStackConstants.IP_MTU;
@@ -19,7 +19,7 @@ index 704740ee..594038e0 100644
  import android.net.InetAddresses;
  import android.net.LinkAddress;
  import android.net.LinkProperties;
-@@ -704,10 +705,9 @@ public class NetworkDiagnostics {
+@@ -705,10 +706,9 @@ public class NetworkDiagnostics {
  
              // This needs to be fixed length so it can be dropped into the pre-canned packet.
              final String sixRandomDigits = String.valueOf(mRandom.nextInt(900000) + 100000);
@@ -31,7 +31,7 @@ index 704740ee..594038e0 100644
  
              int count = 0;
              mMeasurement.startTime = now();
-@@ -741,9 +741,12 @@ public class NetworkDiagnostics {
+@@ -742,9 +742,12 @@ public class NetworkDiagnostics {
              close();
          }
  
@@ -45,7 +45,7 @@ index 704740ee..594038e0 100644
                  (byte) mRandom.nextInt(), (byte) mRandom.nextInt(),  // [0-1]   query ID
                  1, 0,  // [2-3]   flags; byte[2] = 1 for recursion desired (RD).
                  0, 1,  // [4-5]   QDCOUNT (number of queries)
-@@ -752,20 +755,80 @@ public class NetworkDiagnostics {
+@@ -753,20 +756,80 @@ public class NetworkDiagnostics {
                  0, 0,  // [10-11] ARCOUNT (number of additional records)
                  17, rnd[0], rnd[1], rnd[2], rnd[3], rnd[4], rnd[5],
                          '-', 'a', 'n', 'd', 'r', 'o', 'i', 'd', '-', 'd', 's',

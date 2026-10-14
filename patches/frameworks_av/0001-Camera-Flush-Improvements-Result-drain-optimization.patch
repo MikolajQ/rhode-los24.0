@@ -14,10 +14,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/services/camera/libcameraservice/device3/Camera3Device.cpp b/services/camera/libcameraservice/device3/Camera3Device.cpp
-index 86efe37..5b9e76b 100644
+index ca15987..2e0ac63 100644
 --- a/services/camera/libcameraservice/device3/Camera3Device.cpp
 +++ b/services/camera/libcameraservice/device3/Camera3Device.cpp
-@@ -3424,9 +3424,15 @@ status_t Camera3Device::RequestThread::clear(
+@@ -3630,9 +3630,15 @@ status_t Camera3Device::RequestThread::clear(
  
  status_t Camera3Device::RequestThread::flush() {
      ATRACE_CALL();

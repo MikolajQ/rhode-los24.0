@@ -4,7 +4,7 @@
 # to zmiana architektury hooków, nie prosty bump (patrz README/pamięć projektu, 22.09).
 set -euo pipefail
 
-echo "== 1) Patche przepisu vs aktualny LineageOS lineage-23.2 + scalenie jądra"
+echo "== 1) Patche przepisu vs aktualny LineageOS lineage-24.0 + scalenie jądra"
 "$(dirname "$0")/check-patches.sh" || echo "  UWAGA: coś nie wejdzie — odświeżyć patch przed ham get (docs/przeglad-tomoms.md, sekcja o utrzymaniu)"
 echo
 echo "== 2) KernelSU-Next (legacy) — nasz pin vs upstream"

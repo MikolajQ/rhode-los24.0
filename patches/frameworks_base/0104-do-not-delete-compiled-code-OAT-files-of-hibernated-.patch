@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Dmitry Muhomor <muhomor.dmitry@gmail.com>
 Date: Wed, 11 Oct 2023 11:50:56 +0300
-Subject: [PATCH 104/226] do not delete compiled code (OAT files) of hibernated
+Subject: [PATCH 104/220] do not delete compiled code (OAT files) of hibernated
  apps
 
 ---
@@ -9,10 +9,10 @@ Subject: [PATCH 104/226] do not delete compiled code (OAT files) of hibernated
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/core/res/res/values/config.xml b/core/res/res/values/config.xml
-index 487bb3b416..4ddebf5ca1 100644
+index 8526d9aef..a126c68d2 100644
 --- a/core/res/res/values/config.xml
 +++ b/core/res/res/values/config.xml
-@@ -6890,7 +6890,7 @@
+@@ -7072,7 +7072,7 @@
      <bool name="config_earcFeatureDisabled_default">false</bool>
  
      <!-- Whether app hibernation deletes OAT artifact files as part of global hibernation. -->

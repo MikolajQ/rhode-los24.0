@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Danny Lin <danny@kdrag0n.dev>
 Date: Mon, 5 Apr 2021 23:05:02 -0700
-Subject: [PATCH 085/226] SystemServiceRegistry: Replace ArrayMap with HashMap
+Subject: [PATCH 085/220] SystemServiceRegistry: Replace ArrayMap with HashMap
  for performance
 
 When opening and closing activities in Settings, a significant amount of
@@ -118,10 +118,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/core/java/android/app/SystemServiceRegistry.java b/core/java/android/app/SystemServiceRegistry.java
-index 60a938d701..e2f5c8d537 100644
+index cc0e7b5cb..40a990469 100644
 --- a/core/java/android/app/SystemServiceRegistry.java
 +++ b/core/java/android/app/SystemServiceRegistry.java
-@@ -269,7 +269,6 @@ import android.telephony.MmsManager;
+@@ -295,7 +295,6 @@ import android.telephony.MmsManager;
  import android.telephony.TelephonyFrameworkInitializer;
  import android.telephony.TelephonyRegistryManager;
  import android.transparency.BinaryTransparencyManager;
@@ -129,7 +129,7 @@ index 60a938d701..e2f5c8d537 100644
  import android.util.Log;
  import android.util.Slog;
  import android.uwb.UwbFrameworkInitializer;
-@@ -308,6 +307,7 @@ import com.android.internal.policy.PhoneLayoutInflater;
+@@ -336,6 +335,7 @@ import com.android.internal.telecom.TelecomDependencies;
  import com.android.internal.util.Preconditions;
  import com.android.modules.utils.ravenwood.RavenwoodHelper;
  
@@ -137,7 +137,7 @@ index 60a938d701..e2f5c8d537 100644
  import java.util.Map;
  import java.util.Objects;
  
-@@ -342,10 +342,10 @@ public final class SystemServiceRegistry {
+@@ -370,10 +370,10 @@ public final class SystemServiceRegistry {
      // Service registry information.
      // This information is never changed once static initialization has completed.
      private static final Map<Class<?>, String> SYSTEM_SERVICE_NAMES =

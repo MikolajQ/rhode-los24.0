@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Sultan Alsawaf <sultan@kerneltoast.com>
 Date: Sat, 3 Apr 2021 16:43:42 -0700
-Subject: [PATCH 074/226] StrictMode: Don't enable extra features for userdebug
+Subject: [PATCH 074/220] StrictMode: Don't enable extra features for userdebug
  builds
 
 On userdebug builds, StrictMode becomes more invasive and can produce
@@ -17,10 +17,10 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  1 file changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/core/java/android/os/StrictMode.java b/core/java/android/os/StrictMode.java
-index 12928596ef..10d75fdc91 100644
+index 41d9857a4..0b01433dc 100644
 --- a/core/java/android/os/StrictMode.java
 +++ b/core/java/android/os/StrictMode.java
-@@ -1533,12 +1533,8 @@ public final class StrictMode {
+@@ -1607,12 +1607,8 @@ public final class StrictMode {
              if (isBundledSystemApp(ai)) {
                  builder.detectAll();
                  builder.penaltyDropBox();

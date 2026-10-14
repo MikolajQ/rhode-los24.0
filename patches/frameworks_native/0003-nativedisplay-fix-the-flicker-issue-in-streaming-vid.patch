@@ -18,10 +18,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  3 files changed, 24 insertions(+), 3 deletions(-)
 
 diff --git a/libs/nativedisplay/include/surfacetexture/EGLConsumer.h b/libs/nativedisplay/include/surfacetexture/EGLConsumer.h
-index 226a8a6..29e7df2 100644
+index 474407e..40c8525 100644
 --- a/libs/nativedisplay/include/surfacetexture/EGLConsumer.h
 +++ b/libs/nativedisplay/include/surfacetexture/EGLConsumer.h
-@@ -21,6 +21,7 @@
+@@ -23,6 +23,7 @@
  #include <gui/BufferQueueDefs.h>
  #include <ui/FenceTime.h>
  #include <ui/GraphicBuffer.h>
@@ -29,7 +29,7 @@ index 226a8a6..29e7df2 100644
  #include <utils/Mutex.h>
  
  namespace android {
-@@ -191,7 +192,7 @@ protected:
+@@ -185,7 +186,7 @@ protected:
  
          // mGraphicBuffer is the buffer that was used to create this image.
          sp<GraphicBuffer> mGraphicBuffer;
@@ -39,10 +39,10 @@ index 226a8a6..29e7df2 100644
          EGLImageKHR mEglImage;
  
 diff --git a/libs/nativedisplay/surfacetexture/EGLConsumer.cpp b/libs/nativedisplay/surfacetexture/EGLConsumer.cpp
-index fad0f6c..1ff37b6 100644
+index 9737750..40e0f3c 100644
 --- a/libs/nativedisplay/surfacetexture/EGLConsumer.cpp
 +++ b/libs/nativedisplay/surfacetexture/EGLConsumer.cpp
-@@ -616,7 +616,9 @@ void EGLConsumer::onAbandonLocked() {
+@@ -589,7 +589,9 @@ void EGLConsumer::onAbandonLocked() {
  }
  
  EGLConsumer::EglImage::EglImage(sp<GraphicBuffer> graphicBuffer)
@@ -53,7 +53,7 @@ index fad0f6c..1ff37b6 100644
  
  EGLConsumer::EglImage::~EglImage() {
      if (mEglImage != EGL_NO_IMAGE_KHR) {
-@@ -631,7 +633,16 @@ status_t EGLConsumer::EglImage::createIfNeeded(EGLDisplay eglDisplay, bool force
+@@ -604,7 +606,16 @@ status_t EGLConsumer::EglImage::createIfNeeded(EGLDisplay eglDisplay, bool force
      // If there's an image and it's no longer valid, destroy it.
      bool haveImage = mEglImage != EGL_NO_IMAGE_KHR;
      bool displayInvalid = mEglDisplay != eglDisplay;
@@ -71,7 +71,7 @@ index fad0f6c..1ff37b6 100644
          if (!eglDestroyImageKHR(mEglDisplay, mEglImage)) {
              ALOGE("createIfNeeded: eglDestroyImageKHR failed");
          }
-@@ -655,6 +666,10 @@ status_t EGLConsumer::EglImage::createIfNeeded(EGLDisplay eglDisplay, bool force
+@@ -628,6 +639,10 @@ status_t EGLConsumer::EglImage::createIfNeeded(EGLDisplay eglDisplay, bool force
                buffer->getPixelFormat());
          return UNKNOWN_ERROR;
      }
@@ -83,7 +83,7 @@ index fad0f6c..1ff37b6 100644
      return OK;
  }
 diff --git a/libs/ui/include/ui/GraphicBuffer.h b/libs/ui/include/ui/GraphicBuffer.h
-index 9305180..0ebfa5d 100644
+index 99eb439..5b4e89f 100644
 --- a/libs/ui/include/ui/GraphicBuffer.h
 +++ b/libs/ui/include/ui/GraphicBuffer.h
 @@ -31,6 +31,7 @@

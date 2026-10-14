@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Tommaso Fonda <fondatommaso2@gmail.com>
 Date: Tue, 2 Jan 2024 21:54:32 +0100
-Subject: [PATCH 08/18] sm6225-common: Completely disable fluence
+Subject: [PATCH 08/20] sm6225-common: Completely disable fluence
 
 Change-Id: I26a6ee77d8bbe146d9ecd7864ce74b696c7b4063
 ---

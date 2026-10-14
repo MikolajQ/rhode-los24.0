@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Dmitrii <bankersenator@gmail.com>
 Date: Mon, 25 Apr 2022 11:36:44 +0000
-Subject: [PATCH 057/226] fwb: stop modem spam
+Subject: [PATCH 057/220] fwb: stop modem spam
 
 Signed-off-by: Dmitrii <bankersenator@gmail.com>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/telephony/java/android/telephony/TelephonyManager.java b/telephony/java/android/telephony/TelephonyManager.java
-index 1b51e3adcb..cae7c72e16 100644
+index 62da6f4d2..833d224fa 100644
 --- a/telephony/java/android/telephony/TelephonyManager.java
 +++ b/telephony/java/android/telephony/TelephonyManager.java
-@@ -13116,7 +13116,7 @@ public class TelephonyManager {
+@@ -13014,7 +13014,7 @@ public class TelephonyManager {
          }
  
          public @ModemActivityInfoError int getErrorCode() {

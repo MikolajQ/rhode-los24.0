@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Dmitrii <bankersenator@gmail.com>
 Date: Sun, 7 Jul 2024 16:38:40 +0000
-Subject: [PATCH 070/226] fwb: fix packagecacher spam
+Subject: [PATCH 070/220] fwb: fix packagecacher spam
 
 Signed-off-by: Dmitrii <bankersenator@gmail.com>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/services/core/java/com/android/server/pm/parsing/PackageCacher.java b/services/core/java/com/android/server/pm/parsing/PackageCacher.java
-index ae795a6f72..174196cd89 100644
+index 04e25703b..44e47ac08 100644
 --- a/services/core/java/com/android/server/pm/parsing/PackageCacher.java
 +++ b/services/core/java/com/android/server/pm/parsing/PackageCacher.java
-@@ -274,7 +274,7 @@ public class PackageCacher implements IPackageCacher {
+@@ -272,7 +272,7 @@ public class PackageCacher implements IPackageCacher {
              try (FileOutputStream fos = new FileOutputStream(cacheFile)) {
                  fos.write(cacheEntry);
              } catch (IOException ioe) {

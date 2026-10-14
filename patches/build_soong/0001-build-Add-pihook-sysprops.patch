@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: minaripenguin <minaripenguin@users.noreply.github.com>
 Date: Tue, 29 Oct 2024 18:05:36 +0800
-Subject: [PATCH] build: Add pihook sysprops
+Subject: [PATCH 01/22] build: Add pihook sysprops
 
 Signed-off-by: minaripenguin <minaripenguin@users.noreply.github.com>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: minaripenguin <minaripenguin@users.noreply.github.com>
  1 file changed, 6 insertions(+)
 
 diff --git a/scripts/gen_build_prop.py b/scripts/gen_build_prop.py
-index 04ec410..5790e78 100644
+index 639967e..0dde21a 100644
 --- a/scripts/gen_build_prop.py
 +++ b/scripts/gen_build_prop.py
-@@ -126,6 +126,9 @@ def parse_args():
+@@ -131,6 +131,9 @@ def parse_args():
    if config["BuildNumber"].startswith("eng."):
      config["BuildNumber"] = config["DateUtc"]
  
@@ -22,7 +22,7 @@ index 04ec410..5790e78 100644
    override_config(config)
    if args.partition == "system":
      config['ProductBrand'] = config['SystemBrand']
-@@ -250,6 +253,9 @@ def generate_build_info(args):
+@@ -261,6 +264,9 @@ def generate_build_info(args):
  
    print(f"ro.lineage.device={config['LineageDevice']}")
  

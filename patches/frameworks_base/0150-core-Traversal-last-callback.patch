@@ -1,0 +1,72 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: rmp22 <195054967+rmp22@users.noreply.github.com>
+Date: Thu, 19 Feb 2026 12:09:59 +0800
+Subject: [PATCH 150/220] core: Traversal last callback
+
+[MikolajQ: Ported to Android 17: doCallbacks() no longer takes the frame interval]
+
+Change-Id: I15bf7958453a9a3efb1c0dcd46a72851f7a6ab0f
+Signed-off-by: Ghosuto <clash.raja10@gmail.com>
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+---
+ core/java/android/view/Choreographer.java | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
+
+diff --git a/core/java/android/view/Choreographer.java b/core/java/android/view/Choreographer.java
+index fe9f7e787..b7b9e0859 100644
+--- a/core/java/android/view/Choreographer.java
++++ b/core/java/android/view/Choreographer.java
+@@ -226,6 +226,7 @@ public final class Choreographer {
+     private long mFrameIntervalNanos;
+     private long mLastFrameIntervalNanos;
+ 
++    private boolean mEnableTraversalLast;
+     private int mFPSDivisor = 1;
+     private final DisplayEventReceiver.VsyncEventData mLastVsyncEventData =
+             new DisplayEventReceiver.VsyncEventData();
+@@ -311,7 +312,8 @@ public final class Choreographer {
+      * @hide
+      */
+     private static final String[] CALLBACK_TRACE_TITLES = {
+-            "input", "animation", "insets_animation", "traversal", "commit"
++            "input", "animation", "insets_animation", "traversal", "commit",
++            "traversal_last"
+     };
+ 
+     /**
+@@ -362,7 +364,9 @@ public final class Choreographer {
+      */
+     public static final int CALLBACK_COMMIT = 4;
+ 
+-    private static final int CALLBACK_LAST = CALLBACK_COMMIT;
++    /** @hide */
++    public static final int CALLBACK_TRAVERSAL_LAST = 5;
++    private static final int CALLBACK_LAST = CALLBACK_TRAVERSAL_LAST;
+ 
+     private Choreographer(Looper looper) {
+         this(looper, /* layerHandle */ 0L);
+@@ -410,6 +414,14 @@ public final class Choreographer {
+         return sThreadInstance.get();
+     }
+ 
++    /** @hide */
++    public void setEnableTraversalLast(boolean enable) {
++        mEnableTraversalLast = enable;
++    }
++    /** @hide */
++    public boolean isEnableTraversalLast() {
++        return mEnableTraversalLast;
++    }
+     /**
+      * @hide
+      * @deprecated Use vsync IDs with the regular Choreographer instead.
+@@ -1208,6 +1220,9 @@ public final class Choreographer {
+             mFrameInfo.markPerformTraversalsStart();
+             doCallbacks(Choreographer.CALLBACK_TRAVERSAL);
+ 
++            if (mEnableTraversalLast) {
++                doCallbacks(Choreographer.CALLBACK_TRAVERSAL_LAST);
++            }
+             doCallbacks(Choreographer.CALLBACK_COMMIT);
+         } finally {
+             AnimationUtils.unlockAnimationClock();

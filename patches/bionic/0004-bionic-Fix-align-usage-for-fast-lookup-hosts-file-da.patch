@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Pranav Vashi <neobuddy89@gmail.com>
 Date: Fri, 14 Mar 2025 17:07:18 +0530
-Subject: [PATCH 04/23] bionic: Fix align usage for fast lookup hosts file data
+Subject: [PATCH 04/32] bionic: Fix align usage for fast lookup hosts file data
 
 Change-Id: Iefcdf0fce59c552c118e880f78b153ea38a52720
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>

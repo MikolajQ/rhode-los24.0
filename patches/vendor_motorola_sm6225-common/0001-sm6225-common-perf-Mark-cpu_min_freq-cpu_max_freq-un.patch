@@ -33,6 +33,3 @@ index 0180b1d..09ac543 100644
          <Config MajorValue="0x3" MinorValue="0x3" Supported="no" /> <!-- sched_small_task -->
          <Config MajorValue="0x3" MinorValue="0x6" Supported="no" /> <!-- sched_init_task_load -->
          <Config MajorValue="0x3" MinorValue="0xA" Supported="no" /> <!-- sched_add_group -->
--- 
-2.56.0
-

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: rmp22 <195054967+rmp22@users.noreply.github.com>
 Date: Mon, 13 Apr 2026 06:15:30 +0800
-Subject: [PATCH 03/13] Launcher3: Stopping taskbar draws when stashed
+Subject: [PATCH 03/10] Launcher3: Stopping taskbar draws when stashed
 
 taskbar window was producing 601 frames (60fps) during all-apps fling even when fully stashed with alpha=0. ViewRootImpl still scheduled draws for the transparent window competing for surfaceflinger buffers causing 54% buffer stuffing. setting taskbar view INVISIBLE when stashed stops draw scheduling, VISIBLE on unstash
 
@@ -13,10 +13,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  2 files changed, 5 insertions(+)
 
 diff --git a/quickstep/src/com/android/launcher3/taskbar/TaskbarStashController.java b/quickstep/src/com/android/launcher3/taskbar/TaskbarStashController.java
-index d6196688b..cbb8575c3 100644
+index 86df423..c4a8885 100644
 --- a/quickstep/src/com/android/launcher3/taskbar/TaskbarStashController.java
 +++ b/quickstep/src/com/android/launcher3/taskbar/TaskbarStashController.java
-@@ -1219,6 +1219,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
+@@ -1320,6 +1320,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
              mControllers.stashedHandleViewController.onIsStashedChanged(
                      isStashed && supportsVisualStashing());
              mControllers.taskbarInsetsController.onTaskbarOrBubblebarWindowHeightOrInsetsChanged();
@@ -25,10 +25,10 @@ index d6196688b..cbb8575c3 100644
          updateIsTaskbarStashed(isStashed);
      }
 diff --git a/quickstep/src/com/android/launcher3/taskbar/TaskbarViewController.java b/quickstep/src/com/android/launcher3/taskbar/TaskbarViewController.java
-index 224eb310e..b51b16df6 100644
+index d2823bf..7d285e6 100644
 --- a/quickstep/src/com/android/launcher3/taskbar/TaskbarViewController.java
 +++ b/quickstep/src/com/android/launcher3/taskbar/TaskbarViewController.java
-@@ -437,6 +437,10 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
+@@ -465,6 +465,10 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
          return mTaskbarView.areIconsVisible();
      }
  

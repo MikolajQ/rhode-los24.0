@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Dmitry Muhomor <muhomor.dmitry@gmail.com>
 Date: Tue, 30 Aug 2022 13:18:56 +0300
-Subject: [PATCH 2/8] use Cloudflare DNS for MTU detection in CLAT
+Subject: [PATCH 2/7] use Cloudflare DNS for MTU detection in CLAT
  initialization
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 2/8] use Cloudflare DNS for MTU detection in CLAT
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/service/src/com/android/server/connectivity/ClatCoordinator.java b/service/src/com/android/server/connectivity/ClatCoordinator.java
-index 8266a872..256840aa 100644
+index 8266a87..256840a 100644
 --- a/service/src/com/android/server/connectivity/ClatCoordinator.java
 +++ b/service/src/com/android/server/connectivity/ClatCoordinator.java
 @@ -90,7 +90,7 @@ public class ClatCoordinator {

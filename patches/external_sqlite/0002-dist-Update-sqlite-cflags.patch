@@ -23,7 +23,7 @@ Test: forrest mac build
  1 file changed, 13 insertions(+), 13 deletions(-)
 
 diff --git a/dist/Android.bp b/dist/Android.bp
-index 88fb337..651ccd8 100644
+index 977b93d..8afccef 100644
 --- a/dist/Android.bp
 +++ b/dist/Android.bp
 @@ -50,27 +50,27 @@ cc_defaults {

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Alex Naidis <alex.naidis@linux.com>
 Date: Sun, 9 Apr 2017 01:29:27 +0200
-Subject: [PATCH 02/10] init: Weaken property override security for the init
+Subject: [PATCH 02/18] init: Weaken property override security for the init
  extension
 
 Sometimes we need to override ro.* properties by using our vendor init
@@ -22,7 +22,7 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/init/property_service.cpp b/init/property_service.cpp
-index 1bca60e..6fcf87a 100644
+index d503fe6..aaa9f61 100644
 --- a/init/property_service.cpp
 +++ b/init/property_service.cpp
 @@ -121,6 +121,8 @@ struct PropertyAuditData {
@@ -45,7 +45,7 @@ index 1bca60e..6fcf87a 100644
                  *error = "Read-only property was already set";
                  return {PROP_ERROR_READ_ONLY_PROPERTY};
              }
-@@ -1208,6 +1210,9 @@ void PropertyLoadBootDefaults() {
+@@ -1240,6 +1242,9 @@ void PropertyLoadBootDefaults() {
          }
      }
  
@@ -55,7 +55,7 @@ index 1bca60e..6fcf87a 100644
      // Update with vendor-specific property runtime overrides
      vendor_load_properties();
  
-@@ -1216,6 +1221,9 @@ void PropertyLoadBootDefaults() {
+@@ -1248,6 +1253,9 @@ void PropertyLoadBootDefaults() {
      property_initialize_ro_cpu_abilist();
      property_initialize_ro_vendor_api_level();
  

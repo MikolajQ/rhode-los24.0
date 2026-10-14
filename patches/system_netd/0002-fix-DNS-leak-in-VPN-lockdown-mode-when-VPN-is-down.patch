@@ -16,10 +16,10 @@ May 2024 with a fix for the fallback routing.
  1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/server/NetworkController.cpp b/server/NetworkController.cpp
-index 90109ed..43f2ea5 100644
+index 5105f9f..bd26c40 100644
 --- a/server/NetworkController.cpp
 +++ b/server/NetworkController.cpp
-@@ -214,8 +214,8 @@ int NetworkController::setDefaultNetwork(unsigned netId) {
+@@ -216,8 +216,8 @@ int NetworkController::setDefaultNetwork(unsigned netId) {
  
  uint32_t NetworkController::getNetworkForDnsLocked(unsigned* netId, uid_t uid) const {
      Fwmark fwmark;
@@ -30,7 +30,7 @@ index 90109ed..43f2ea5 100644
  
      Network* appDefaultNetwork = getPhysicalOrUnreachableNetworkForUserLocked(uid);
      unsigned defaultNetId = appDefaultNetwork ? appDefaultNetwork->getNetId() : mDefaultNetId;
-@@ -254,6 +254,7 @@ uint32_t NetworkController::getNetworkForDnsLocked(unsigned* netId, uid_t uid) c
+@@ -256,6 +256,7 @@ uint32_t NetworkController::getNetworkForDnsLocked(unsigned* netId, uid_t uid) c
              // Explicitly selecting the VPN here prevents fallthrough.
              fwmark.explicitlySelected = true;
              *netId = virtualNetwork->getNetId();

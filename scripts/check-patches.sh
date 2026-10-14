@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Lokalnie, przed `ham get`: czy patches/* wchodzą na AKTUALNE gałęzie LineageOS i czy jądro (nasz fork
-# 16.2-ksun) scala się z LineageOS lineage-23.2 bez konfliktu — to samo, co zrobią kroki w ham.yml na serwerze,
+# 16.2-ksun) scala się z LineageOS lineage-24.0 bez konfliktu — to samo, co zrobią kroki w ham.yml na serwerze,
 # ale w kilka minut i bez pobierania źródeł (klony bez plików w ~/.cache/rhode-check-patches, git apply --cached).
 # Nic nie zmienia w przepisie. Kod wyjścia 1 = coś nie wejdzie, build padłby na serwerze.
 set -uo pipefail
 RECIPE=$(cd "$(dirname "$0")/.." && pwd)
 CACHE=${XDG_CACHE_HOME:-$HOME/.cache}/rhode-check-patches
 mkdir -p "$CACHE"
-LOS=https://raw.githubusercontent.com/LineageOS/android/lineage-23.2
+LOS=https://raw.githubusercontent.com/LineageOS/android/lineage-24.0
 
 # ścieżka projektu -> "url<TAB>gałąź/tag" z manifestu LineageOS + rhode.xml (rhode.xml wygrywa)
 MAP=$(python3 - "$RECIPE/rhode.xml" "$LOS" <<'PY'
@@ -65,10 +65,10 @@ for dir in "$RECIPE"/patches/*/; do
   fi
 done
 
-# jądro: to samo co krok „Jądro: scalenie z LineageOS lineage-23.2” w ham.yml
+# jądro: to samo co krok „Jądro: scalenie z LineageOS lineage-24.0” w ham.yml
 k="$CACHE/kernel.git"
 [ -d "$k" ] || git init -q --bare "$k"
-for r in our:MikolajQ:16.2-ksun los:LineageOS:lineage-23.2; do
+for r in our:MikolajQ:16.2-ksun los:LineageOS:lineage-24.0; do
   IFS=: read -r n owner br <<<"$r"
   git -C "$k" config "remote.$n.url" "https://github.com/$owner/android_kernel_motorola_sm6225"
   git -C "$k" config "remote.$n.promisor" true

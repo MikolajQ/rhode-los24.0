@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Cody Northrop <cnorthrop@google.com>
 Date: Mon, 22 Jul 2024 22:24:10 +0800
-Subject: [PATCH 12/14] config: Configure EGL multi-file cache
+Subject: [PATCH 12/15] config: Configure EGL multi-file cache
 
 Start with 32MB cache size limit.
 
@@ -12,10 +12,10 @@ Change-Id: Ib917c3199ac9a205d72ae6c32c0ee82b4b0aebe7
  1 file changed, 5 insertions(+)
 
 diff --git a/config/common.mk b/config/common.mk
-index 18c834d..5b94427 100644
+index b9fda15..3afa702 100644
 --- a/config/common.mk
 +++ b/config/common.mk
-@@ -341,3 +341,8 @@ include vendor/lineage/config/version.mk
+@@ -347,3 +347,8 @@ include vendor/lineage/config/version.mk
  
  -include $(WORKSPACE)/build_env/image-auto-bits.mk
  -include vendor/lineage/config/partner_gms.mk

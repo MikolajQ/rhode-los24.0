@@ -19,10 +19,10 @@ Signed-off-by: jiayongqiang <jiayongqiang@xiaomi.com>
  1 file changed, 16 insertions(+), 16 deletions(-)
 
 diff --git a/services/surfaceflinger/FrontEnd/LayerSnapshotBuilder.cpp b/services/surfaceflinger/FrontEnd/LayerSnapshotBuilder.cpp
-index 813656a..5cda508 100644
+index 35d258f..8816e57 100644
 --- a/services/surfaceflinger/FrontEnd/LayerSnapshotBuilder.cpp
 +++ b/services/surfaceflinger/FrontEnd/LayerSnapshotBuilder.cpp
-@@ -789,6 +789,22 @@ void LayerSnapshotBuilder::updateSnapshot(LayerSnapshot& snapshot, const Args& a
+@@ -835,6 +835,22 @@ void LayerSnapshotBuilder::updateSnapshot(LayerSnapshot& snapshot, const Args& a
          }
      }
  
@@ -45,7 +45,7 @@ index 813656a..5cda508 100644
      if (snapshot.isHiddenByPolicyFromParent &&
          !snapshot.changes.test(RequestedLayerState::Changes::Created)) {
          if (forceUpdate ||
-@@ -884,22 +900,6 @@ void LayerSnapshotBuilder::updateSnapshot(LayerSnapshot& snapshot, const Args& a
+@@ -933,22 +949,6 @@ void LayerSnapshotBuilder::updateSnapshot(LayerSnapshot& snapshot, const Args& a
          updateMetadataAndGameMode(snapshot, requested, args, parentSnapshot);
      }
  

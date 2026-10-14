@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: klozz <carlosj@klozz.dev>
 Date: Sun, 29 Oct 2023 16:34:42 +0100
-Subject: [PATCH 4/9] rhode: Enable Multi-gen LRU
+Subject: [PATCH 04/10] rhode: Enable Multi-gen LRU
 
 https://android-review.googlesource.com/q/topic:mglru-exp
 

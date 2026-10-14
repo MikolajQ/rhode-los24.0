@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Tommaso Fonda <fondatommaso2@gmail.com>
 Date: Fri, 12 Jan 2024 15:49:45 +0100
-Subject: [PATCH 09/18] sm6225-common: Silence spammy log tags
+Subject: [PATCH 09/20] sm6225-common: Silence spammy log tags
 
 Change-Id: I64f6289e86d8097c7205af7168e3d8c4168c7f5c
 ---

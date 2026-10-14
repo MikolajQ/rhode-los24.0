@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Jeff Johnson <jjohnson@codeaurora.org>
 Date: Sun, 29 Oct 2023 12:23:02 +0100
-Subject: [PATCH 06/18] sm6225-common: wifi: Remove obsolete
+Subject: [PATCH 06/20] sm6225-common: wifi: Remove obsolete
  SapSccChanAvoidance config
 
 As part of change I374e870610d79cc0d172ae126bfa70dc6d2db9a9

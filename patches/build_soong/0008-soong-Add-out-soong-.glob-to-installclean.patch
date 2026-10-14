@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Ido Ben-Hur <idoybh2@gmail.com>
 Date: Sat, 21 Dec 2024 20:19:58 +0200
-Subject: [PATCH 08/23] soong: Add out/soong/*.glob* to installclean
+Subject: [PATCH 08/22] soong: Add out/soong/*.glob* to installclean
 
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
 ---
@@ -9,7 +9,7 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 2 insertions(+)
 
 diff --git a/ui/build/cleanbuild.go b/ui/build/cleanbuild.go
-index acd33a5a..eccef80b 100644
+index acd33a5..eccef80 100644
 --- a/ui/build/cleanbuild.go
 +++ b/ui/build/cleanbuild.go
 @@ -106,6 +106,8 @@ func installClean(ctx Context, config Config) {

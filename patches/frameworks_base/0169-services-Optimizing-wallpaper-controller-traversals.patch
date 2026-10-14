@@ -1,0 +1,77 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: rmp22 <195054967+rmp22@users.noreply.github.com>
+Date: Thu, 23 Apr 2026 18:14:37 +0800
+Subject: [PATCH 169/220] services: Optimizing wallpaper controller traversals
+
+during simpleperf when performing app exit animation, setWallpaperZoomOut was performing full window tree scans on every frame of the zoom animation to find the maximum zoom level.this is wasteful. we should only triggers wallpaper token updates if the global maximum zoom level actually changes.
+
+Change-Id: I3bbe1293ab8dbeaacfea6a51f5e27b45b66ef357
+Signed-off-by: Ghosuto <clash.raja10@gmail.com>
+---
+ .../server/wm/WallpaperController.java        | 24 +++++++++++++++----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
+
+diff --git a/services/core/java/com/android/server/wm/WallpaperController.java b/services/core/java/com/android/server/wm/WallpaperController.java
+index c00c91d6f..912b4d159 100644
+--- a/services/core/java/com/android/server/wm/WallpaperController.java
++++ b/services/core/java/com/android/server/wm/WallpaperController.java
+@@ -72,6 +72,7 @@ class WallpaperController {
+     private WindowState mWallpaperTarget = null;
+ 
+     private float mLastWallpaperZoomOut = 0;
++    private WindowState mMaxZoomOutWindow = null;
+ 
+     // Whether COMMAND_FREEZE was dispatched.
+     private boolean mLastFrozen = false;
+@@ -205,6 +206,7 @@ class WallpaperController {
+         if (!windowState.mIsWallpaper
+                 && Float.compare(windowState.mWallpaperZoomOut, mLastWallpaperZoomOut) > 0) {
+             mLastWallpaperZoomOut = windowState.mWallpaperZoomOut;
++            mMaxZoomOutWindow = windowState;
+         }
+     };
+ 
+@@ -425,11 +427,21 @@ class WallpaperController {
+ 
+     void setWallpaperZoomOut(WindowState window, float zoom) {
+         if (Float.compare(window.mWallpaperZoomOut, zoom) != 0) {
++            float oldMaxZoom = mLastWallpaperZoomOut;
+             window.mWallpaperZoomOut = zoom;
+-            computeLastWallpaperZoomOut();
+-            for (int i = mWallpaperTokens.size() - 1; i >= 0; i--) {
+-                final WallpaperWindowToken token = mWallpaperTokens.get(i);
+-                token.updateWallpaperOffset();
++
++            if (Float.compare(zoom, mLastWallpaperZoomOut) > 0) {
++                mLastWallpaperZoomOut = zoom;
++                mMaxZoomOutWindow = window;
++            } else if (window == mMaxZoomOutWindow || Float.compare(oldMaxZoom, mLastWallpaperZoomOut) == 0) {
++                computeLastWallpaperZoomOut();
++            }
++
++            if (Float.compare(oldMaxZoom, mLastWallpaperZoomOut) != 0) {
++                for (int i = mWallpaperTokens.size() - 1; i >= 0; i--) {
++                    final WallpaperWindowToken token = mWallpaperTokens.get(i);
++                    token.updateWallpaperOffset();
++                }
+             }
+         }
+     }
+@@ -632,7 +644,8 @@ class WallpaperController {
+         }
+ 
+         final boolean visibleRequested =
+-                mWallpaperTarget != null && mWallpaperTarget.isVisibleRequested();
++                (mWallpaperTarget != null && mWallpaperTarget.isVisibleRequested())
++                || (mDisplayContent.mTransitionController.inTransition() && isWallpaperVisible());
+         updateWallpaperTokens(visibleRequested,
+                 Flags.aodTransition()
+                         ? mDisplayContent.isKeyguardLockedOrAodShowing()
+@@ -810,6 +823,7 @@ class WallpaperController {
+      */
+     private void computeLastWallpaperZoomOut() {
+         mLastWallpaperZoomOut = 0;
++        mMaxZoomOutWindow = null;
+         mDisplayContent.forAllWindows(mComputeMaxZoomOutFunction, true);
+     }
+ 

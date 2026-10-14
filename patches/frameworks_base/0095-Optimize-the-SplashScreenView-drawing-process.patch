@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Liangliang Sui <coolsui.coding@gmail.com>
 Date: Mon, 14 Oct 2024 23:03:25 +0800
-Subject: [PATCH 095/226] Optimize the SplashScreenView drawing process
+Subject: [PATCH 095/220] Optimize the SplashScreenView drawing process
 
 1. Move mChoreographer.postCallback to the front of addWindow, because
 vsync will be requested in mChoreographer.postCallback, which can reduce
@@ -24,7 +24,7 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 38 insertions(+), 41 deletions(-)
 
 diff --git a/libs/WindowManager/Shell/src/com/android/wm/shell/startingsurface/SplashscreenWindowCreator.java b/libs/WindowManager/Shell/src/com/android/wm/shell/startingsurface/SplashscreenWindowCreator.java
-index caed194c5f..d8c7492e7d 100644
+index 72a902931..785274ad9 100644
 --- a/libs/WindowManager/Shell/src/com/android/wm/shell/startingsurface/SplashscreenWindowCreator.java
 +++ b/libs/WindowManager/Shell/src/com/android/wm/shell/startingsurface/SplashscreenWindowCreator.java
 @@ -172,6 +172,35 @@ class SplashscreenWindowCreator extends AbsSplashWindowCreator {

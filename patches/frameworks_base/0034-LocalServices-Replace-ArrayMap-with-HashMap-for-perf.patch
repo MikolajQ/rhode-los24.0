@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Danny Lin <danny@kdrag0n.dev>
 Date: Mon, 5 Apr 2021 22:39:55 -0700
-Subject: [PATCH 034/226] LocalServices: Replace ArrayMap with HashMap for
+Subject: [PATCH 034/220] LocalServices: Replace ArrayMap with HashMap for
  performance
 
 When opening and closing activities in Settings, a significant amount of
@@ -106,7 +106,7 @@ Tested-by: Sourajit Karmakar <sourajitk@statixos.com>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/core/java/com/android/server/LocalServices.java b/core/java/com/android/server/LocalServices.java
-index 9c0fe03dd1..fec0147e82 100644
+index 9c0fe03dd..fec0147e8 100644
 --- a/core/java/com/android/server/LocalServices.java
 +++ b/core/java/com/android/server/LocalServices.java
 @@ -18,7 +18,7 @@ package com.android.server;

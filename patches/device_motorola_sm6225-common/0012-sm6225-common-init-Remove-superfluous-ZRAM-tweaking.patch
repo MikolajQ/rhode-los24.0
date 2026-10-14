@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Tommaso Fonda <fondatommaso2@gmail.com>
 Date: Mon, 18 Mar 2024 14:37:05 +0100
-Subject: [PATCH 12/18] sm6225-common: init: Remove superfluous ZRAM tweaking
+Subject: [PATCH 12/20] sm6225-common: init: Remove superfluous ZRAM tweaking
 
 page-cluster = 0 and usage of zstd as a new compression algorithm are
 already enforced by the kernel.

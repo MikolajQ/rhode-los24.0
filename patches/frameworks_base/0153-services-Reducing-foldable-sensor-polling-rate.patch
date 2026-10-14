@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: rmp22 <195054967+rmp22@users.noreply.github.com>
+Date: Mon, 16 Mar 2026 23:39:37 +0800
+Subject: [PATCH 153/220] services: Reducing foldable sensor polling rate
+
+hinge and hall sensors were registered at SENSOR_DELAY_FASTEST (~200Hz), completely unnecessary for detecting fold state transitions which are human-speed actions. dropping to SENSOR_DELAY_NORMAL (~5Hz) saves ~6% of system_server cpu on foldables
+
+[MikolajQ: Ported to Android 17: the hall sensor is gone from this provider]
+
+Change-Id: Ia543bba6f3f69d7d138368102266822e73d2a29e
+Signed-off-by: Ghosuto <clash.raja10@gmail.com>
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+---
+ .../com/android/server/policy/FoldableDeviceStateProvider.java | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/services/foldables/devicestateprovider/src/com/android/server/policy/FoldableDeviceStateProvider.java b/services/foldables/devicestateprovider/src/com/android/server/policy/FoldableDeviceStateProvider.java
+index fde4573a5..cbc6280b1 100644
+--- a/services/foldables/devicestateprovider/src/com/android/server/policy/FoldableDeviceStateProvider.java
++++ b/services/foldables/devicestateprovider/src/com/android/server/policy/FoldableDeviceStateProvider.java
+@@ -17,6 +17,7 @@
+ package com.android.server.policy;
+ 
+ import static android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
++import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
+ import static android.hardware.devicestate.DeviceState.PROPERTY_POLICY_UNSUPPORTED_WHEN_POWER_SAVE_MODE;
+ import static android.hardware.devicestate.DeviceState.PROPERTY_POLICY_UNSUPPORTED_WHEN_THERMAL_STATUS_CRITICAL;
+ import static android.hardware.devicestate.DeviceStateManager.INVALID_DEVICE_STATE_IDENTIFIER;
+@@ -134,7 +135,7 @@ public final class FoldableDeviceStateProvider implements DeviceStateProvider,
+         mConfigurations = deviceStatePredicateWrappers;
+         mPowerManagerInternal = powerManagerInternal;
+ 
+-        sensorManager.registerListener(this, mHingeAngleSensor, SENSOR_DELAY_FASTEST);
++        sensorManager.registerListener(this, mHingeAngleSensor, SENSOR_DELAY_NORMAL);
+ 
+         mOrderedStates = new DeviceState[deviceStatePredicateWrappers.length];
+         for (int i = 0; i < deviceStatePredicateWrappers.length; i++) {

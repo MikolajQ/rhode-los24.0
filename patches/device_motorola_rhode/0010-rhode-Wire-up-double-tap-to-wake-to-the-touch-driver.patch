@@ -1,7 +1,7 @@
-From 1ad797071fbdb8b9fe1aaef112573d6127cb55ea Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: MikolajQ <mikolaj.q@wp.pl>
 Date: Tue, 29 Sep 2026 13:57:47 +0200
-Subject: [PATCH] rhode: Wire up double tap to wake to the touch driver
+Subject: [PATCH 10/10] rhode: Wire up double tap to wake to the touch driver
 
 The kernel (MikolajQ/android_kernel_motorola_sm6225@16.2-ksun) builds
 touchscreen_mmi with CONFIG_BOARD_USES_DOUBLE_TAP_CTRL and exposes
@@ -44,6 +44,3 @@ index 70ff2c6..867ae06 100644
  service capsense_reset /system/vendor/bin/capsense_reset
      class core
      user system
--- 
-2.55.0
-

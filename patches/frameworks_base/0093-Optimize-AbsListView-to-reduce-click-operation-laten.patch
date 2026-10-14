@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Jun Wang <quic_junwan@quicinc.com>
 Date: Fri, 19 May 2023 13:43:22 +0800
-Subject: [PATCH 093/226] Optimize AbsListView to reduce click operation
+Subject: [PATCH 093/220] Optimize AbsListView to reduce click operation
  latency
 
 Separate performClick from delayed message. Then we can do
@@ -17,10 +17,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/core/java/android/widget/AbsListView.java b/core/java/android/widget/AbsListView.java
-index 61ade5fdad..406961490d 100644
+index 7b33d1919..702ecd24b 100644
 --- a/core/java/android/widget/AbsListView.java
 +++ b/core/java/android/widget/AbsListView.java
-@@ -4278,6 +4278,10 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
+@@ -4333,6 +4333,10 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                                      }
                                      mSelector.setHotspot(x, ev.getY());
                                  }
@@ -31,7 +31,7 @@ index 61ade5fdad..406961490d 100644
                                  if (mTouchModeReset != null) {
                                      removeCallbacks(mTouchModeReset);
                                  }
-@@ -4288,10 +4292,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
+@@ -4343,10 +4347,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                                          mTouchMode = TOUCH_MODE_REST;
                                          child.setPressed(false);
                                          setPressed(false);

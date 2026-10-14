@@ -7,6 +7,8 @@ Subject: [PATCH 19/42] SF: Do not force idle refresh rate in some more
 - When primary or app-request refresh rates are higher than 60 Hz
 - When there are explicit vote layers present
 
+[MikolajQ: Ported to Android 17: the idle rate is computed before the new MRR full frame rate list]
+
 Change-Id: I69c2f709b869e48d69917d93d427ce890d2dd7b5
 Signed-off-by: Omkar Chandorkar <gotenksIN@aospa.co>
 Signed-off-by: Dmitrii <bankersenator@gmail.com>
@@ -16,10 +18,10 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  2 files changed, 23 insertions(+), 12 deletions(-)
 
 diff --git a/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp b/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
-index 4df98db..136795c 100644
+index cb765aa..4e2e8d3 100644
 --- a/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
 +++ b/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
-@@ -776,22 +776,26 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -783,22 +783,26 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
              seamedFocusedLayers > 0 ? activeMode.getGroup() : defaultMode->getGroup();
  
      const auto selectivelyForceIdle = [&]() REQUIRES(mLock) -> RankedFrameRates {
@@ -54,7 +56,7 @@ index 4df98db..136795c 100644
              return {idleRanking, GlobalSignals{.idle = true}};
          }
  
-@@ -942,17 +946,15 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -949,17 +953,15 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
                  continue;
              }
  
@@ -74,10 +76,10 @@ index 4df98db..136795c 100644
              const float weightedLayerScore = weight * layerScore;
  
              // Layer with fixed source has a special consideration which depends on the
-@@ -1751,6 +1753,13 @@ void RefreshRateSelector::constructAvailableRefreshRates() {
- 
+@@ -1722,6 +1724,13 @@ void RefreshRateSelector::constructAvailableRefreshRates() {
      mPrimaryFrameRates = filterRefreshRates(policy->primaryRanges, "primary");
      mAppRequestFrameRates = filterRefreshRates(policy->appRequestRanges, "app request");
+ 
 +    // Idle refresh rate is 60 Hz while respecting minimum of primary and app ranges.
 +    const Fps minPrimary = mPrimaryFrameRates.front().modePtr.get()->getVsyncRate();
 +    const Fps minAppRequest = mAppRequestFrameRates.front().modePtr.get()->getVsyncRate();
@@ -85,14 +87,14 @@ index 4df98db..136795c 100644
 +
 +    ALOGV("idle refresh rate calculated: %s", to_string(mIdleFps).c_str());
 +
-     mAllFrameRates = filterRefreshRates(FpsRanges(getSupportedFrameRateRangeLocked(),
-                                                   getSupportedFrameRateRangeLocked()),
-                                         "full frame rates");
+     const bool useMrrFullList =
+             FlagManager::getInstance().mrr_full_frame_rate_list() && !mIsVrrDisplay;
+     const FpsRange fullRange = useMrrFullList
 diff --git a/services/surfaceflinger/Scheduler/RefreshRateSelector.h b/services/surfaceflinger/Scheduler/RefreshRateSelector.h
-index feaac78..7524871 100644
+index 9deef0d..6395c70 100644
 --- a/services/surfaceflinger/Scheduler/RefreshRateSelector.h
 +++ b/services/surfaceflinger/Scheduler/RefreshRateSelector.h
-@@ -583,6 +583,8 @@ private:
+@@ -589,6 +589,8 @@ private:
      ftl::Optional<scheduler::OneShotTimer> mIdleTimer;
      std::atomic<bool> mIdleTimerStarted = false;
  

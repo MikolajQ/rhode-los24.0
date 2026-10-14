@@ -8,24 +8,27 @@ When `listenerStatsToSend` in
 avoid the redundant thread scheduling overhead caused by
 `BackgroundExecutor::getInstance()`.
 
+[MikolajQ: Ported to Android 17: with fence_handling the background task also delivers buffer releases, so it is skipped only when there are no listener stats, buffer releases or fence mergers]
+
 Change-Id: I00a717933406b2580e5d28daca28e94f0b80f9c8
 Signed-off-by: Liangliang Sui <coolsui.coding@gmail.com>
 ---
- services/surfaceflinger/TransactionCallbackInvoker.cpp | 4 ++++
- 1 file changed, 4 insertions(+)
+ services/surfaceflinger/TransactionCallbackInvoker.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/services/surfaceflinger/TransactionCallbackInvoker.cpp b/services/surfaceflinger/TransactionCallbackInvoker.cpp
-index 6232707..84b03f7 100644
+index a2aa641..0a1dd60 100644
 --- a/services/surfaceflinger/TransactionCallbackInvoker.cpp
 +++ b/services/surfaceflinger/TransactionCallbackInvoker.cpp
-@@ -225,6 +225,10 @@ void TransactionCallbackInvoker::sendCallbacks(bool onCommitOnly) {
+@@ -218,6 +218,11 @@ void TransactionCallbackInvoker::sendCallbacks(bool onCommitOnly) {
          mPresentFence.clear();
      }
  
-+    if (listenerStatsToSend.empty()) {
++    if (listenerStatsToSend.empty() && mBufferReleases.empty() &&
++        mReleaseIdToFenceMerger.empty()) {
 +        return;
 +    }
 +
-     BackgroundExecutor::getInstance().sendCallbacks(
-             {[listenerStatsToSend = std::move(listenerStatsToSend)]() {
-                 SFTRACE_NAME("TransactionCallbackInvoker::sendCallbacks");
+     if (FlagManager::getInstance().fence_handling()) {
+         // Use a shared_ptr as FenceMerger is not copyable, but std::function requires the lambda
+         // to be copyable.

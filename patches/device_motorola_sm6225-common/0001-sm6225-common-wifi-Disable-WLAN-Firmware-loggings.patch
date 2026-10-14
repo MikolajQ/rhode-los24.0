@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Panchajanya1999 <panchajanya@azure-dev.live>
 Date: Fri, 19 Feb 2021 16:50:51 +0530
-Subject: [PATCH 01/18] sm6225-common: wifi: Disable WLAN Firmware loggings
+Subject: [PATCH 01/20] sm6225-common: wifi: Disable WLAN Firmware loggings
 
 firmware loggings are not at all necessary for general development.
 

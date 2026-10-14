@@ -12,16 +12,18 @@ benefit from disabling backpressure propagation by setting:
 
 debug.sf.disable_backpressure=1
 
+[MikolajQ: Ported to Android 17: the pacesetter frame target is now a pointer]
+
 Change-Id: I669a6059a2a971aa79603e74153fa93729f703dc
 Signed-off-by: Pulkit077 <pulkitagarwal2k1@gmail.com>
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
 ---
- .../Scheduler/include/scheduler/Features.h               | 1 +
- .../Scheduler/include/scheduler/FrameTargeter.h          | 4 +++-
- services/surfaceflinger/Scheduler/src/FrameTargeter.cpp  | 4 ++++
- services/surfaceflinger/SurfaceFlinger.cpp               | 9 ++++++++-
- services/surfaceflinger/SurfaceFlinger.h                 | 1 +
- 5 files changed, 17 insertions(+), 2 deletions(-)
+ .../Scheduler/include/scheduler/Features.h             |  1 +
+ .../Scheduler/include/scheduler/FrameTargeter.h        |  4 +++-
+ .../surfaceflinger/Scheduler/src/FrameTargeter.cpp     |  4 ++++
+ services/surfaceflinger/SurfaceFlinger.cpp             | 10 +++++++++-
+ services/surfaceflinger/SurfaceFlinger.h               |  1 +
+ 5 files changed, 18 insertions(+), 2 deletions(-)
 
 diff --git a/services/surfaceflinger/Scheduler/include/scheduler/Features.h b/services/surfaceflinger/Scheduler/include/scheduler/Features.h
 index 52485fb..6a3d7d0 100644
@@ -73,10 +75,10 @@ index 15e7f8c..fc9a967 100644
                  mBackpressureGpuComposition || !mCompositionCoverage.test(CompositionCoverage::Gpu);
  
 diff --git a/services/surfaceflinger/SurfaceFlinger.cpp b/services/surfaceflinger/SurfaceFlinger.cpp
-index 0ab1a9b..34b8ff4 100644
+index 9128394..cea144b 100644
 --- a/services/surfaceflinger/SurfaceFlinger.cpp
 +++ b/services/surfaceflinger/SurfaceFlinger.cpp
-@@ -530,6 +530,10 @@ SurfaceFlinger::SurfaceFlinger(Factory& factory) : SurfaceFlinger(factory, SkipI
+@@ -546,6 +546,10 @@ SurfaceFlinger::SurfaceFlinger(Factory& factory) : SurfaceFlinger(factory, SkipI
  
      mDebugFlashDelay = base::GetUintProperty("debug.sf.showupdates"s, 0u);
  
@@ -87,16 +89,17 @@ index 0ab1a9b..34b8ff4 100644
      mBackpressureGpuComposition = base::GetBoolProperty("debug.sf.enable_gl_backpressure"s, true);
      ALOGI_IF(mBackpressureGpuComposition, "Enabling backpressure for GPU composition");
  
-@@ -2902,7 +2906,7 @@ bool SurfaceFlinger::commit(PhysicalDisplayId pacesetterId,
+@@ -3067,7 +3071,8 @@ bool SurfaceFlinger::commit(PhysicalDisplayId pacesetterId,
      }
  
-     if (pacesetterFrameTarget.wouldBackpressureHwc()) {
--        if (mBackpressureGpuComposition || pacesetterFrameTarget.didMissHwcFrame()) {
-+        if (mPropagateBackpressure && (mBackpressureGpuComposition || pacesetterFrameTarget.didMissHwcFrame())) {
+     if (pacesetterFrameTargetPtr->wouldBackpressureHwc()) {
+-        if (mBackpressureGpuComposition || pacesetterFrameTargetPtr->didMissHwcFrame()) {
++        if (mPropagateBackpressure &&
++            (mBackpressureGpuComposition || pacesetterFrameTargetPtr->didMissHwcFrame())) {
              mScheduler->getVsyncSchedule()->getTracker().onFrameMissed(
-                     pacesetterFrameTarget.expectedPresentTime());
-             const Duration slack = TimePoint::now() - pacesetterFrameTarget.frameBeginTime();
-@@ -5007,6 +5011,9 @@ void SurfaceFlinger::initScheduler(const sp<const DisplayDevice>& display) {
+                     pacesetterFrameTargetPtr->expectedPresentTime());
+             const Duration slack = TimePoint::now() - pacesetterFrameTargetPtr->frameBeginTime();
+@@ -5235,6 +5240,9 @@ void SurfaceFlinger::initScheduler(const sp<const DisplayDevice>& display) {
      if (mBackpressureGpuComposition) {
          features |= Feature::kBackpressureGpuComposition;
      }
@@ -107,10 +110,10 @@ index 0ab1a9b..34b8ff4 100644
                  Hwc2::Composer::OptionalFeature::ExpectedPresentTime)) {
          features |= Feature::kExpectedPresentTime;
 diff --git a/services/surfaceflinger/SurfaceFlinger.h b/services/surfaceflinger/SurfaceFlinger.h
-index e148e41..caec6af 100644
+index 9d8ef03..0c05e0e 100644
 --- a/services/surfaceflinger/SurfaceFlinger.h
 +++ b/services/surfaceflinger/SurfaceFlinger.h
-@@ -1511,6 +1511,7 @@ private:
+@@ -1550,6 +1550,7 @@ private:
      std::atomic_bool mForceFullDamage = false;
  
      bool mLayerCachingEnabled = false;

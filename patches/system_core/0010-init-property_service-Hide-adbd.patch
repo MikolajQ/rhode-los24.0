@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Abhay Singh Gill <abhaygill017@gmail.com>
 Date: Fri, 24 Oct 2025 22:00:20 +0530
-Subject: [PATCH 10/10] init: property_service: Hide adbd
+Subject: [PATCH 10/18] init: property_service: Hide adbd
 
 Some apps look for it to check if dev options are enabled.
 
@@ -12,10 +12,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/init/property_service.cpp b/init/property_service.cpp
-index b64bc52..b9509d2 100644
+index b9ad818..ce354b4 100644
 --- a/init/property_service.cpp
 +++ b/init/property_service.cpp
-@@ -1154,7 +1154,8 @@ static void SetSafetyNetProps() {
+@@ -1186,7 +1186,8 @@ static void SetSafetyNetProps() {
          {"ro.boot.flash.locked", "1"},
          {"ro.is_ever_orange", "0"},
          {"ro.secureboot.devicelock", "1"},

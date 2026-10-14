@@ -12,7 +12,7 @@ Co-authored-by: Andrzej Perczak <linux@andrzejperczak.com>
  1 file changed, 27 insertions(+)
 
 diff --git a/dist/Android.bp b/dist/Android.bp
-index 651ccd8..2a22204 100644
+index 8afccef..f56c172 100644
 --- a/dist/Android.bp
 +++ b/dist/Android.bp
 @@ -57,21 +57,42 @@ cc_defaults {

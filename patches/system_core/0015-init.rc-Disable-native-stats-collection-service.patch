@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Danny Lin <danny@kdrag0n.dev>
 Date: Mon, 5 Apr 2021 23:20:49 -0700
-Subject: [PATCH 15/19] init.rc: Disable native stats collection service
+Subject: [PATCH 15/18] init.rc: Disable native stats collection service
 
 When opening and closing activities in Settings, a measurably
 significant amount of CPU time is spent processing and logging stats
@@ -29,10 +29,10 @@ Change-Id: Idf6fdb0eff987169bd5f370dd72315e831a669e6
  1 file changed, 1 deletion(-)
 
 diff --git a/rootdir/init.rc b/rootdir/init.rc
-index c7bc98e..0a75fcb 100644
+index 4f70c58..9710f8f 100644
 --- a/rootdir/init.rc
 +++ b/rootdir/init.rc
-@@ -1157,7 +1157,6 @@ on property:vold.checkpoint_committed=1
+@@ -1163,7 +1163,6 @@ on property:vold.checkpoint_committed=1
  # to start-zygote in device's init.rc to unblock zygote start.
  on zygote-start
      wait_for_prop odsign.verification.done 1

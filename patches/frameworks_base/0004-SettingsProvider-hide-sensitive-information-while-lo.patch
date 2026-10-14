@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Daniel Micay <danielmicay@gmail.com>
 Date: Mon, 2 Jan 2017 18:51:57 -0500
-Subject: [PATCH 04/31] SettingsProvider: hide sensitive information while
+Subject: [PATCH 004/220] SettingsProvider: hide sensitive information while
  locked by default
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 04/31] SettingsProvider: hide sensitive information while
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/packages/SettingsProvider/res/values/defaults.xml b/packages/SettingsProvider/res/values/defaults.xml
-index ce8de5e8d5..45e5fd9ad6 100644
+index 580dce2c6..8610edf31 100644
 --- a/packages/SettingsProvider/res/values/defaults.xml
 +++ b/packages/SettingsProvider/res/values/defaults.xml
 @@ -167,7 +167,7 @@

@@ -8,11 +8,11 @@ Subject: [PATCH 42/42] surfaceflinger: specifically no vote more layers
  1 file changed, 10 insertions(+), 1 deletion(-)
 
 diff --git a/services/surfaceflinger/Scheduler/LayerHistory.cpp b/services/surfaceflinger/Scheduler/LayerHistory.cpp
-index b3a407a..47dc70c 100644
+index 5407c1a..d0b76e2 100644
 --- a/services/surfaceflinger/Scheduler/LayerHistory.cpp
 +++ b/services/surfaceflinger/Scheduler/LayerHistory.cpp
-@@ -376,8 +376,17 @@ void LayerHistory::partitionLayers(nsecs_t now) {
-                 }
+@@ -355,8 +355,17 @@ void LayerHistory::partitionLayers(nsecs_t now) {
+                 info->resetLayerVote();
              }
  
 -            if (layerUnsafe->getWindowType() == gui::WindowInfo::Type::STATUS_BAR) {

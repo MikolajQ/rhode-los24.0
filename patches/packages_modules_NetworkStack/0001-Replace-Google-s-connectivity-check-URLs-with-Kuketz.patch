@@ -44,7 +44,7 @@ index d9ee36d..ea74303 100644
      <!-- Configuration hooks for the above settings.
           Empty by default but may be overridden by RROs. -->
 diff --git a/src/com/android/networkstack/util/NetworkStackUtils.java b/src/com/android/networkstack/util/NetworkStackUtils.java
-index 6a124dd..9d2ed6f 100755
+index b08789a..ae4c22b 100644
 --- a/src/com/android/networkstack/util/NetworkStackUtils.java
 +++ b/src/com/android/networkstack/util/NetworkStackUtils.java
 @@ -147,14 +147,14 @@ public class NetworkStackUtils {
@@ -63,4 +63,4 @@ index 6a124dd..9d2ed6f 100755
 +            new String [] {"https://captiveportal.kuketz.de"};
  
      /**
-      * Minimum module version at which to enable the DHCP Rapid Commit option.
+      * Minimum module version at which to enable the IP address conflict detection feature.

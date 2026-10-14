@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: jhenrique09 <jhsv09@gmail.com>
 Date: Tue, 23 Aug 2022 17:11:54 -0300
-Subject: [PATCH 04/10] init: Spoof more props
+Subject: [PATCH 04/18] init: Spoof more props
 
 Change-Id: Ic0ddbd6a0dd40c877248f7864082eddab2b32366
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
@@ -10,10 +10,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/init/property_service.cpp b/init/property_service.cpp
-index f17393b..5802a48 100644
+index fa233d9..80429a9 100644
 --- a/init/property_service.cpp
 +++ b/init/property_service.cpp
-@@ -1383,7 +1383,6 @@ static void ProcessBootconfig() {
+@@ -1415,7 +1415,6 @@ static void ProcessBootconfig() {
  }
  
  static void SetSafetyNetProps() {
@@ -21,7 +21,7 @@ index f17393b..5802a48 100644
      InitPropertySet("ro.boot.flash.locked", "1");
      InitPropertySet("ro.boot.vbmeta.device_state", "locked");
      InitPropertySet("ro.boot.verifiedbootstate", "green");
-@@ -1392,15 +1391,22 @@ static void SetSafetyNetProps() {
+@@ -1424,15 +1423,22 @@ static void SetSafetyNetProps() {
      InitPropertySet("ro.warranty_bit", "0");
      InitPropertySet("ro.debuggable", "0");
      InitPropertySet("ro.secure", "1");

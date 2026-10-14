@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Dmitry Muhomor <muhomor.dmitry@gmail.com>
 Date: Tue, 12 Dec 2023 18:08:55 +0200
-Subject: [PATCH 14/19] raise max RLIMIT_NOFILE for zygote from 32K to 256K
+Subject: [PATCH 14/18] raise max RLIMIT_NOFILE for zygote from 32K to 256K
 
 ---
  rootdir/init.zygote32.rc    | 1 +
@@ -10,7 +10,7 @@ Subject: [PATCH 14/19] raise max RLIMIT_NOFILE for zygote from 32K to 256K
  3 files changed, 3 insertions(+)
 
 diff --git a/rootdir/init.zygote32.rc b/rootdir/init.zygote32.rc
-index 862afb6..8643342 100644
+index c22d14e..585132e 100644
 --- a/rootdir/init.zygote32.rc
 +++ b/rootdir/init.zygote32.rc
 @@ -3,6 +3,7 @@ service zygote /system/bin/app_process -Xzygote /system/bin --zygote --start-sys
@@ -34,7 +34,7 @@ index 3422121..685663e 100644
      socket usap_pool_primary stream 660 root system
      onrestart exec_background - system system -- /system/bin/vdc volume abort_fuse
 diff --git a/rootdir/init.zygote64_32.rc b/rootdir/init.zygote64_32.rc
-index 109bf6c..0582905 100644
+index f29545c..81819b5 100644
 --- a/rootdir/init.zygote64_32.rc
 +++ b/rootdir/init.zygote64_32.rc
 @@ -5,6 +5,7 @@ service zygote_secondary /system/bin/app_process32 -Xzygote /system/bin --zygote

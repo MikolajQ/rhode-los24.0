@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Dmitrii <bankersenator@gmail.com>
 Date: Fri, 18 Oct 2024 19:47:20 +0000
-Subject: [PATCH 080/226] fwb: silence typedarray spam
+Subject: [PATCH 080/220] fwb: silence typedarray spam
 
 Signed-off-by: Dmitrii <bankersenator@gmail.com>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  1 file changed, 33 insertions(+), 33 deletions(-)
 
 diff --git a/core/java/android/content/res/TypedArray.java b/core/java/android/content/res/TypedArray.java
-index e1b07858d2..be6a1b5052 100644
+index abf2a8fe8..e8d56c2ed 100644
 --- a/core/java/android/content/res/TypedArray.java
 +++ b/core/java/android/content/res/TypedArray.java
-@@ -532,9 +532,9 @@ public class TypedArray implements AutoCloseable {
+@@ -533,9 +533,9 @@ public class TypedArray implements AutoCloseable {
          } else if (type == TypedValue.TYPE_ATTRIBUTE) {
              final TypedValue value = mValue;
              getValueAt(index, value);
@@ -25,7 +25,7 @@ index e1b07858d2..be6a1b5052 100644
          }
  
          throw new UnsupportedOperationException("Can't convert value at index " + attrIndex
-@@ -567,9 +567,9 @@ public class TypedArray implements AutoCloseable {
+@@ -568,9 +568,9 @@ public class TypedArray implements AutoCloseable {
          final TypedValue value = mValue;
          if (getValueAt(index * STYLE_NUM_ENTRIES, value)) {
              if (value.type == TypedValue.TYPE_ATTRIBUTE) {
@@ -38,7 +38,7 @@ index e1b07858d2..be6a1b5052 100644
              }
              return mResources.loadComplexColor(value, value.resourceId, mTheme);
          }
-@@ -603,9 +603,9 @@ public class TypedArray implements AutoCloseable {
+@@ -604,9 +604,9 @@ public class TypedArray implements AutoCloseable {
          final TypedValue value = mValue;
          if (getValueAt(index * STYLE_NUM_ENTRIES, value)) {
              if (value.type == TypedValue.TYPE_ATTRIBUTE) {
@@ -51,7 +51,7 @@ index e1b07858d2..be6a1b5052 100644
              }
              return mResources.loadColorStateList(value, value.resourceId, mTheme);
          }
-@@ -645,9 +645,9 @@ public class TypedArray implements AutoCloseable {
+@@ -646,9 +646,9 @@ public class TypedArray implements AutoCloseable {
          } else if (type == TypedValue.TYPE_ATTRIBUTE) {
              final TypedValue value = mValue;
              getValueAt(index, value);
@@ -64,7 +64,7 @@ index e1b07858d2..be6a1b5052 100644
          }
  
          throw new UnsupportedOperationException("Can't convert value at index " + attrIndex
-@@ -693,9 +693,9 @@ public class TypedArray implements AutoCloseable {
+@@ -694,9 +694,9 @@ public class TypedArray implements AutoCloseable {
          } else if (type == TypedValue.TYPE_ATTRIBUTE) {
              final TypedValue value = mValue;
              getValueAt(index, value);
@@ -77,7 +77,7 @@ index e1b07858d2..be6a1b5052 100644
          }
  
          throw new UnsupportedOperationException("Can't convert value at index " + attrIndex
-@@ -742,9 +742,9 @@ public class TypedArray implements AutoCloseable {
+@@ -743,9 +743,9 @@ public class TypedArray implements AutoCloseable {
          } else if (type == TypedValue.TYPE_ATTRIBUTE) {
              final TypedValue value = mValue;
              getValueAt(index, value);
@@ -90,7 +90,7 @@ index e1b07858d2..be6a1b5052 100644
          }
  
          throw new UnsupportedOperationException("Can't convert value at index " + attrIndex
-@@ -792,9 +792,9 @@ public class TypedArray implements AutoCloseable {
+@@ -793,9 +793,9 @@ public class TypedArray implements AutoCloseable {
          } else if (type == TypedValue.TYPE_ATTRIBUTE) {
              final TypedValue value = mValue;
              getValueAt(index, value);
@@ -103,7 +103,7 @@ index e1b07858d2..be6a1b5052 100644
          }
  
          throw new UnsupportedOperationException("Can't convert value at index " + attrIndex
-@@ -837,9 +837,9 @@ public class TypedArray implements AutoCloseable {
+@@ -838,9 +838,9 @@ public class TypedArray implements AutoCloseable {
          } else if (type == TypedValue.TYPE_ATTRIBUTE) {
              final TypedValue value = mValue;
              getValueAt(index, value);
@@ -116,7 +116,7 @@ index e1b07858d2..be6a1b5052 100644
          }
  
          throw new UnsupportedOperationException(getPositionDescription()
-@@ -913,9 +913,9 @@ public class TypedArray implements AutoCloseable {
+@@ -914,9 +914,9 @@ public class TypedArray implements AutoCloseable {
          } else if (type == TypedValue.TYPE_ATTRIBUTE) {
              final TypedValue value = mValue;
              getValueAt(index, value);
@@ -129,7 +129,7 @@ index e1b07858d2..be6a1b5052 100644
          }
  
          throw new UnsupportedOperationException("Can't convert value at index " + attrIndex
-@@ -1010,9 +1010,9 @@ public class TypedArray implements AutoCloseable {
+@@ -1011,9 +1011,9 @@ public class TypedArray implements AutoCloseable {
          final TypedValue value = mValue;
          if (getValueAt(index * STYLE_NUM_ENTRIES, value)) {
              if (value.type == TypedValue.TYPE_ATTRIBUTE) {
@@ -142,7 +142,7 @@ index e1b07858d2..be6a1b5052 100644
              }
  
              if (density > 0) {
-@@ -1047,9 +1047,9 @@ public class TypedArray implements AutoCloseable {
+@@ -1048,9 +1048,9 @@ public class TypedArray implements AutoCloseable {
          final TypedValue value = mValue;
          if (getValueAt(index * STYLE_NUM_ENTRIES, value)) {
              if (value.type == TypedValue.TYPE_ATTRIBUTE) {

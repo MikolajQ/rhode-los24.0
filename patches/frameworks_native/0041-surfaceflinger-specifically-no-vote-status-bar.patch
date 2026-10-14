@@ -11,10 +11,10 @@ configured to be shown in status bar) from voting at all.
  2 files changed, 6 insertions(+)
 
 diff --git a/services/surfaceflinger/Layer.h b/services/surfaceflinger/Layer.h
-index fff5e91..1ee5093 100644
+index 90b5538..6104d18 100644
 --- a/services/surfaceflinger/Layer.h
 +++ b/services/surfaceflinger/Layer.h
-@@ -357,6 +357,8 @@ public:
+@@ -367,6 +367,8 @@ public:
  
      virtual uid_t getOwnerUid() const { return mOwnerUid; }
  
@@ -24,11 +24,11 @@ index fff5e91..1ee5093 100644
      nsecs_t mMaxTimeForUseVsyncId = 0;
      // True when DrawState.useVsyncIdForRefreshRateSelection previously set to true during updating
 diff --git a/services/surfaceflinger/Scheduler/LayerHistory.cpp b/services/surfaceflinger/Scheduler/LayerHistory.cpp
-index ec486e5..b3a407a 100644
+index 205bbcf..5407c1a 100644
 --- a/services/surfaceflinger/Scheduler/LayerHistory.cpp
 +++ b/services/surfaceflinger/Scheduler/LayerHistory.cpp
-@@ -376,6 +376,10 @@ void LayerHistory::partitionLayers(nsecs_t now) {
-                 }
+@@ -355,6 +355,10 @@ void LayerHistory::partitionLayers(nsecs_t now) {
+                 info->resetLayerVote();
              }
  
 +            if (layerUnsafe->getWindowType() == gui::WindowInfo::Type::STATUS_BAR) {

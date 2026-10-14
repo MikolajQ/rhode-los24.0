@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Adithya R <gh0strider.2k18.reborn@gmail.com>
 Date: Tue, 1 Nov 2022 20:23:47 +0530
-Subject: [PATCH 078/226] StrictMode: Enable by default only in ENG builds
+Subject: [PATCH 078/220] StrictMode: Enable by default only in ENG builds
 
 Change-Id: I9363a16c5c69cc5d6266ff7245272703d11dba25
 Signed-off-by: Dmitrii <bankersenator@gmail.com>
@@ -10,10 +10,10 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  1 file changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/core/java/android/os/StrictMode.java b/core/java/android/os/StrictMode.java
-index 10d75fdc91..164de029b0 100644
+index 0b01433dc..0fff4178f 100644
 --- a/core/java/android/os/StrictMode.java
 +++ b/core/java/android/os/StrictMode.java
-@@ -1526,15 +1526,17 @@ public final class StrictMode {
+@@ -1600,15 +1600,17 @@ public final class StrictMode {
              builder.penaltyDeathOnNetwork();
          }
  

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Tommaso Fonda <fondatommaso2@gmail.com>
 Date: Fri, 12 Jan 2024 15:50:07 +0100
-Subject: [PATCH 10/18] sm6225-common: gps: Use GrapheneOS's SUPL server
+Subject: [PATCH 10/20] sm6225-common: gps: Use GrapheneOS's SUPL server
 
 Change-Id: Id94e35ff6277c8f7c4450dc4869f2573dfdec94c
 ---

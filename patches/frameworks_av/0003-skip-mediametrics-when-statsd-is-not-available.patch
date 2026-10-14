@@ -10,10 +10,10 @@ Signed-off-by: rmp22 <195054967+rmp22@users.noreply.github.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/services/mediametrics/statsd_codec.cpp b/services/mediametrics/statsd_codec.cpp
-index 256ce8b..bcc2a82 100644
+index 5ff6205..27ae0e6 100644
 --- a/services/mediametrics/statsd_codec.cpp
 +++ b/services/mediametrics/statsd_codec.cpp
-@@ -180,7 +180,8 @@ static void parseVector(const std::string &str, std::vector<int32_t> *vector) {
+@@ -182,7 +182,8 @@ static void parseVector(const std::string &str, std::vector<int32_t> *vector) {
  bool statsd_codec(const std::shared_ptr<const mediametrics::Item>& item,
          const std::shared_ptr<mediametrics::StatsdLog>& statsdLog)
  {

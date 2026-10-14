@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: 1582130940 <19632674+1582130940@users.noreply.github.com>
 Date: Mon, 9 Aug 2021 03:35:07 +0200
-Subject: [PATCH 042/226] fwb: Disable some debug/log/trace
+Subject: [PATCH 042/220] fwb: Disable some debug/log/trace
 
 * ResourceTypes: Don't spam logcat
 fusionjack <dogfight60-fusionjack@yahoo.de>
@@ -60,6 +60,8 @@ Soo-Hwan Na <69458352+roynatech2544@users.noreply.github.com>
 * ActivityThread: Remove Failed to find provider info logspam
 Immanuel Raj <immanuelr44@gmail.com>
 
+[MikolajQ: Ported to Android 17: the LightsService JNI is gone]
+
 Co-authored-by: fusionjack <dogfight60-fusionjack@yahoo.de>
 Co-authored-by: Chet Kener <Cl3Kener@gmail.com>
 Co-authored-by: AndroidRul3z <ferrettidario@gmail.com>
@@ -86,14 +88,13 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  .../com/android/systemui/statusbar/GestureRecorder.java  | 2 +-
  .../com/android/systemui/statusbar/phone/ScrimState.java | 9 ---------
  .../pm/permission/DefaultPermissionGrantPolicy.java      | 1 -
- .../core/jni/com_android_server_lights_LightsService.cpp | 2 +-
- 12 files changed, 8 insertions(+), 24 deletions(-)
+ 11 files changed, 7 insertions(+), 23 deletions(-)
 
 diff --git a/apex/jobscheduler/service/java/com/android/server/alarm/AlarmManagerService.java b/apex/jobscheduler/service/java/com/android/server/alarm/AlarmManagerService.java
-index 80421cd5e3..1e5bcbcb87 100644
+index 8e391b301..b0eaae055 100644
 --- a/apex/jobscheduler/service/java/com/android/server/alarm/AlarmManagerService.java
 +++ b/apex/jobscheduler/service/java/com/android/server/alarm/AlarmManagerService.java
-@@ -5559,7 +5559,7 @@ public class AlarmManagerService extends SystemService {
+@@ -5696,7 +5696,7 @@ public class AlarmManagerService extends SystemService {
              }
          }
          if (oldCount < decrement) {
@@ -103,10 +104,10 @@ index 80421cd5e3..1e5bcbcb87 100644
          }
      }
 diff --git a/core/java/android/app/ActivityThread.java b/core/java/android/app/ActivityThread.java
-index 6777dbaad9..74c8ceaab9 100644
+index b7d9f6530..d99986729 100644
 --- a/core/java/android/app/ActivityThread.java
 +++ b/core/java/android/app/ActivityThread.java
-@@ -8526,11 +8526,6 @@ public final class ActivityThread extends ClientTransactionHandler
+@@ -8731,11 +8731,6 @@ public final class ActivityThread extends ClientTransactionHandler
              }
          }
          if (holder == null) {
@@ -119,10 +120,10 @@ index 6777dbaad9..74c8ceaab9 100644
          }
  
 diff --git a/core/java/android/view/ViewRootImpl.java b/core/java/android/view/ViewRootImpl.java
-index fa1c190eb4..4f2a99f080 100644
+index 62bd3e12b..4872f1251 100644
 --- a/core/java/android/view/ViewRootImpl.java
 +++ b/core/java/android/view/ViewRootImpl.java
-@@ -8493,7 +8493,6 @@ public final class ViewRootImpl implements ViewParent,
+@@ -8944,7 +8944,6 @@ public final class ViewRootImpl implements ViewParent,
          }
          if (x < 0 || x >= mView.getWidth() || y < 0 || y >= mView.getHeight()) {
              // E.g. when moving window divider with mouse
@@ -131,10 +132,10 @@ index fa1c190eb4..4f2a99f080 100644
          }
  
 diff --git a/libs/androidfw/ResourceTypes.cpp b/libs/androidfw/ResourceTypes.cpp
-index 3dafce44a0..46e4874fe3 100644
+index 8d1131500..b159e06a0 100644
 --- a/libs/androidfw/ResourceTypes.cpp
 +++ b/libs/androidfw/ResourceTypes.cpp
-@@ -4576,7 +4576,7 @@ bool ResTable::getResourceName(uint32_t resID, bool allowUtf8, resource_name* ou
+@@ -4617,7 +4617,7 @@ bool ResTable::getResourceName(uint32_t resID, bool allowUtf8, resource_name* ou
  
      if (p < 0) {
          if (Res_GETPACKAGE(resID)+1 == 0) {
@@ -144,7 +145,7 @@ index 3dafce44a0..46e4874fe3 100644
  #ifndef STATIC_ANDROIDFW_FOR_TOOLS
              ALOGW("No known package when getting name for resource number 0x%08x", resID);
 diff --git a/location/java/com/android/internal/location/GpsNetInitiatedHandler.java b/location/java/com/android/internal/location/GpsNetInitiatedHandler.java
-index 8aa80aa17f..17843a2afc 100644
+index 8aa80aa17..17843a2af 100644
 --- a/location/java/com/android/internal/location/GpsNetInitiatedHandler.java
 +++ b/location/java/com/android/internal/location/GpsNetInitiatedHandler.java
 @@ -38,7 +38,7 @@ public class GpsNetInitiatedHandler {
@@ -157,7 +158,7 @@ index 8aa80aa17f..17843a2afc 100644
      private final Context mContext;
      private final TelephonyManager mTelephonyManager;
 diff --git a/packages/BackupRestoreConfirmation/src/com/android/backupconfirm/BackupRestoreConfirmation.java b/packages/BackupRestoreConfirmation/src/com/android/backupconfirm/BackupRestoreConfirmation.java
-index bc06bdbd29..60ef1c9c64 100644
+index bc06bdbd2..60ef1c9c6 100644
 --- a/packages/BackupRestoreConfirmation/src/com/android/backupconfirm/BackupRestoreConfirmation.java
 +++ b/packages/BackupRestoreConfirmation/src/com/android/backupconfirm/BackupRestoreConfirmation.java
 @@ -55,7 +55,7 @@ import androidx.core.view.WindowInsetsCompat;
@@ -170,7 +171,7 @@ index bc06bdbd29..60ef1c9c64 100644
      static final String KEY_DID_ACKNOWLEDGE = "did_acknowledge";
      static final String KEY_TOKEN = "token";
 diff --git a/packages/SettingsLib/src/com/android/settingslib/bluetooth/BluetoothUtils.java b/packages/SettingsLib/src/com/android/settingslib/bluetooth/BluetoothUtils.java
-index 975fdafdca..fff3ebb381 100644
+index 565919bf9..26e3f0383 100644
 --- a/packages/SettingsLib/src/com/android/settingslib/bluetooth/BluetoothUtils.java
 +++ b/packages/SettingsLib/src/com/android/settingslib/bluetooth/BluetoothUtils.java
 @@ -74,7 +74,7 @@ public class BluetoothUtils {
@@ -183,7 +184,7 @@ index 975fdafdca..fff3ebb381 100644
      public static final int META_INT_ERROR = -1;
      public static final String BT_ADVANCED_HEADER_ENABLED = "bt_advanced_header_enabled";
 diff --git a/packages/SystemUI/src/com/android/systemui/navigationbar/views/buttons/DeadZone.java b/packages/SystemUI/src/com/android/systemui/navigationbar/views/buttons/DeadZone.java
-index a6be314158..3afd14e2b2 100644
+index a6be31415..3afd14e2b 100644
 --- a/packages/SystemUI/src/com/android/systemui/navigationbar/views/buttons/DeadZone.java
 +++ b/packages/SystemUI/src/com/android/systemui/navigationbar/views/buttons/DeadZone.java
 @@ -46,7 +46,7 @@ public class DeadZone {
@@ -196,7 +197,7 @@ index a6be314158..3afd14e2b2 100644
      private static final FloatProperty<DeadZone> FLASH_PROPERTY =
              new FloatProperty<DeadZone>("DeadZoneFlash") {
 diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/GestureRecorder.java b/packages/SystemUI/src/com/android/systemui/statusbar/GestureRecorder.java
-index a49af47f48..4adb8868c0 100644
+index a49af47f4..4adb8868c 100644
 --- a/packages/SystemUI/src/com/android/systemui/statusbar/GestureRecorder.java
 +++ b/packages/SystemUI/src/com/android/systemui/statusbar/GestureRecorder.java
 @@ -33,7 +33,7 @@ import java.util.LinkedList;
@@ -209,7 +210,7 @@ index a49af47f48..4adb8868c0 100644
  
      public class Gesture {
 diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/phone/ScrimState.java b/packages/SystemUI/src/com/android/systemui/statusbar/phone/ScrimState.java
-index 6c20ebc232..a524596153 100644
+index 6c20ebc23..a52459615 100644
 --- a/packages/SystemUI/src/com/android/systemui/statusbar/phone/ScrimState.java
 +++ b/packages/SystemUI/src/com/android/systemui/statusbar/phone/ScrimState.java
 @@ -20,7 +20,6 @@ import static com.android.systemui.statusbar.phone.ScrimController.BUSY_SCRIM_AL
@@ -236,7 +237,7 @@ index 6c20ebc232..a524596153 100644
          scrim.setViewAlpha(alpha);
      }
 diff --git a/services/core/java/com/android/server/pm/permission/DefaultPermissionGrantPolicy.java b/services/core/java/com/android/server/pm/permission/DefaultPermissionGrantPolicy.java
-index b4f79f6f59..acd465ca16 100644
+index 00bd46f50..1a942b350 100644
 --- a/services/core/java/com/android/server/pm/permission/DefaultPermissionGrantPolicy.java
 +++ b/services/core/java/com/android/server/pm/permission/DefaultPermissionGrantPolicy.java
 @@ -335,7 +335,6 @@ final class DefaultPermissionGrantPolicy {
@@ -247,16 +248,3 @@ index b4f79f6f59..acd465ca16 100644
                  return null;
              }
          }
-diff --git a/services/core/jni/com_android_server_lights_LightsService.cpp b/services/core/jni/com_android_server_lights_LightsService.cpp
-index 35d8219651..c12f205f7d 100644
---- a/services/core/jni/com_android_server_lights_LightsService.cpp
-+++ b/services/core/jni/com_android_server_lights_LightsService.cpp
-@@ -112,7 +112,7 @@ static void processReturn(
-         case Status::SUCCESS:
-             break;
-         case Status::LIGHT_NOT_SUPPORTED:
--            ALOGE("Light requested not available on this device. %d", type);
-+            ALOGV("Light requested not available on this device. %d", type);
-             break;
-         case Status::BRIGHTNESS_NOT_SUPPORTED:
-             ALOGE("Brightness parameter not supported on this device: %d",

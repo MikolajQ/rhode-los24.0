@@ -10,10 +10,10 @@ Change-Id: I60feb99b4cbccf1cf915e8c7950dd6b0c90c0dd2
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/com/android/captiveportallogin/CaptivePortalLoginActivity.java b/src/com/android/captiveportallogin/CaptivePortalLoginActivity.java
-index 31b6729..ac15da1 100755
+index 00dc80f..8422fb5 100755
 --- a/src/com/android/captiveportallogin/CaptivePortalLoginActivity.java
 +++ b/src/com/android/captiveportallogin/CaptivePortalLoginActivity.java
-@@ -172,7 +172,7 @@ public class CaptivePortalLoginActivity extends Activity {
+@@ -171,7 +171,7 @@ public class CaptivePortalLoginActivity extends Activity {
      private static final int SOCKET_TIMEOUT_MS = 10000;
      public static final String HTTP_LOCATION_HEADER_NAME = "Location";
      private static final String DEFAULT_CAPTIVE_PORTAL_HTTP_URL =

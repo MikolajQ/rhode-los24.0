@@ -1,7 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Daniel Micay <daniel.micay@grapheneos.org>
 Date: Tue, 8 Apr 2025 22:04:15 -0400
-Subject: [PATCH 07/31] fix upstream RecoverySystem.verifyPackage vulnerability
+Subject: [PATCH 007/220] fix upstream RecoverySystem.verifyPackage
+ vulnerability
 
 This was not directly exploitable due to there being 2 layers of update
 package signature verification and downgrade protection, but the first
@@ -12,7 +13,7 @@ layer of protection should work properly to avoid a vulnerability in the
  1 file changed, 6 insertions(+)
 
 diff --git a/core/java/android/os/RecoverySystem.java b/core/java/android/os/RecoverySystem.java
-index de995527ee..7ab53d3422 100644
+index de995527e..7ab53d342 100644
 --- a/core/java/android/os/RecoverySystem.java
 +++ b/core/java/android/os/RecoverySystem.java
 @@ -334,6 +334,9 @@ public class RecoverySystem {

@@ -1,0 +1,36 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Zhuo Fu <quic_zfu@quicinc.com>
+Date: Mon, 3 Apr 2023 14:39:26 +0800
+Subject: [PATCH 127/220] CachedAppOptimizer: Fix persistent compact skipped
+
+Persistent app compaction broken, fix by only do oom adj throttle check
+for APP compact type
+
+[MikolajQ: Ported to Android 17: PERCEPTIBLE_APP_ADJ is a static import now]
+
+CRs-Fixed: 3453069
+Change-Id: I2dc0ea5aca0b36fd09e71942fdd0f3eafdac2eec
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+---
+ .../core/java/com/android/server/am/CachedAppOptimizer.java  | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/services/core/java/com/android/server/am/CachedAppOptimizer.java b/services/core/java/com/android/server/am/CachedAppOptimizer.java
+index 18fe5dcf6..45660aee0 100644
+--- a/services/core/java/com/android/server/am/CachedAppOptimizer.java
++++ b/services/core/java/com/android/server/am/CachedAppOptimizer.java
+@@ -1996,10 +1996,13 @@ public class CachedAppOptimizer {
+ 
+         private boolean shouldOomAdjThrottleCompaction(ProcessRecord proc) {
+             final String name = proc.processName;
++            final ProcessCachedOptimizerRecord opt = proc.mOptRecord;
++            CompactSource compactSource = opt.getReqCompactSource();
+ 
+             // don't compact if the process has returned to perceptible
+             // and this is only a cached/home/prev compaction
+-            if (proc.getSetAdj() <= PERCEPTIBLE_APP_ADJ) {
++            if (compactSource == CompactSource.APP
++                    && proc.getSetAdj() <= PERCEPTIBLE_APP_ADJ) {
+                 if (DEBUG_COMPACTION) {
+                     Slog.d(TAG_AM,
+                             "Skipping compaction as process " + name + " is "

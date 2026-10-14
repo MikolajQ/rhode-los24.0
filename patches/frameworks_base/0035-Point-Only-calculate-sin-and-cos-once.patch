@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Till Kottmann <till.kottmann@bison-group.com>
 Date: Fri, 24 Aug 2018 08:56:47 +0200
-Subject: [PATCH 035/226] (Point) Only calculate sin and cos once
+Subject: [PATCH 035/220] (Point) Only calculate sin and cos once
 
 Change-Id: I6157d91ca93a771b32bd2c3b859c19ed42efa469
 Signed-off-by: Pranav <npv12@iitbbs.ac.in>
@@ -10,7 +10,7 @@ Signed-off-by: Pranav <npv12@iitbbs.ac.in>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/media/mca/filterfw/java/android/filterfw/geometry/Point.java b/media/mca/filterfw/java/android/filterfw/geometry/Point.java
-index 96d2d7b08b..c38d776594 100644
+index 96d2d7b08..c38d77659 100644
 --- a/media/mca/filterfw/java/android/filterfw/geometry/Point.java
 +++ b/media/mca/filterfw/java/android/filterfw/geometry/Point.java
 @@ -101,9 +101,9 @@ public class Point {

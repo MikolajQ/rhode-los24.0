@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Alex Naidis <alex.naidis@linux.com>
 Date: Thu, 22 Dec 2016 22:04:42 +0100
-Subject: [PATCH 12/19] init.rc: don't start console unless asked to
+Subject: [PATCH 12/18] init.rc: don't start console unless asked to
 
 This can have a major impact on performance.
 
@@ -25,10 +25,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/rootdir/init.rc b/rootdir/init.rc
-index 92dcdd0..c6a517f 100644
+index 56024b9..d33dd5e 100644
 --- a/rootdir/init.rc
 +++ b/rootdir/init.rc
-@@ -1364,7 +1364,7 @@ on property:ro.debuggable=1
+@@ -1347,7 +1347,7 @@ on property:ro.debuggable=1
      # Give reads to anyone for the accessibility trace folder on debug builds.
      chmod 0775 /data/misc/a11ytrace
  
@@ -36,4 +36,4 @@ index 92dcdd0..c6a517f 100644
 +on init && property:ro.debuggable=1 && property:ro.console.enable=1
      start console
  
- # Multi-Gen LRU Experiment
+ # Allow other processes to run `snapshotctl` through `init`. This requires

@@ -18,10 +18,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/runtime/hprof/hprof.cc b/runtime/hprof/hprof.cc
-index 885112c..fa692a5 100644
+index f4cf3a8..070d931 100644
 --- a/runtime/hprof/hprof.cc
 +++ b/runtime/hprof/hprof.cc
-@@ -609,7 +609,7 @@ class Hprof : public SingleRootVisitor {
+@@ -617,7 +617,7 @@ class Hprof : public SingleRootVisitor {
        if (it == classes_.end()) {
          // first time to see this class
          HprofClassSerialNumber sn = next_class_serial_number_++;
@@ -30,7 +30,7 @@ index 885112c..fa692a5 100644
          // Make sure that we've assigned a string ID for this class' name
          LookupClassNameId(c);
        }
-@@ -644,7 +644,7 @@ class Hprof : public SingleRootVisitor {
+@@ -652,7 +652,7 @@ class Hprof : public SingleRootVisitor {
        return it->second;
      }
      HprofStringId id = next_string_id_++;
@@ -39,7 +39,7 @@ index 885112c..fa692a5 100644
      return id;
    }
  
-@@ -883,9 +883,9 @@ class Hprof : public SingleRootVisitor {
+@@ -894,9 +894,9 @@ class Hprof : public SingleRootVisitor {
    size_t total_objects_with_stack_trace_ = 0u;
  
    HprofStringId next_string_id_ = 0x400000;

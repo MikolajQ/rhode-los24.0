@@ -1,0 +1,51 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: rmp22 <195054967+rmp22@users.noreply.github.com>
+Date: Wed, 3 Jun 2026 21:50:55 +0800
+Subject: [PATCH 202/220] services Disable wm debug cpu hotspots
+
+[MikolajQ: Ported to Android 17: AOSP fixed b/420917959 and moved the launch params log builder into LaunchParamsController, so the gate lives there now]
+
+Change-Id: Ia3ab65e8d89d3fd6dc1933da22feb3a83179635c
+Signed-off-by: rmp22 <195054967+rmp22@users.noreply.github.com>
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+---
+ .../com/android/server/wm/LaunchParamsController.java     | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/services/core/java/com/android/server/wm/LaunchParamsController.java b/services/core/java/com/android/server/wm/LaunchParamsController.java
+index 89dc77288..6e581cda1 100644
+--- a/services/core/java/com/android/server/wm/LaunchParamsController.java
++++ b/services/core/java/com/android/server/wm/LaunchParamsController.java
+@@ -39,6 +39,7 @@ import android.util.Slog;
+ 
+ import com.android.internal.policy.DesktopModeCompatPolicy;
+ import com.android.internal.protolog.ProtoLog;
++import com.android.internal.protolog.common.LogLevel;
+ 
+ import java.lang.annotation.Retention;
+ import java.lang.annotation.RetentionPolicy;
+@@ -437,17 +438,24 @@ class LaunchParamsController {
+         int mResult = RESULT_SKIP;
+ 
+         void initLogBuilder(String modifierName, int phase, Task task, ActivityRecord activity) {
++            // Building the log on every launch is a CPU hotspot, so only do it when it is wanted.
++            if (!ProtoLog.isEnabled(WM_DEBUG_TASKS_LAUNCH_PARAMS, LogLevel.VERBOSE)) {
++                mLogBuilder = null;
++                return;
++            }
+             mLogBuilder = new StringBuilder(512)
+                     .append(modifierName).append(": phase=").append(phase)
+                     .append(" task=").append(task).append(" activity=").append(activity);
+         }
+ 
+         void appendLog(String log) {
++            if (mLogBuilder == null) return;
+             mLogBuilder.append(" ").append(log);
+         }
+ 
+         /** This is called from {@link #onCalculate}. */
+         void outputLog() {
++            if (mLogBuilder == null) return;
+             ProtoLog.v(WM_DEBUG_TASKS_LAUNCH_PARAMS, "%s", mLogBuilder.toString());
+         }
+ 

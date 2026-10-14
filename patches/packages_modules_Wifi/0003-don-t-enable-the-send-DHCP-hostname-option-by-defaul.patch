@@ -3,6 +3,7 @@ From: Dmitry Muhomor <muhomor.dmitry@gmail.com>
 Date: Fri, 18 Oct 2024 11:52:00 +0300
 Subject: [PATCH 3/3] don't enable the "send DHCP hostname" option by default
 
+[MikolajQ: Android 17 version from GrapheneOS 17 (7ffb1ae38a)]
 ---
  .../android/net/wifi/WifiConfiguration.java     |  2 +-
  .../server/wifi/WifiBackupDataV1Parser.java     |  8 --------
@@ -11,10 +12,10 @@ Subject: [PATCH 3/3] don't enable the "send DHCP hostname" option by default
  4 files changed, 10 insertions(+), 19 deletions(-)
 
 diff --git a/framework/java/android/net/wifi/WifiConfiguration.java b/framework/java/android/net/wifi/WifiConfiguration.java
-index e10ac14e..0eb9ff4b 100644
+index 32d5dbb..0314647 100644
 --- a/framework/java/android/net/wifi/WifiConfiguration.java
 +++ b/framework/java/android/net/wifi/WifiConfiguration.java
-@@ -2013,7 +2013,7 @@ public class WifiConfiguration implements Parcelable {
+@@ -2020,7 +2020,7 @@ public class WifiConfiguration implements Parcelable {
          mRandomizedMacAddress = mac;
      }
  
@@ -24,7 +25,7 @@ index e10ac14e..0eb9ff4b 100644
      /**
       * Set whether to send the hostname of the device to this network's DHCP server.
 diff --git a/service/java/com/android/server/wifi/WifiBackupDataV1Parser.java b/service/java/com/android/server/wifi/WifiBackupDataV1Parser.java
-index 093c66cb..35dd4b30 100644
+index e45e12b..57c6692 100644
 --- a/service/java/com/android/server/wifi/WifiBackupDataV1Parser.java
 +++ b/service/java/com/android/server/wifi/WifiBackupDataV1Parser.java
 @@ -345,7 +345,6 @@ class WifiBackupDataV1Parser implements WifiBackupDataParser {
@@ -57,7 +58,7 @@ index 093c66cb..35dd4b30 100644
          return Pair.create(configKeyInData, configuration);
      }
 diff --git a/service/java/com/android/server/wifi/WifiConfigurationUtil.java b/service/java/com/android/server/wifi/WifiConfigurationUtil.java
-index fa0243fd..57dda932 100644
+index fa0243f..57dda93 100644
 --- a/service/java/com/android/server/wifi/WifiConfigurationUtil.java
 +++ b/service/java/com/android/server/wifi/WifiConfigurationUtil.java
 @@ -297,7 +297,7 @@ public class WifiConfigurationUtil {
@@ -70,7 +71,7 @@ index fa0243fd..57dda932 100644
          return newConfig.isSendDhcpHostnameEnabled() != existingConfig.isSendDhcpHostnameEnabled();
      }
 diff --git a/service/java/com/android/server/wifi/util/XmlUtil.java b/service/java/com/android/server/wifi/util/XmlUtil.java
-index fffa5e78..69aefbe0 100644
+index dd9e1f7..28a138a 100644
 --- a/service/java/com/android/server/wifi/util/XmlUtil.java
 +++ b/service/java/com/android/server/wifi/util/XmlUtil.java
 @@ -379,9 +379,16 @@ public class XmlUtil {
@@ -91,15 +92,15 @@ index fffa5e78..69aefbe0 100644
          public static final String XML_TAG_CARRIER_ID = "CarrierId";
          public static final String XML_TAG_SUBSCRIPTION_ID = "SubscriptionId";
          public static final String XML_TAG_IS_AUTO_JOIN = "AutoJoinEnabled";
-@@ -899,7 +906,6 @@ public class XmlUtil {
+@@ -908,7 +915,6 @@ public class XmlUtil {
              WifiConfiguration configuration = new WifiConfiguration();
              String configKeyInData = null;
              boolean macRandomizationSettingExists = false;
 -            boolean sendDhcpHostnameExists = false;
              boolean isCreatorUserIdExists = false;
+             boolean allowedAutoJoinInAdvancedProtectionExists = false;
              byte[] dppConnector = null;
-             byte[] dppCSign = null;
-@@ -1044,7 +1050,6 @@ public class XmlUtil {
+@@ -1054,7 +1060,6 @@ public class XmlUtil {
                              break;
                          case XML_TAG_SEND_DHCP_HOSTNAME:
                              configuration.setSendDhcpHostnameEnabled((boolean) value);
@@ -107,7 +108,7 @@ index fffa5e78..69aefbe0 100644
                              break;
                          case XML_TAG_CARRIER_ID:
                              configuration.carrierId = (int) value;
-@@ -1194,12 +1199,6 @@ public class XmlUtil {
+@@ -1212,12 +1217,6 @@ public class XmlUtil {
                      == WifiConfiguration.RANDOMIZATION_PERSISTENT && !fromSuggestion) {
                  configuration.macRandomizationSetting = WifiConfiguration.RANDOMIZATION_AUTO;
              }
@@ -117,6 +118,6 @@ index fffa5e78..69aefbe0 100644
 -                        !configuration.isSecurityType(WifiConfiguration.SECURITY_TYPE_OPEN)
 -                        && !configuration.isSecurityType(WifiConfiguration.SECURITY_TYPE_OWE));
 -            }
-             if (Flags.multiUserWifiEnhancement() && Environment.isSdkNewerThanB()
+             if (Environment.isSdkAtLeastC() && Flags.multiUserWifiEnhancement()
                      && !isCreatorUserIdExists) {
                  int userId = UserHandle.getUserHandleForUid(configuration.creatorUid)

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Dmitrii <bankersenator@gmail.com>
 Date: Sat, 27 Dec 2025 23:14:33 +0000
-Subject: [PATCH 31/31] KeyboxChainGenerator: Use real vbmeta digest
+Subject: [PATCH 031/220] KeyboxChainGenerator: Use real vbmeta digest
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -13,7 +13,6 @@ Change-Id: Ic28b248a05d2e0ce585ce4e00a6704b93f2f13e7
 Signed-off-by: Dmitrii <bankersenator@gmail.com>
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
 
-
 [MikolajQ: konflikt rozwiązany przy przenoszeniu na LineageOS lineage-23.2]
 ---
  core/java/android/provider/Settings.java      | 15 ------
@@ -21,10 +20,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  2 files changed, 23 insertions(+), 43 deletions(-)
 
 diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
-index 4c7f76af05..59871f6d7b 100644
+index 4195638aa..281aea94c 100644
 --- a/core/java/android/provider/Settings.java
 +++ b/core/java/android/provider/Settings.java
-@@ -13341,21 +13341,6 @@ public final class Settings {
+@@ -13694,21 +13694,6 @@ public final class Settings {
          @Readable
          public static final String KEYBOX_DATA = "keybox_data";
  
@@ -47,7 +46,7 @@ index 4c7f76af05..59871f6d7b 100644
           * Keys we no longer back up under the current schema, but want to continue to
           * process when restoring historical backup datasets.
 diff --git a/core/java/com/android/internal/util/KeyboxChainGenerator.java b/core/java/com/android/internal/util/KeyboxChainGenerator.java
-index 5683846eb5..b2972f930c 100644
+index 5683846eb..b2972f930 100644
 --- a/core/java/com/android/internal/util/KeyboxChainGenerator.java
 +++ b/core/java/com/android/internal/util/KeyboxChainGenerator.java
 @@ -14,15 +14,14 @@ import android.content.pm.Signature;

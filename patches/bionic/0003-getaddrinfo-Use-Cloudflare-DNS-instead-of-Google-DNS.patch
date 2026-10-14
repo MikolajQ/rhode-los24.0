@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Chirayu Desai <chirayudesai1@gmail.com>
 Date: Sat, 5 Dec 2020 03:11:49 +0530
-Subject: [PATCH 03/23] getaddrinfo: Use Cloudflare DNS instead of Google DNS
+Subject: [PATCH 03/32] getaddrinfo: Use Cloudflare DNS instead of Google DNS
 
 Change-Id: Ide51c086d2570aa5ecf28868e13f4f1672a4ff8a
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
@@ -10,7 +10,7 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/libc/dns/net/getaddrinfo.c b/libc/dns/net/getaddrinfo.c
-index cc94b21..9dd91e0 100644
+index 72c8f05..6429846 100644
 --- a/libc/dns/net/getaddrinfo.c
 +++ b/libc/dns/net/getaddrinfo.c
 @@ -387,7 +387,7 @@ static int

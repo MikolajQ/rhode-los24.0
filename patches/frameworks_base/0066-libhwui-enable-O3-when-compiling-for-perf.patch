@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Vaisakh Murali <mvaisakh@statixos.com>
 Date: Wed, 19 Apr 2023 10:35:47 +0000
-Subject: [PATCH 066/226] libhwui: enable O3 when compiling for perf
+Subject: [PATCH 066/220] libhwui: enable O3 when compiling for perf
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -23,10 +23,10 @@ Signed-off-by: Hưng Phan <phandinhhungvp2001@gmail.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/libs/hwui/Android.bp b/libs/hwui/Android.bp
-index d38964a471..27d91b2bac 100644
+index 9315456c8..df6c62460 100644
 --- a/libs/hwui/Android.bp
 +++ b/libs/hwui/Android.bp
-@@ -187,6 +187,7 @@ cc_defaults {
+@@ -188,6 +188,7 @@ cc_defaults {
      // TODO: Non-arm?
      cflags: [
          "-fno-omit-frame-pointer",

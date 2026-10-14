@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: minaripenguin <minaripenguin@users.noreply.github.com>
+Date: Thu, 14 Nov 2024 10:30:55 +0800
+Subject: [PATCH 108/220] Notification: Switch to low ram policy for bitmaps
+
+[MikolajQ: Ported to Android 17: the low-RAM dimension variants and their code paths are gone, so the regular limits take the former low-RAM values (big picture 294x208dp, custom view image width 294dp)]
+---
+ core/res/res/values/dimens.xml | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/core/res/res/values/dimens.xml b/core/res/res/values/dimens.xml
+index 729e6d59e..95dc14581 100644
+--- a/core/res/res/values/dimens.xml
++++ b/core/res/res/values/dimens.xml
+@@ -903,12 +903,12 @@
+     <!-- The maximum height of any image in a collapsed remote view. This value is determined by the maximum notification height -->
+     <dimen name="notification_expanded_custom_view_max_image_height">318dp</dimen>
+     <!-- The maximum width of any image in a  remote view. This value is determined a maximum notification width -->
+-    <dimen name="notification_custom_view_max_image_width">320dp</dimen>
++    <dimen name="notification_custom_view_max_image_width">294dp</dimen>
+     <dimen name="notification_bubble_size">60dp</dimen>
+     <!-- The maximum height of a big picture in a notification. This value is determined by the maximum notification height ~ notification_max_height - notification_2025_header_height -->
+-    <dimen name="notification_big_picture_max_height">284dp</dimen>
++    <dimen name="notification_big_picture_max_height">208dp</dimen>
+     <!-- The maximum width of a big picture in a notification. The images will be reduced to that width in case they are bigger. This value is determined by the standard panel size -->
+-    <dimen name="notification_big_picture_max_width">320dp</dimen>
++    <dimen name="notification_big_picture_max_width">294dp</dimen>
+     <!-- The size of the right icon -->
+     <dimen name="notification_right_icon_size">48dp</dimen>
+     <!-- The margin between the right icon and the content. (2025 redesign version) -->

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Akane Beneckendorff <akane@akanework.org>
 Date: Mon, 23 Oct 2023 20:04:10 +0800
-Subject: [PATCH 101/226] base: tools: aapt2: Use '-O3' for build configuration
+Subject: [PATCH 101/220] base: tools: aapt2: Use '-O3' for build configuration
 
 Change-Id: I260c986093c80f53562cd1eb7d1f79222af9943f
 Signed-off-by: Akane Beneckendorff <akane@akanework.org>
@@ -10,11 +10,11 @@ Signed-off-by: Akane Beneckendorff <akane@akanework.org>
  1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/tools/aapt2/Android.bp b/tools/aapt2/Android.bp
-index ce501cdb6b..4af9b65302 100644
+index 73aa9736e..8e21133e6 100644
 --- a/tools/aapt2/Android.bp
 +++ b/tools/aapt2/Android.bp
-@@ -34,11 +34,13 @@ cc_defaults {
-     name: "aapt2_defaults",
+@@ -35,11 +35,13 @@ cc_defaults {
+     host_supported: true,
      cpp_std: "gnu++2b",
      cflags: [
 +        "-O3",
@@ -27,7 +27,7 @@ index ce501cdb6b..4af9b65302 100644
          "-Wno-missing-field-initializers",
          "-fno-exceptions",
          "-fno-rtti",
-@@ -48,7 +50,7 @@ cc_defaults {
+@@ -59,7 +61,7 @@ cc_defaults {
          windows: {
              compile_multilib: "64",
              enabled: true,
@@ -36,7 +36,7 @@ index ce501cdb6b..4af9b65302 100644
              ldflags: ["-static"],
              host_ldlibs: [
                  // Required by stack tracing code bundled with protobuf
-@@ -56,7 +58,7 @@ cc_defaults {
+@@ -67,7 +69,7 @@ cc_defaults {
              ],
          },
          darwin: {

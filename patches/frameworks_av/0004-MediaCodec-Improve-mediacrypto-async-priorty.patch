@@ -15,10 +15,10 @@ Signed-off-by: shipeng.sun <shipeng.sun@amlogic.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/media/libstagefright/MediaCodec.cpp b/media/libstagefright/MediaCodec.cpp
-index 87c2cff..e66ccba 100644
+index ccd7790..c8f64b3 100644
 --- a/media/libstagefright/MediaCodec.cpp
 +++ b/media/libstagefright/MediaCodec.cpp
-@@ -5616,7 +5616,8 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
+@@ -5779,7 +5779,8 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
                      mCryptoLooper = new ALooper();
                      mCryptoLooper->setName("CryptoAsyncLooper");
                      mCryptoLooper->registerHandler(mCryptoAsync);

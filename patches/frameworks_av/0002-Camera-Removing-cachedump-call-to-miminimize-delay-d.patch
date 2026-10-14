@@ -18,7 +18,7 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 8 deletions(-)
 
 diff --git a/services/camera/libcameraservice/common/Camera2ClientBase.cpp b/services/camera/libcameraservice/common/Camera2ClientBase.cpp
-index 5766b55..3c75d45 100644
+index 9f8e03c..854f695 100644
 --- a/services/camera/libcameraservice/common/Camera2ClientBase.cpp
 +++ b/services/camera/libcameraservice/common/Camera2ClientBase.cpp
 @@ -290,14 +290,6 @@ binder::Status Camera2ClientBase<TClientBase>::disconnectImpl() {

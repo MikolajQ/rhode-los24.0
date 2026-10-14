@@ -15,10 +15,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/build/Android.bp b/build/Android.bp
-index f69b22e..5d89742 100644
+index 7feb8fc..20a851d 100644
 --- a/build/Android.bp
 +++ b/build/Android.bp
-@@ -103,6 +103,7 @@ art_global_defaults {
+@@ -108,6 +108,7 @@ art_global_defaults {
          "-Wshadow",
          "-Wunused",
          "-fvisibility=protected",

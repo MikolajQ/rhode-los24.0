@@ -5,45 +5,72 @@ Subject: [PATCH 02/21] skip "speed"-optimized packages at an earlier dexopt
  stage
 
 Skipping them early improves accuracy of dexopt job progress reports.
+
+[MikolajQ: Ported to Android 17: the default package lists moved to ReasonMapping, so the filter now wraps both getDefaultPackagesForReason() calls in ArtManagerLocal; pre-reboot sync dexopt is skipped as well]
 ---
- .../android/server/art/ArtManagerLocal.java   | 27 ++++++++++++++++---
- 1 file changed, 23 insertions(+), 4 deletions(-)
+ .../android/server/art/ArtManagerLocal.java   | 38 +++++++++++++++++--
+ 1 file changed, 34 insertions(+), 4 deletions(-)
 
 diff --git a/libartservice/service/java/com/android/server/art/ArtManagerLocal.java b/libartservice/service/java/com/android/server/art/ArtManagerLocal.java
-index 105546c..78b042d 100644
+index 0a6762a..d15c0d6 100644
 --- a/libartservice/service/java/com/android/server/art/ArtManagerLocal.java
 +++ b/libartservice/service/java/com/android/server/art/ArtManagerLocal.java
-@@ -1518,10 +1518,29 @@ public final class ArtManagerLocal {
-             @NonNull /* @BatchDexoptReason|REASON_INACTIVE */ String reason) {
-         var appHibernationManager = mInjector.getAppHibernationManager();
+@@ -531,8 +531,9 @@ public final class ArtManagerLocal {
+             @NonNull PackageManagerLocal.FilteredSnapshot snapshot,
+             @NonNull @BatchDexoptReason String reason,
+             @NonNull CancellationSignal cancellationSignal) {
+-        List<String> defaultPackages = Collections.unmodifiableList(
+-                mInjector.getReasonMapping().getDefaultPackagesForReason(snapshot, reason));
++        List<String> defaultPackages = Collections.unmodifiableList(skipSpeedCompiledPackages(
++                snapshot, reason,
++                mInjector.getReasonMapping().getDefaultPackagesForReason(snapshot, reason)));
+         DexoptParams defaultDexoptParams = new DexoptParams.Builder(reason).build();
+         var builder = new BatchDexoptParams.Builder(defaultPackages, defaultDexoptParams);
+         Callback<BatchDexoptStartCallback, Void> callback =
+@@ -1471,8 +1472,9 @@ public final class ArtManagerLocal {
+             @Nullable Consumer<OperationProgress> progressCallback) {
+         if (shouldDowngrade()) {
+             List<String> packages =
+-                    mInjector.getReasonMapping()
+-                            .getDefaultPackagesForReason(snapshot, ReasonMapping.REASON_INACTIVE)
++                    skipSpeedCompiledPackages(snapshot, ReasonMapping.REASON_INACTIVE,
++                            mInjector.getReasonMapping().getDefaultPackagesForReason(
++                                    snapshot, ReasonMapping.REASON_INACTIVE))
+                             .stream()
+                             .filter(pkg -> !excludedPackages.contains(pkg))
+                             .toList();
+@@ -1542,6 +1544,34 @@ public final class ArtManagerLocal {
+                 cancellationSignal, dexoptExecutor, progressCallbackExecutor, progressCallback);
+     }
  
--        // Filter out hibernating packages even if the reason is REASON_INACTIVE. This is because
--        // artifacts for hibernating packages are already deleted.
--        Stream<PackageState> packages = snapshot.getPackageStates().values().stream().filter(
--                pkgState -> Utils.canDexoptPackage(pkgState, appHibernationManager));
-+        Stream<PackageState> packages = snapshot.getPackageStates().values().stream().filter(pkgState -> {
-+            // Filter out hibernating packages even if the reason is REASON_INACTIVE. This is because
-+            // artifacts for hibernating packages are already deleted.
-+            if (!Utils.canDexoptPackage(pkgState, appHibernationManager)) {
-+                return false;
-+            }
-+
-+            if (reason.equals(ReasonMapping.REASON_PRE_REBOOT_DEXOPT)) {
-+                // pre-reboot dexopt runs ART code from next OTA update, it doesn't have access to
-+                // system_server code that is called below
-+                return true;
-+            }
-+
-+            List<DexContainerFileDexoptStatus> statuses = getDexoptStatus(snapshot, pkgState.getPackageName())
-+                .getDexContainerFileDexoptStatuses();
-+
++    /**
++     * Drops the packages whose dex files are all compiled with the "speed" filter already, so that
++     * batch dexopt doesn't process them again.
++     */
++    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
++    @NonNull
++    private List<String> skipSpeedCompiledPackages(
++            @NonNull PackageManagerLocal.FilteredSnapshot snapshot,
++            @NonNull /* @BatchDexoptReason|REASON_INACTIVE */ String reason,
++            @NonNull List<String> packages) {
++        if (reason.equals(ReasonMapping.REASON_PRE_REBOOT_DEXOPT)
++                || reason.equals(ReasonMapping.REASON_PRE_REBOOT_DEXOPT_SYNC)) {
++            // pre-reboot dexopt runs ART code from next OTA update, it doesn't have access to
++            // system_server code that is called below
++            return packages;
++        }
++        return packages.stream().filter(packageName -> {
++            List<DexContainerFileDexoptStatus> statuses =
++                    getDexoptStatus(snapshot, packageName).getDexContainerFileDexoptStatuses();
 +            for (var s : statuses) {
 +                if (!"speed".equals(s.getCompilerFilter())) {
 +                    return true;
 +                }
 +            }
 +            return false;
-+        });
- 
-         switch (reason) {
-             case ReasonMapping.REASON_BOOT_AFTER_MAINLINE_UPDATE:
++        }).toList();
++    }
++
+     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+     @NonNull
+     private ParcelFileDescriptor mergeProfilesAndGetFd(@NonNull List<ProfilePath> profiles,

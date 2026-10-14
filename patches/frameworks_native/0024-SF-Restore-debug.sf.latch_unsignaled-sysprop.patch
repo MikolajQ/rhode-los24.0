@@ -12,10 +12,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/services/surfaceflinger/SurfaceFlinger.cpp b/services/surfaceflinger/SurfaceFlinger.cpp
-index 34b8ff4..60d1a13 100644
+index cea144b..06b9920 100644
 --- a/services/surfaceflinger/SurfaceFlinger.cpp
 +++ b/services/surfaceflinger/SurfaceFlinger.cpp
-@@ -592,6 +592,9 @@ SurfaceFlinger::SurfaceFlinger(Factory& factory) : SurfaceFlinger(factory, SkipI
+@@ -608,6 +608,9 @@ SurfaceFlinger::SurfaceFlinger(Factory& factory) : SurfaceFlinger(factory, SkipI
  }
  
  LatchUnsignaledConfig SurfaceFlinger::getLatchUnsignaledConfig() {
@@ -25,7 +25,7 @@ index 34b8ff4..60d1a13 100644
      if (base::GetBoolProperty("debug.sf.auto_latch_unsignaled"s, true)) {
          return LatchUnsignaledConfig::AutoSingleLayer;
      }
-@@ -5271,10 +5274,13 @@ TransactionHandler::TransactionReadiness SurfaceFlinger::transactionReadyBufferC
+@@ -5492,10 +5495,13 @@ TransactionHandler::TransactionReadiness SurfaceFlinger::transactionReadyBufferC
                      return TraverseBuffersReturnValues::STOP_TRAVERSAL;
                  }
  
@@ -40,7 +40,7 @@ index 34b8ff4..60d1a13 100644
                          s.bufferData->acquireFence->getStatus() != Fence::Status::Unsignaled;
                  if (!fenceSignaled) {
                      // check fence status
-@@ -5382,6 +5388,11 @@ bool SurfaceFlinger::shouldLatchUnsignaled(const layer_state_t& state, size_t nu
+@@ -5603,6 +5609,11 @@ bool SurfaceFlinger::shouldLatchUnsignaled(const layer_state_t& state, size_t nu
          return false;
      }
  

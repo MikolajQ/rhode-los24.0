@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Akash Srivastava <akashniki@gmail.com>
 Date: Tue, 31 Dec 2024 00:04:35 +0100
-Subject: [PATCH 09/23] config: Enable O3 optimizations by default
+Subject: [PATCH 09/22] config: Enable O3 optimizations by default
 
 Change-Id: I6befdddda42b1d0c28e41a9033aca451fb3e8855
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
@@ -11,10 +11,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/bpf/bpf.go b/bpf/bpf.go
-index dcb11f48..91d518e5 100644
+index fd4e07a..a3b68de 100644
 --- a/bpf/bpf.go
 +++ b/bpf/bpf.go
-@@ -161,7 +161,7 @@ func (bpf *bpf) GenerateAndroidBuildActions(ctx android.ModuleContext) {
+@@ -168,7 +168,7 @@ func (bpf *bpf) GenerateAndroidBuildActions(ctx android.ModuleContext) {
  		// Make paths in deps files relative
  		"-no-canonical-prefixes",
  
@@ -24,7 +24,7 @@ index dcb11f48..91d518e5 100644
  		"-Werror",
  		"-Wextra",
 diff --git a/cc/config/global.go b/cc/config/global.go
-index 4d7bd3c9..cc3aa2c7 100644
+index 2188687..1fe7245 100644
 --- a/cc/config/global.go
 +++ b/cc/config/global.go
 @@ -31,7 +31,7 @@ var (

@@ -18,10 +18,10 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  2 files changed, 57 insertions(+), 55 deletions(-)
 
 diff --git a/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp b/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
-index a7f62cc..4df98db 100644
+index 82a3697..cb765aa 100644
 --- a/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
 +++ b/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
-@@ -628,9 +628,10 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -635,9 +635,10 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
      SFTRACE_CALL();
  
      const LayerRequirementPtrs layers = filterLayersForOutput(allLayers, mLayerFilter);
@@ -32,8 +32,8 @@ index a7f62cc..4df98db 100644
 +    FrameRateRanking ranking;
  
      if (pacesetterFps.isValid() &&
-         !FlagManager::getInstance().follower_arbitrary_refresh_rate_selection()) {
-@@ -654,7 +655,7 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+         !FlagManager::getInstance().follower_arbitrary_refresh_rate_selection_combined()) {
+@@ -661,7 +662,7 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
      // Keep the display at max frame rate for the duration of powering on the display.
      if (signals.powerOnImminent) {
          ALOGV("Power On Imminent");
@@ -42,7 +42,7 @@ index a7f62cc..4df98db 100644
          SFTRACE_FORMAT_INSTANT("%s (Power On Imminent)",
                                 to_string(ranking.front().frameRateMode.fps).c_str());
          return {ranking, GlobalSignals{.powerOnImminent = true}};
-@@ -774,10 +775,36 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -781,10 +782,36 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
      const auto anchorGroup =
              seamedFocusedLayers > 0 ? activeMode.getGroup() : defaultMode->getGroup();
  
@@ -82,7 +82,7 @@ index a7f62cc..4df98db 100644
          SFTRACE_FORMAT_INSTANT("%s (Touch Boost)",
                                 to_string(ranking.front().frameRateMode.fps).c_str());
          localIsIdle = false;
-@@ -790,19 +817,23 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -797,19 +824,23 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
      if (!signals.touch && signals.idle &&
          !(policy->primaryRangeIsSingleRate() && hasExplicitVoteLayers)) {
          ALOGV("Idle");
@@ -111,7 +111,7 @@ index a7f62cc..4df98db 100644
      }
  
      // If all layers are category NoPreference, use the current config.
-@@ -822,14 +853,18 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -829,14 +860,18 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
      // Only if all layers want Min we should return Min
      if (noVoteLayers + minVoteLayers == layers.size()) {
          ALOGV("All layers Min");
@@ -132,7 +132,7 @@ index a7f62cc..4df98db 100644
      }
  
      // Find the best refresh rate based on score
-@@ -908,13 +943,12 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -915,13 +950,12 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
              }
  
              float layerScore;
@@ -148,7 +148,7 @@ index a7f62cc..4df98db 100644
              } else {
                  layerScore =
                      calculateLayerScoreLocked(layer, fps, isSeamlessSwitch);
-@@ -1015,7 +1049,6 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -1022,7 +1056,6 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
      std::sort(scores.begin(), scores.end(),
                RefreshRateScoreComparator{.refreshRateOrder = refreshRateOrder});
  
@@ -156,7 +156,7 @@ index a7f62cc..4df98db 100644
      ranking.reserve(scores.size());
  
      std::transform(scores.begin(), scores.end(), back_inserter(ranking),
-@@ -1023,31 +1056,6 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -1030,31 +1063,6 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
                         return ScoredFrameRate{score.frameRateMode, score.overallScore};
                     });
  
@@ -188,7 +188,7 @@ index a7f62cc..4df98db 100644
      const bool noLayerScore = std::all_of(scores.begin(), scores.end(), [](RefreshRateScore score) {
          return score.overallScore == 0;
      });
-@@ -1066,7 +1074,7 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -1073,7 +1081,7 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
              ALOGV("primaryRangeIsSingleRate");
              SFTRACE_FORMAT_INSTANT("%s (primaryRangeIsSingleRate)",
                                     to_string(ranking.front().frameRateMode.fps).c_str());
@@ -197,7 +197,7 @@ index a7f62cc..4df98db 100644
          }
      }
  
-@@ -1094,7 +1102,6 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -1101,7 +1109,6 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
      const bool isLateTouchBoost = isLateGlobalTouchBoost || isAppTouchBoost;
      if (isLateTouchBoost && isTouchBoostForExplicitExact() && isTouchBoostForCategory()) {
          const auto touchRefreshRates = rankFrameRates(anchorGroup, RefreshRateOrder::Descending);
@@ -205,7 +205,7 @@ index a7f62cc..4df98db 100644
  
          if (scores.front().frameRateMode.fps <= touchRefreshRates.front().frameRateMode.fps) {
              ALOGV("Touch Boost [late]");
-@@ -1115,6 +1122,12 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -1122,6 +1129,12 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
          return {ascendingWithPreferred, kNoSignals};
      }
  
@@ -218,7 +218,7 @@ index a7f62cc..4df98db 100644
      ALOGV("%s (scored)", to_string(ranking.front().frameRateMode.fps).c_str());
      SFTRACE_FORMAT_INSTANT("%s (scored)", to_string(ranking.front().frameRateMode.fps).c_str());
      return selectivelyForceIdle();
-@@ -1723,16 +1736,6 @@ void RefreshRateSelector::constructAvailableRefreshRates() {
+@@ -1693,16 +1706,6 @@ void RefreshRateSelector::constructAvailableRefreshRates() {
                              "render range. policy: %s",
                              rangeName, policy->toString().c_str());
  
@@ -236,7 +236,7 @@ index a7f62cc..4df98db 100644
              std::string str;
              for (const auto& frameRateMode : frameRateModes) {
 diff --git a/services/surfaceflinger/Scheduler/RefreshRateSelector.h b/services/surfaceflinger/Scheduler/RefreshRateSelector.h
-index 8c8828c..feaac78 100644
+index 2eab148..9deef0d 100644
 --- a/services/surfaceflinger/Scheduler/RefreshRateSelector.h
 +++ b/services/surfaceflinger/Scheduler/RefreshRateSelector.h
 @@ -231,7 +231,7 @@ public:
@@ -248,10 +248,10 @@ index 8c8828c..feaac78 100644
                                 ", powerOnImminent=", powerOnImminent, '}');
          }
      };
-@@ -533,7 +533,6 @@ private:
- 
-     DisplayModeIterator mMinRefreshRateModeIt GUARDED_BY(mLock);
-     DisplayModeIterator mMaxRefreshRateModeIt GUARDED_BY(mLock);
+@@ -539,7 +539,6 @@ private:
+     DisplayModeIterator mConfigGroupMaxRefreshRateModeIt GUARDED_BY(mLock);
+     DisplayModeIterator mGlobalMinRefreshRateModeIt GUARDED_BY(mLock);
+     DisplayModeIterator mGlobalMaxRefreshRateModeIt GUARDED_BY(mLock);
 -    DisplayModeIterator mIdleRefreshRateModeIt GUARDED_BY(mLock);
  
      // Display modes that satisfy the Policy's ranges, filtered and sorted by refresh rate.

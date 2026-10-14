@@ -11,10 +11,10 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/services/surfaceflinger/DisplayHardware/AidlComposerHal.cpp b/services/surfaceflinger/DisplayHardware/AidlComposerHal.cpp
-index 0ab9a4c..8a1a004 100644
+index e07d499..479e581 100644
 --- a/services/surfaceflinger/DisplayHardware/AidlComposerHal.cpp
 +++ b/services/surfaceflinger/DisplayHardware/AidlComposerHal.cpp
-@@ -1748,7 +1748,7 @@ Error AidlComposer::getLuts(Display display, const std::vector<sp<GraphicBuffer>
+@@ -1826,7 +1826,7 @@ Error AidlComposer::getLuts(Display display, const std::vector<sp<GraphicBuffer>
      const auto status =
              mAidlComposerClient->getLuts(translate<int64_t>(display), aidlBuffers, luts);
      if (!status.isOk()) {

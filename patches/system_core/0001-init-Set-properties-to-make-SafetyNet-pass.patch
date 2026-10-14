@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Danny Lin <danny@kdrag0n.dev>
 Date: Wed, 7 Oct 2020 00:24:54 -0700
-Subject: [PATCH 01/10] init: Set properties to make SafetyNet pass
+Subject: [PATCH 01/18] init: Set properties to make SafetyNet pass
 
 This is a squash of the following commits.
 
@@ -37,10 +37,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 17 insertions(+)
 
 diff --git a/init/property_service.cpp b/init/property_service.cpp
-index 3c78e76..1bca60e 100644
+index 89adf33..d503fe6 100644
 --- a/init/property_service.cpp
 +++ b/init/property_service.cpp
-@@ -1374,6 +1374,15 @@ static void ProcessBootconfig() {
+@@ -1406,6 +1406,15 @@ static void ProcessBootconfig() {
      });
  }
  
@@ -56,7 +56,7 @@ index 3c78e76..1bca60e 100644
  void PropertyInit() {
      selinux_callback cb;
      cb.func_audit = PropertyAuditCallback;
-@@ -1388,6 +1397,14 @@ void PropertyInit() {
+@@ -1420,6 +1429,14 @@ void PropertyInit() {
          LOG(FATAL) << "Failed to load serialized property info file";
      }
  

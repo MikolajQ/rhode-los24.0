@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: "Kevin F. Haggerty" <kevin.f.haggerty@gmail.com>
 Date: Sun, 5 Nov 2023 19:36:05 +0100
-Subject: [PATCH 5/9] rhode: Set TARGET_BOOTANIMATION_HALF_RES to true
+Subject: [PATCH 05/10] rhode: Set TARGET_BOOTANIMATION_HALF_RES to true
 
 * No apparent resolution difference
 * Much smoother animation

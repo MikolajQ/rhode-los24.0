@@ -1,22 +1,24 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: John Galt <johngaltfirstrun@gmail.com>
 Date: Wed, 25 Feb 2026 14:42:10 -0500
-Subject: [PATCH 04/13] Launcher3: Optimize AllApps perf and icon allocations
+Subject: [PATCH 04/10] Launcher3: Optimize AllApps perf and icon allocations
 
 Only lookup adapter once per frame, enable LAYER_TYPE_HARDWARE, do not
 create new bitmap if already the same
+
+[MikolajQ: Ported to Android 17: IconCache is Kotlin now and BitmapInfo.withFlags() already skips NO_OP, the flags check moved to getBadgedIcon()]
 ---
  src/com/android/launcher3/BubbleTextView.java | 12 ++++++++-
  .../allapps/AllAppsTransitionController.java  |  5 ++--
  .../RecyclerViewAnimationController.java      | 25 ++++++++++++++++---
- .../android/launcher3/icons/IconCache.java    |  9 ++++++-
- 4 files changed, 44 insertions(+), 7 deletions(-)
+ src/com/android/launcher3/icons/IconCache.kt  |  9 +++++--
+ 4 files changed, 43 insertions(+), 8 deletions(-)
 
 diff --git a/src/com/android/launcher3/BubbleTextView.java b/src/com/android/launcher3/BubbleTextView.java
-index 553db6fd7..cfe605aea 100644
+index 81bd9ab..1b54834 100644
 --- a/src/com/android/launcher3/BubbleTextView.java
 +++ b/src/com/android/launcher3/BubbleTextView.java
-@@ -1357,6 +1357,11 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
+@@ -1452,6 +1452,11 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
          return mIsIconVisible ? mIcon : new ColorDrawable(Color.TRANSPARENT);
      }
  
@@ -28,7 +30,7 @@ index 553db6fd7..cfe605aea 100644
      /** Sets the icon visual state to disabled or not. */
      public void setIconDisabled(boolean isDisabled) {
          if (mIcon != null) {
-@@ -1374,7 +1379,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
+@@ -1469,7 +1474,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
          // same as before.
          mDisableRelayout = mIcon != null;
  
@@ -39,7 +41,7 @@ index 553db6fd7..cfe605aea 100644
  
          updateIcon(icon);
  
-@@ -1428,6 +1435,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
+@@ -1523,6 +1530,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
          CacheLookupFlag expectedFlag = DEFAULT_LOOKUP_FLAG.withThemeIcon(shouldUseTheme());
          if (getTag() instanceof ItemInfoWithIcon info && !mHighResUpdateInProgress
                  && info.getMatchingLookupFlag().isVisuallyLessThan(expectedFlag)) {
@@ -50,10 +52,10 @@ index 553db6fd7..cfe605aea 100644
                  mIconLoadRequest.cancel();
              }
 diff --git a/src/com/android/launcher3/allapps/AllAppsTransitionController.java b/src/com/android/launcher3/allapps/AllAppsTransitionController.java
-index c51805024..89997a26c 100644
+index c55e48a..9a9feb0 100644
 --- a/src/com/android/launcher3/allapps/AllAppsTransitionController.java
 +++ b/src/com/android/launcher3/allapps/AllAppsTransitionController.java
-@@ -313,8 +313,9 @@ public class AllAppsTransitionController
+@@ -244,8 +244,9 @@ public class AllAppsTransitionController
          if (hasScaleEffect != mHasScaleEffect) {
              mHasScaleEffect = hasScaleEffect;
              if (mHasScaleEffect) {
@@ -66,7 +68,7 @@ index c51805024..89997a26c 100644
                  restoreAttributesOnViewTree(rv, mLauncher.getAppsView(),
                          CLIP_CHILDREN_FALSE_MODIFIER);
 diff --git a/src/com/android/launcher3/allapps/RecyclerViewAnimationController.java b/src/com/android/launcher3/allapps/RecyclerViewAnimationController.java
-index 8752e4a1a..50b7fb9c1 100644
+index 8752e4a..50b7fb9 100644
 --- a/src/com/android/launcher3/allapps/RecyclerViewAnimationController.java
 +++ b/src/com/android/launcher3/allapps/RecyclerViewAnimationController.java
 @@ -90,6 +90,8 @@ public class RecyclerViewAnimationController {
@@ -122,30 +124,23 @@ index 8752e4a1a..50b7fb9c1 100644
          child.setPivotY(0);
          if (getAnimationProgress() > 0 && getAnimationProgress() < 1) {
              // Before the child is rendered, apply the animation including it to avoid flicker.
-diff --git a/src/com/android/launcher3/icons/IconCache.java b/src/com/android/launcher3/icons/IconCache.java
-index 1f8649be0..c3c87ce75 100644
---- a/src/com/android/launcher3/icons/IconCache.java
-+++ b/src/com/android/launcher3/icons/IconCache.java
-@@ -72,6 +72,7 @@ import com.android.launcher3.util.ApplicationInfoWrapper;
- import com.android.launcher3.util.CancellableTask;
- import com.android.launcher3.util.ComponentKey;
- import com.android.launcher3.util.DaggerSingletonTracker;
-+import com.android.launcher3.util.FlagOp;
- import com.android.launcher3.util.InstantAppResolver;
- import com.android.launcher3.util.PackageUserKey;
- import com.android.launcher3.widget.WidgetSections;
-@@ -601,7 +602,13 @@ public class IconCache extends BaseIconCache {
-         if (bitmap == null) {
-             return getDefaultIcon(user);
-         }
--        return bitmap.withFlags(getUserFlagOpLocked(user));
-+        FlagOp userFlagOp = getUserFlagOpLocked(user);
-+        int currentFlags = bitmap.getFlags();
-+        // Skip creating a new BitMap since identical
-+        if (currentFlags == userFlagOp.apply(currentFlags)) {
-+            return bitmap;
-+        }
-+        return bitmap.withFlags(userFlagOp);
+diff --git a/src/com/android/launcher3/icons/IconCache.kt b/src/com/android/launcher3/icons/IconCache.kt
+index d867171..ba83c0c 100644
+--- a/src/com/android/launcher3/icons/IconCache.kt
++++ b/src/com/android/launcher3/icons/IconCache.kt
+@@ -569,8 +569,13 @@ constructor(
      }
  
-     protected void applyCacheEntry(@NonNull final CacheEntry entry,
+     @Synchronized
+-    private fun getBadgedIcon(bitmap: BitmapInfo?, user: UserHandle): BitmapInfo =
+-        bitmap?.withFlags(getUserFlagOpLocked(user)) ?: getDefaultIcon(user)
++    private fun getBadgedIcon(bitmap: BitmapInfo?, user: UserHandle): BitmapInfo {
++        if (bitmap == null) return getDefaultIcon(user)
++        val userFlagOp = getUserFlagOpLocked(user)
++        // Skip creating a new BitmapInfo when the flags stay the same
++        return if (bitmap.flags == userFlagOp.apply(bitmap.flags)) bitmap
++        else bitmap.withFlags(userFlagOp)
++    }
+ 
+     private fun applyCacheEntry(entry: CacheEntry, info: ItemInfoWithIcon) {
+         info.title = Utilities.trim(entry.title)

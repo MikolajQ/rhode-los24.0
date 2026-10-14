@@ -1,8 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Juhyung Park <qkrwngud825@gmail.com>
 Date: Sun, 12 Jun 2022 02:30:21 +0900
-Subject: [PATCH 06/10] build: make: use jemalloc by default and allow opt-in
- to scudo (1/4)
+Subject: [PATCH 6/9] build: make: use jemalloc by default and allow opt-in to
+ scudo (1/4)
 
 Set "PRODUCT_USE_SCUDO := true" to device.mk to use scudo in case of a
 jemalloc compatibility issue.
@@ -35,10 +35,10 @@ index c0f2c68..ce09acb 100644
  endif
  
 diff --git a/core/product.mk b/core/product.mk
-index ba4c956..224a79c 100644
+index f62a539..b08d3d1 100644
 --- a/core/product.mk
 +++ b/core/product.mk
-@@ -273,8 +273,8 @@ _product_list_vars += PRODUCT_MEMTAG_HEAP_EXCLUDE_PATHS
+@@ -274,8 +274,8 @@ _product_list_vars += PRODUCT_MEMTAG_HEAP_EXCLUDE_PATHS
  # Whether this product wants to start with an empty list of default memtag_heap include paths
  _product_single_value_vars += PRODUCT_MEMTAG_HEAP_SKIP_DEFAULT_PATHS
  
@@ -50,10 +50,10 @@ index ba4c956..224a79c 100644
  # List of extra VNDK versions to be included
  _product_list_vars += PRODUCT_EXTRA_VNDK_VERSIONS
 diff --git a/core/soong_config.mk b/core/soong_config.mk
-index d5771f1..8ff36bb 100644
+index df57832..ad088c7 100644
 --- a/core/soong_config.mk
 +++ b/core/soong_config.mk
-@@ -131,8 +131,6 @@ $(call add_json_list, MemtagHeapExcludePaths,            $(MEMTAG_HEAP_EXCLUDE_P
+@@ -140,8 +140,6 @@ $(call add_json_list, MemtagHeapExcludePaths,            $(MEMTAG_HEAP_EXCLUDE_P
  $(call add_json_list, MemtagHeapAsyncIncludePaths,       $(MEMTAG_HEAP_ASYNC_INCLUDE_PATHS) $(PRODUCT_MEMTAG_HEAP_ASYNC_INCLUDE_PATHS) $(if $(filter true,$(PRODUCT_MEMTAG_HEAP_SKIP_DEFAULT_PATHS)),,$(PRODUCT_MEMTAG_HEAP_ASYNC_DEFAULT_INCLUDE_PATHS)))
  $(call add_json_list, MemtagHeapSyncIncludePaths,       $(MEMTAG_HEAP_SYNC_INCLUDE_PATHS) $(PRODUCT_MEMTAG_HEAP_SYNC_INCLUDE_PATHS) $(if $(filter true,$(PRODUCT_MEMTAG_HEAP_SKIP_DEFAULT_PATHS)),,$(PRODUCT_MEMTAG_HEAP_SYNC_DEFAULT_INCLUDE_PATHS)))
  
@@ -62,10 +62,10 @@ index d5771f1..8ff36bb 100644
  $(call add_json_bool, ClangTidy,                         $(filter 1 true,$(WITH_TIDY)))
  $(call add_json_str,  TidyChecks,                        $(WITH_TIDY_CHECKS))
  
-@@ -154,6 +152,7 @@ $(call add_json_list, ExtraVndkVersions,                 $(PRODUCT_EXTRA_VNDK_VE
- $(call add_json_list, DeviceSystemSdkVersions,           $(BOARD_SYSTEMSDK_VERSIONS))
+@@ -164,6 +162,7 @@ $(call add_json_list, DeviceSystemSdkVersions,           $(BOARD_SYSTEMSDK_VERSI
  $(call add_json_list, Platform_systemsdk_versions,       $(PLATFORM_SYSTEMSDK_VERSIONS))
  $(call add_json_bool, Malloc_low_memory,                 $(findstring true,$(MALLOC_SVELTE) $(MALLOC_LOW_MEMORY)))
+ $(call add_json_bool, Malloc_scudo_tsds_max,             $(MALLOC_SCUDO_TSDS_MAX))
 +$(call add_json_bool, Malloc_use_jemalloc,               $(call invert_bool,$(filter true,$(PRODUCT_USE_SCUDO))))
  $(call add_json_bool, Malloc_zero_contents,              $(call invert_bool,$(filter false,$(MALLOC_ZERO_CONTENTS))))
  $(call add_json_bool, Malloc_pattern_fill_contents,      $(MALLOC_PATTERN_FILL_CONTENTS))

@@ -20,10 +20,10 @@ Signed-off-by: Dmitrii <bankersenator@gmail.com>
  1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp b/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
-index 68fa6d2..3d7cd6e 100644
+index 5b85b5c..a8765cc 100644
 --- a/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
 +++ b/services/surfaceflinger/Scheduler/RefreshRateSelector.cpp
-@@ -774,9 +774,8 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
+@@ -781,9 +781,8 @@ auto RefreshRateSelector::getRankedFrameRatesLocked(const std::vector<LayerRequi
      const auto anchorGroup =
              seamedFocusedLayers > 0 ? activeMode.getGroup() : defaultMode->getGroup();
  

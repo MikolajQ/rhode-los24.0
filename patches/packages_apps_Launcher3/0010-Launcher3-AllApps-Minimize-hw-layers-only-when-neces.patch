@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: John Galt <johngaltfirstrun@gmail.com>
 Date: Mon, 18 May 2026 13:08:27 -0400
-Subject: [PATCH 10/13] Launcher3: AllApps: Minimize hw layers only when
+Subject: [PATCH 10/10] Launcher3: AllApps: Minimize hw layers only when
  necessary
 
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
@@ -11,10 +11,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  2 files changed, 34 insertions(+), 10 deletions(-)
 
 diff --git a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
-index c7dd222f7..13c42f94d 100644
+index ca2ccc7..1f5666d 100644
 --- a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
 +++ b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
-@@ -641,13 +641,16 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+@@ -732,13 +732,16 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
              ObjectAnimator alpha = ObjectAnimator.ofFloat(appsView, View.ALPHA, alphas);
              alpha.setDuration(CONTENT_ALPHA_DURATION);
              alpha.setInterpolator(LINEAR);
@@ -36,10 +36,10 @@ index c7dd222f7..13c42f94d 100644
 +                });
 +            }
  
-             if (!skipAllAppsScale) {
-                 SCALE_PROPERTY.set(appsView, scales[0]);
+             FloatProperty<View> scaleProperty = getScaleProperty();
+ 
 diff --git a/src/com/android/launcher3/allapps/RecyclerViewAnimationController.java b/src/com/android/launcher3/allapps/RecyclerViewAnimationController.java
-index 50b7fb9c1..7c6173c4d 100644
+index 50b7fb9..7c6173c 100644
 --- a/src/com/android/launcher3/allapps/RecyclerViewAnimationController.java
 +++ b/src/com/android/launcher3/allapps/RecyclerViewAnimationController.java
 @@ -199,8 +199,14 @@ public class RecyclerViewAnimationController {

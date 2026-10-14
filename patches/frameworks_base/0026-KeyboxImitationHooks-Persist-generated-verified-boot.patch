@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Abhay Singh Gill <abhaygill017@gmail.com>
 Date: Thu, 23 Oct 2025 23:50:29 +0530
-Subject: [PATCH 26/31] KeyboxImitationHooks: Persist generated verified boot
+Subject: [PATCH 026/220] KeyboxImitationHooks: Persist generated verified boot
  hash
 
 and some other fixes / improvements
@@ -15,10 +15,10 @@ Signed-off-by: Abhay Singh Gill <abhaygill017@gmail.com>
  3 files changed, 155 insertions(+), 53 deletions(-)
 
 diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
-index 10179e9f5f..238e594427 100644
+index 922299116..830f39ac1 100644
 --- a/core/java/android/provider/Settings.java
 +++ b/core/java/android/provider/Settings.java
-@@ -13341,6 +13341,21 @@ public final class Settings {
+@@ -13694,6 +13694,21 @@ public final class Settings {
          @Readable
          public static final String KEYBOX_DATA = "keybox_data";
  
@@ -41,7 +41,7 @@ index 10179e9f5f..238e594427 100644
           * Keys we no longer back up under the current schema, but want to continue to
           * process when restoring historical backup datasets.
 diff --git a/core/java/com/android/internal/util/KeyboxChainGenerator.java b/core/java/com/android/internal/util/KeyboxChainGenerator.java
-index ed7f4beb9b..5683846eb5 100644
+index ed7f4beb9..5683846eb 100644
 --- a/core/java/com/android/internal/util/KeyboxChainGenerator.java
 +++ b/core/java/com/android/internal/util/KeyboxChainGenerator.java
 @@ -13,12 +13,16 @@ import android.content.pm.PackageManager;
@@ -268,7 +268,7 @@ index ed7f4beb9b..5683846eb5 100644
      }
  }
 diff --git a/core/java/com/android/internal/util/KeyboxImitationHooks.java b/core/java/com/android/internal/util/KeyboxImitationHooks.java
-index aa1bc5d87e..cfb485a1e7 100644
+index aa1bc5d87..cfb485a1e 100644
 --- a/core/java/com/android/internal/util/KeyboxImitationHooks.java
 +++ b/core/java/com/android/internal/util/KeyboxImitationHooks.java
 @@ -7,8 +7,10 @@

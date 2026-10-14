@@ -1,4 +1,4 @@
-From 07ac9e2aeb0a7ac4beb5be69357dc2596bf6c45a Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: MikolajQ <1713112+MikolajQ@users.noreply.github.com>
 Date: Thu, 1 Oct 2026 18:59:35 +0200
 Subject: [PATCH] audio: battery_listener: don't join a thread that was never
@@ -49,6 +49,3 @@ index 604f81c..dce00ee 100644
      init();
  }
  
--- 
-2.56.0
-

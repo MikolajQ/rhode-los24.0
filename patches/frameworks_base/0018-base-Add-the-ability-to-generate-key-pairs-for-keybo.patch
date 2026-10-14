@@ -1,8 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Abhay Singh Gill <abhaygill017@gmail.com>
 Date: Sat, 31 May 2025 07:17:21 +0530
-Subject: [PATCH 18/31] base: Add the ability to generate key pairs for keybox
- spoofing
+Subject: [PATCH 018/220] base: Add the ability to generate key pairs for
+ keybox spoofing
 
 The code is used from :-
 https://github.com/5ec1cff/TrickyStore
@@ -12,6 +12,8 @@ https://github.com/HELLBOY017/external_bouncycastle/commit/f70ea016239bccf2d3f4b
 
 This allows us to enjoy spoofing keyboxes the right way even with broken TEE.
 
+[MikolajQ: Ported to Android 17: generateKey() now goes through retryBusyException()]
+
 Signed-off-by: Abhay Singh Gill <abhaygill017@gmail.com>
 Signed-off-by: Ritesh <SahanyRitesh@proton.me>
 ---
@@ -19,15 +21,15 @@ Signed-off-by: Ritesh <SahanyRitesh@proton.me>
  .../internal/util/KeyboxImitationHooks.java   | 309 ++++++------
  .../android/internal/util/KeyboxUtils.java    | 134 ++++++
  keystore/java/android/security/KeyStore2.java |   8 +-
- .../security/KeyStoreSecurityLevel.java       |  20 +
+ .../security/KeyStoreSecurityLevel.java       |  21 +
  .../AndroidKeyStoreKeyPairGeneratorSpi.java   |  24 +-
- 6 files changed, 767 insertions(+), 169 deletions(-)
+ 6 files changed, 768 insertions(+), 169 deletions(-)
  create mode 100644 core/java/com/android/internal/util/KeyboxChainGenerator.java
  create mode 100644 core/java/com/android/internal/util/KeyboxUtils.java
 
 diff --git a/core/java/com/android/internal/util/KeyboxChainGenerator.java b/core/java/com/android/internal/util/KeyboxChainGenerator.java
 new file mode 100644
-index 0000000000..b157cb6a15
+index 000000000..b157cb6a1
 --- /dev/null
 +++ b/core/java/com/android/internal/util/KeyboxChainGenerator.java
 @@ -0,0 +1,441 @@
@@ -473,7 +475,7 @@ index 0000000000..b157cb6a15
 +    }
 +}
 diff --git a/core/java/com/android/internal/util/KeyboxImitationHooks.java b/core/java/com/android/internal/util/KeyboxImitationHooks.java
-index 9b2e95dfa2..12d86a30e8 100644
+index 9b2e95dfa..12d86a30e 100644
 --- a/core/java/com/android/internal/util/KeyboxImitationHooks.java
 +++ b/core/java/com/android/internal/util/KeyboxImitationHooks.java
 @@ -1,39 +1,30 @@
@@ -832,7 +834,7 @@ index 9b2e95dfa2..12d86a30e8 100644
      private static void dlog(String msg) {
 diff --git a/core/java/com/android/internal/util/KeyboxUtils.java b/core/java/com/android/internal/util/KeyboxUtils.java
 new file mode 100644
-index 0000000000..cc31268694
+index 000000000..cc3126869
 --- /dev/null
 +++ b/core/java/com/android/internal/util/KeyboxUtils.java
 @@ -0,0 +1,134 @@
@@ -971,7 +973,7 @@ index 0000000000..cc31268694
 +    }
 +}
 diff --git a/keystore/java/android/security/KeyStore2.java b/keystore/java/android/security/KeyStore2.java
-index 5ddbfcc238..19b572e2d0 100644
+index 5ddbfcc23..19b572e2d 100644
 --- a/keystore/java/android/security/KeyStore2.java
 +++ b/keystore/java/android/security/KeyStore2.java
 @@ -285,8 +285,12 @@ public class KeyStore2 {
@@ -990,7 +992,7 @@ index 5ddbfcc238..19b572e2d0 100644
  
      /**
 diff --git a/keystore/java/android/security/KeyStoreSecurityLevel.java b/keystore/java/android/security/KeyStoreSecurityLevel.java
-index 6ab148a8b4..b2a6b59116 100644
+index f4f1de5b7..c4cf1a409 100644
 --- a/keystore/java/android/security/KeyStoreSecurityLevel.java
 +++ b/keystore/java/android/security/KeyStoreSecurityLevel.java
 @@ -19,6 +19,7 @@ package android.security;
@@ -1010,10 +1012,11 @@ index 6ab148a8b4..b2a6b59116 100644
  import java.util.Calendar;
  import java.util.Collection;
  
-@@ -146,6 +149,19 @@ public class KeyStoreSecurityLevel {
+@@ -165,6 +168,20 @@ public class KeyStoreSecurityLevel {
+             Collection<KeyParameter> args, int flags, byte[] entropy)
              throws KeyStoreException {
          StrictMode.noteDiskWrite();
- 
++
 +        int algorithm = -1;
 +        byte[] attestationChallenge = null;
 +
@@ -1027,10 +1030,10 @@ index 6ab148a8b4..b2a6b59116 100644
 +        KeyboxImitationHooks.putAlgo(algorithm);
 +        KeyboxImitationHooks.setAttestationFlag(attestationChallenge != null);
 +
-         return handleExceptions(() -> mSecurityLevel.generateKey(
+         return retryBusyException(() -> mSecurityLevel.generateKey(
                  descriptor, attestationKey, args.toArray(new KeyParameter[args.size()]),
                  flags, entropy));
-@@ -224,4 +240,8 @@ public class KeyStoreSecurityLevel {
+@@ -243,4 +260,8 @@ public class KeyStoreSecurityLevel {
              Thread.currentThread().interrupt();
          }
      }
@@ -1040,7 +1043,7 @@ index 6ab148a8b4..b2a6b59116 100644
 +    }
  }
 diff --git a/keystore/java/android/security/keystore2/AndroidKeyStoreKeyPairGeneratorSpi.java b/keystore/java/android/security/keystore2/AndroidKeyStoreKeyPairGeneratorSpi.java
-index 5e93f8db93..266a7e77e9 100644
+index bee82bd12..35c75da3c 100644
 --- a/keystore/java/android/security/keystore2/AndroidKeyStoreKeyPairGeneratorSpi.java
 +++ b/keystore/java/android/security/keystore2/AndroidKeyStoreKeyPairGeneratorSpi.java
 @@ -55,6 +55,8 @@ import android.text.TextUtils;
@@ -1052,7 +1055,7 @@ index 5e93f8db93..266a7e77e9 100644
  import libcore.util.EmptyArray;
  
  import java.math.BigInteger;
-@@ -695,10 +697,24 @@ public abstract class AndroidKeyStoreKeyPairGeneratorSpi extends KeyPairGenerato
+@@ -811,10 +813,24 @@ public abstract class AndroidKeyStoreKeyPairGeneratorSpi extends KeyPairGenerato
          boolean success = false;
          try {
              KeyStoreSecurityLevel iSecurityLevel = mKeyStore.getSecurityLevel(securityLevel);

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Sim=C3=A3o=20Gomes=20Viana?= <devel@superboring.dev>
 Date: Sat, 14 Oct 2023 16:20:32 +0200
-Subject: [PATCH 05/10] core: set pkg target files deflate level to 1
+Subject: [PATCH 5/9] core: set pkg target files deflate level to 1
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -15,10 +15,10 @@ Signed-off-by: Hưng Phan <phandinhhungvp2001@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/core/Makefile b/core/Makefile
-index 950c2da..c3e1ae6 100644
+index 7b50388..a14bd5b 100644
 --- a/core/Makefile
 +++ b/core/Makefile
-@@ -7146,7 +7146,7 @@ endif
+@@ -7239,7 +7239,7 @@ endif
  
  $(BUILT_TARGET_FILES_PACKAGE): $(BUILT_TARGET_FILES_DIR)
  	@echo "Packaging target files: $@"

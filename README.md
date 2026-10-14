@@ -1,8 +1,9 @@
-# rhode-los23.2 — przepis HAM
+# rhode-los24.0 — przepis HAM
 
-Build LineageOS 23.2 (Android 16 QPR2) dla Motorola Moto G52 (`rhode`) na bazie czystego manifestu
-[LineageOS lineage-23.2](https://github.com/LineageOS/android/tree/lineage-23.2) (od 0.2.0; wcześniej
-[Tomoms 16.2](https://github.com/tomoms/android/tree/16.2)), w chmurze Hetznera przez
+Build LineageOS 24.0 (Android 17) dla Motorola Moto G52 (`rhode`) na bazie czystego manifestu
+[LineageOS lineage-24.0](https://github.com/LineageOS/android/tree/lineage-24.0) — port przepisu
+[rhode-los23.2](https://github.com/MikolajQ/rhode-los23.2) (Android 16) z 14.10.2026: metoda, źródła wersji łatek,
+pominięte łatki z powodami i ryzyka do sprawdzenia przy pierwszym buildzie — **`docs/port-24.md`**. W chmurze Hetznera przez
 [HAM](https://github.com/antony-jr/ham). Plan i decyzje: strona „Plan builda rhode".
 
 Różnice względem oficjalnego LineageOS:
@@ -20,7 +21,7 @@ Różnice względem oficjalnego LineageOS:
   szynę IO panelu, składa double tap z dwóch pojedynczych stuknięć (≤400 ms) i budzi ekran `KEY_WAKEUP`; drzewo rhode
   (`patches/device_motorola_rhode/0010`) podpina przełącznik w Ustawieniach przez power HAL (`tap_to_wake_node`).
   Moduły dotyku ładują się z `vendor_boot` (nie z `vendor_dlkm`). Przed OTA usunąć moduł KSU `rhode_dt2w` (test z 29.09)
-- **GApps w obrazie**: MindTheGapps (`baklava`) przycięte do zestawu NikGapps core + pełny Android Auto
+- **GApps w obrazie**: MindTheGapps (`cinnamonbun`; GmsCore jako APEX `gmssystem`) przycięte do zestawu NikGapps core + pełny Android Auto
   + `GmsSupervision` jako priv-app w `product` (Family Link — patrz nikgapps/config#15760)
 - **Droid-ify** (zamiast F-Droida — ciężki, toporny) z repozytoriami IzzyOnDroid, NewPipe, IronFox; bez Privileged
   Extension (Droid-ify jej nie obsługuje) — instalacja aktualizacji przez root KSU-Next
@@ -37,9 +38,12 @@ Różnice względem oficjalnego LineageOS:
 - **Play Integrity**: świeży, nie-beta fingerprint Pixela 10 Pro w `persist.sys.pihooks_*` (poprzedni, beta, przestał
   przechodzić nawet DEVICE integrity — patrz `android_vendor_extra` `product.mk`)
 - bez Bellis i LogViewer; własne OTA z [rhode_releases](https://github.com/MikolajQ/rhode_releases)
-- wersja `23.2-DATA-UNOFFICIAL-miq-rhode` (`TARGET_UNOFFICIAL_BUILD_ID` podmieniany w `ham.yml`; patch drzewa rhode od Tomoms ustawia `Tom`)
+- wersja `24.0-DATA-UNOFFICIAL-miq-rhode` (`TARGET_UNOFFICIAL_BUILD_ID` podmieniany w `ham.yml`; patch drzewa rhode od Tomoms ustawia `Tom`)
 
 ## Instalacja na telefonie (Virtual A/B — kolejność ma znaczenie)
+
+Przejście z 23.2 (Android 16) na 24.0: tylko ręcznie, według kroków poniżej, z Format data — Updater na 23.2
+czyta kanał `23.x` i tej aktualizacji nie zaproponuje. Przed flashem `scripts/inspect-zip.sh` na pobranym zipie.
 
 1. `fastboot boot boot.img` (obraz z release'u = ten z `payload.bin`, z naszymi otacerts) → recovery.
 2. **Factory Reset → Format data / factory reset** — *przed* sideloadem. Format po sideloadzie kasuje `/metadata/ota`
@@ -90,12 +94,12 @@ Procedura (od 13.10, po doświadczeniach z buildu a50s):
 0. **Preflight** — `~/bin/rhode/preflight.py`: lint przepisu (bash -n, Python, struktura ham.yml jak w HAM,
    +x skryptów wołanych bezpośrednio), odpowiedzi, token (odczyt repo, zapis wydań i JSON-a, wygaśnięcie),
    klucze wymagane przez sign.sh, Hetzner, wersja ham-build. ~1 min.
-1. **Jądro lokalnie** — `~/bin/rhode/kernel-precheck.sh`: świeży fork `16.2-ksun` + merge LineageOS `lineage-23.2`
+1. **Jądro lokalnie** — `~/bin/rhode/kernel-precheck.sh`: świeży fork `16.2-ksun` + merge LineageOS `lineage-24.0`
    (dokładnie jak krok w ham.yml), kompilacja `~/build/kernel-work/build-like-los.sh` (clang r563880c = clang 21,
    config jak vendor/lineage); przerywa też, gdy lokalna `16.2-ksun` ma niewypchnięte commity. Zmiana w jądrze:
    najpierw build + test na telefonie (`pack-fix.sh`, flash za zgodą), potem push forka, potem precheck.
 2. **Łatki lokalnie** — `scripts/check-patches.sh`; przepis musi być wypchnięty (ham bierze go z GitHuba).
-3. **Chmura** — `ham get MikolajQ@gh/rhode-los23.2 -k -t -b -n -a ~/.ham-answers-rhode.json` pod `script`;
+3. **Chmura** — `ham get MikolajQ@gh/rhode-los24.0 -k -t -b -n -a ~/.ham-answers-rhode.json` pod `script`;
    na serwerze krok „Szybki test kompilacji” (moduły zmieniane przez łatki, `-k 0`) przed pełnym buildem.
 4. **Nadzór** — `ham-nadzor.timer` (co 15 min, powiadomienia na pulpit, `~/ham-logs/nadzor.log`).
 5. **Awaria** — powiadomienie na telefon (ntfy, `on_failure` w ham.yml) i pulpit; nadzór od razu ściąga logi do
@@ -111,7 +115,7 @@ Po debugowaniu: `ham clean`. Limit HAM: serwer starszy niż 24 h jest kasowany.
 
 | id | typ | co |
 |---|---|---|
-| `gh_token` | secret | token GitHub z `repo` — `upload.sh` tworzy release i aktualizuje `23.x/rhode.json` |
+| `gh_token` | secret | token GitHub z `repo` — `upload.sh` tworzy release i aktualizuje `24.x/rhode.json` (osobny kanał Updatera — telefon na 23.2 czyta `23.x`) |
 | `gapps_extras_zip` | file | zip: `product/priv-app/GmsSupervision/GmsSupervision.apk` (stub Google 0.1.453788429 z APKMirror „System parental controls" — Play nadpisze pełną wersją z flagą PRIVILEGED) + `product/etc/permissions/com.google.android.projection.gearhead.xml` (pełna allowlist AA z NikGapps); skrypt generuje `Android.bp` (jeden APK → `android_app_import`), `splits/Android.mk` (gdyby były splity → prebuilty ETC) i `extras.mk` |
 | `motocam_zip` | file | opcjonalny; zip z Moto Camera stockowej w płaskim układzie partycji (nie module Magiska): `product/priv-app/MotCamera4/`, `product/app/MotCamera3AI/`, `product/etc/{permissions,sysconfig}/*`, `system/app/{MotoSignatureApp,MotoSignature2App}/`, `system/etc/permissions/*.xml`, `system/framework/*.jar`; skrypt generuje `Android.bp` (`android_app_import`/`prebuilt_etc`/`java_import`) i `extras.mk`; gotowy zip: `~/Pulpit/Rhode/motocam/motocam-gapps-extras.zip`; puste = bez Moto Camera |
 | `keys_zip` | file | własne klucze (`*.pk8`, `*.x509.pem`, `<apex>.pem`); z nimi build idzie przez `mka target-files-package otatools` + `scripts/sign.sh` (wiki LineageOS „Signing builds"); puste = test-keys i `mka bacon` |

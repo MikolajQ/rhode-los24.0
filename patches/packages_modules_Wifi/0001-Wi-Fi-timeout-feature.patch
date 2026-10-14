@@ -15,10 +15,10 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
  1 file changed, 47 insertions(+)
 
 diff --git a/service/java/com/android/server/wifi/WifiServiceImpl.java b/service/java/com/android/server/wifi/WifiServiceImpl.java
-index 47bdb7c8..357bab62 100644
+index 72f8aa7..62a70d0 100644
 --- a/service/java/com/android/server/wifi/WifiServiceImpl.java
 +++ b/service/java/com/android/server/wifi/WifiServiceImpl.java
-@@ -73,6 +73,8 @@ import android.annotation.CheckResult;
+@@ -74,6 +74,8 @@ import android.annotation.CheckResult;
  import android.annotation.IntDef;
  import android.annotation.NonNull;
  import android.annotation.Nullable;
@@ -27,7 +27,7 @@ index 47bdb7c8..357bab62 100644
  import android.app.AppOpsManager;
  import android.app.admin.DevicePolicyManager;
  import android.app.admin.WifiSsidPolicy;
-@@ -90,6 +92,7 @@ import android.content.pm.PackageInfo;
+@@ -91,6 +93,7 @@ import android.content.pm.PackageInfo;
  import android.content.pm.PackageManager;
  import android.content.pm.ResolveInfo;
  import android.content.res.Resources;
@@ -35,7 +35,7 @@ index 47bdb7c8..357bab62 100644
  import android.hardware.wifi.WifiStatusCode;
  import android.location.LocationManager;
  import android.net.DhcpInfo;
-@@ -194,6 +197,7 @@ import android.os.PowerManager;
+@@ -196,6 +199,7 @@ import android.os.PowerManager;
  import android.os.Process;
  import android.os.RemoteCallbackList;
  import android.os.RemoteException;
@@ -43,7 +43,7 @@ index 47bdb7c8..357bab62 100644
  import android.os.UserHandle;
  import android.os.UserManager;
  import android.os.WorkSource;
-@@ -325,6 +329,9 @@ public class WifiServiceImpl extends IWifiManager.Stub {
+@@ -326,6 +330,9 @@ public class WifiServiceImpl extends IWifiManager.Stub {
      @VisibleForTesting
      ScorerServiceConnection mScorerServiceConnection;
  
@@ -53,8 +53,8 @@ index 47bdb7c8..357bab62 100644
      private final ActiveModeWarden mActiveModeWarden;
      private final ScanRequestProxy mScanRequestProxy;
  
-@@ -386,6 +393,17 @@ public class WifiServiceImpl extends IWifiManager.Stub {
-     private final WepNetworkUsageController mWepNetworkUsageController;
+@@ -385,6 +392,17 @@ public class WifiServiceImpl extends IWifiManager.Stub {
+     private final DefaultClientModeManager mDefaultClientModeManager;
  
      private final FeatureFlags mFeatureFlags;
 +
@@ -71,7 +71,7 @@ index 47bdb7c8..357bab62 100644
      @VisibleForTesting
      public final CountryCodeTracker mCountryCodeTracker;
      private final MultiInternetManager mMultiInternetManager;
-@@ -1078,6 +1096,8 @@ public class WifiServiceImpl extends IWifiManager.Stub {
+@@ -1083,6 +1101,8 @@ public class WifiServiceImpl extends IWifiManager.Stub {
              intentFilter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
              intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
              intentFilter.addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
@@ -80,7 +80,7 @@ index 47bdb7c8..357bab62 100644
              registerBroadcastReceiver(
                      new BroadcastReceiver() {
                          @Override
-@@ -1117,6 +1137,9 @@ public class WifiServiceImpl extends IWifiManager.Stub {
+@@ -1130,6 +1150,9 @@ public class WifiServiceImpl extends IWifiManager.Stub {
                              } else if (PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED
                                      .equals(action)) {
                                  handleIdleModeChanged();
@@ -90,7 +90,7 @@ index 47bdb7c8..357bab62 100644
                              }
                          }
                      },
-@@ -1149,6 +1172,17 @@ public class WifiServiceImpl extends IWifiManager.Stub {
+@@ -1163,6 +1186,17 @@ public class WifiServiceImpl extends IWifiManager.Stub {
              mWifiInjector.getPasspointManager().handleBootCompleted();
              mWifiInjector.getInterfaceConflictManager().handleBootCompleted();
              mWifiInjector.getHalDeviceManager().handleBootCompleted();
@@ -108,8 +108,8 @@ index 47bdb7c8..357bab62 100644
              // HW capabilities is ready after boot completion.
              if (!mWifiGlobals.isInsecureEnterpriseConfigurationAllowed()) {
                  mWifiConfigManager.updateTrustOnFirstUseFlag(isTrustOnFirstUseSupported());
-@@ -1226,6 +1260,19 @@ public class WifiServiceImpl extends IWifiManager.Stub {
-                 TAG + "#handleUserStop");
+@@ -1262,6 +1296,19 @@ public class WifiServiceImpl extends IWifiManager.Stub {
+         }, TAG + "#handleUserStop");
      }
  
 +    private void setWifiTimeout() {

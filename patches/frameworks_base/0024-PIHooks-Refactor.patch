@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Tommaso Fonda <fondatommaso2@gmail.com>
 Date: Mon, 16 Feb 2026 08:48:17 +0100
-Subject: [PATCH 24/31] PIHooks: Refactor
+Subject: [PATCH 024/220] PIHooks: Refactor
 
 Switch to property-based spoofing and make field detection more
 robust. Inspired from Evolution-X.
@@ -14,7 +14,7 @@ Change-Id: Ica2615567643b8b229f109da657ca2992272c67f
  3 files changed, 45 insertions(+), 46 deletions(-)
 
 diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
-index 83371b9d5c..9619727ec2 100644
+index 83371b9d5..9619727ec 100644
 --- a/core/java/com/android/internal/util/PropImitationHooks.java
 +++ b/core/java/com/android/internal/util/PropImitationHooks.java
 @@ -44,7 +44,7 @@ import java.util.Set;
@@ -147,7 +147,7 @@ index 83371b9d5c..9619727ec2 100644
      }
  
 diff --git a/core/res/res/values/extra_config.xml b/core/res/res/values/extra_config.xml
-index c7bea1c67e..23e7fe5a51 100644
+index c7bea1c67..23e7fe5a5 100644
 --- a/core/res/res/values/extra_config.xml
 +++ b/core/res/res/values/extra_config.xml
 @@ -1,19 +1,5 @@
@@ -171,7 +171,7 @@ index c7bea1c67e..23e7fe5a51 100644
      <string-array name="config_certifiedKeybox" translatable="false">
        <!--
 diff --git a/core/res/res/values/extra_symbols.xml b/core/res/res/values/extra_symbols.xml
-index 7082bca1e0..4df7178c63 100644
+index 7082bca1e..4df7178c6 100644
 --- a/core/res/res/values/extra_symbols.xml
 +++ b/core/res/res/values/extra_symbols.xml
 @@ -1,8 +1,5 @@
