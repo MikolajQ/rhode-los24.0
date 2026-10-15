@@ -137,7 +137,17 @@ build:
       m module-info || echo "UWAGA: m module-info nie wyszedł — test tylko sepolicy"
       python3 /ham-recipe/scripts/patched-modules.py /ham-build /ham-recipe "$ANDROID_PRODUCT_OUT/module-info.json" > /ham-build/precheck-modules.txt \
         || { echo "UWAGA: patched-modules.py zawiódł — test tylko sepolicy"; : > /ham-build/precheck-modules.txt; }
-      NINJA_ARGS="-k 0" m selinux_policy $(cat /ham-build/precheck-modules.txt)
+      # moduł z module-info nie zawsze jest celem ninja (A17: framework-wifi.impl) — wyrzuć nieznane cele i ponów
+      set -o pipefail
+      for i in $(seq 10); do
+        NINJA_ARGS="-k 0" m selinux_policy $(cat /ham-build/precheck-modules.txt) 2>&1 | tee /ham-build/precheck.log && break
+        bad=$(sed -n 's/.*unknown target "\([^"]*\)".*/\1/p' /ham-build/precheck.log | sort -u)
+        [ -n "$bad" ] || exit 1
+        echo "pomijam cele spoza ninja: $bad"
+        grep -vxF -f <(printf '%s\n' $bad) /ham-build/precheck-modules.txt > /ham-build/precheck-modules.new || true
+        mv /ham-build/precheck-modules.new /ham-build/precheck-modules.txt
+        [ "$i" -lt 10 ] || exit 1
+      done
 
   - name: "Build"
     run: |
