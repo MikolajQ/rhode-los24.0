@@ -19,8 +19,7 @@
        patchami bionic/build_make/build_soong/system_core) i nowsze Arm Optimized Routines (memcpy/strlen/… w bionic) z yaap -->
   <remove-project name="platform/external/jemalloc_new" />
   <project path="external/jemalloc_new" name="yaap/external_jemalloc_new" remote="github" revision="sixteen" groups="pdk" />
-  <remove-project name="platform/external/arm-optimized-routines" />
-  <project path="external/arm-optimized-routines" name="yaap/external_arm-optimized-routines" remote="github" revision="sixteen" groups="pdk" />
+  <!-- Arm Optimized Routines z AOSP: yaap „sixteen” nie ma wariantu lfi, którego wymaga bionic 17 -->
 
   <!-- bloby: radio/* na git-lfs, stąd flaga git-lfs przy repo init -->
   <project path="vendor/motorola/rhode"         name="TheMuppets/proprietary_vendor_motorola_rhode"          remote="github" revision="lineage-24.0" />
