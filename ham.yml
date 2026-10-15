@@ -159,6 +159,9 @@ build:
       # dex2oatd (ART debug, domyslny dla dex_bootjars: "help find bugs") SIGSEGV deterministycznie
       # w RegTypeCache::FromClass przy weryfikacji boot jarow na tym drzewie -> release'owy dex2oat
       export USE_DEX2OAT_DEBUG=false
+      # build-manifest.xml woła `repo manifest` w piaskownicy z /root tylko do odczytu; repo musi mieć już
+      # zapisany cache konfiguracji (/root/.repo_.gitconfig.json), inaczej OSError Read-only file system
+      REPO_TRACE=0 python3 .repo/repo/repo manifest -o /dev/null -r
       source build/envsetup.sh
       breakfast rhode
       if [ -s /root/.android-certs/releasekey.pk8 ]; then
