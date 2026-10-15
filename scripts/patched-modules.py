@@ -35,6 +35,11 @@ def run(root, recipe, info_path, per_dir):
     with open(info_path) as f:
         info = json.load(f)
 
+    # aplikacje i programy tylko te z obrazu (product_packages.txt obok module-info): moduły spoza obrazu
+    # (np. sam Launcher3 obok Launcher3QuickStep, aplikacje testowe) w LOS 17 potrafią się nie budować
+    pp_path = os.path.join(os.path.dirname(info_path), "product_packages.txt")
+    product = set(open(pp_path).read().split()) if os.path.isfile(pp_path) else None
+
     by_dir = defaultdict(set)
     for name, m in info.items():
         if TEST.search(name) or name.endswith("-host") or "_host" in name:
@@ -43,6 +48,8 @@ def run(root, recipe, info_path, per_dir):
         classes = m.get("class") or []
         on_device = any("/target/product/" in p for p in installed) or "JAVA_LIBRARIES" in classes
         if not on_device:
+            continue
+        if product is not None and name not in product and not any(c.endswith("LIBRARIES") for c in classes):
             continue
         for d in m.get("path") or []:
             by_dir[d.rstrip("/")].add(name)
