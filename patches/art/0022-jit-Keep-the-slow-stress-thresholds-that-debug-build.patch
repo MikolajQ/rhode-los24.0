@@ -1,0 +1,38 @@
+From dbc55910b98554fade79c436dda0e4148b62cada Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miko=C5=82aj?= <mikolaj.q@wp.pl>
+Date: Thu, 15 Oct 2026 17:55:28 +0000
+Subject: [PATCH] jit: Keep the slow-stress thresholds that debug builds no
+ longer use
+
+Since the jit hotness patch the slow-stress constants are only read in
+debug builds, and -Wunused-const-variable fails the build.
+
+Change-Id: I615151253b197e2aaf0d7e04bfc403b8dc625286
+---
+ runtime/jit/jit_options.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/runtime/jit/jit_options.cc b/runtime/jit/jit_options.cc
+index 70761aa..927f22e 100644
+--- a/runtime/jit/jit_options.cc
++++ b/runtime/jit/jit_options.cc
+@@ -28,14 +28,14 @@ static constexpr uint32_t kJitDefaultOptimizeThreshold = 0xffff;
+ // Different optimization threshold constants. These default to the equivalent optimization
+ // thresholds divided by 2, but can be overridden at the command-line.
+ static constexpr uint32_t kJitStressDefaultOptimizeThreshold = kJitDefaultOptimizeThreshold / 2;
+-static constexpr uint32_t kJitSlowStressDefaultOptimizeThreshold =
++[[maybe_unused]] static constexpr uint32_t kJitSlowStressDefaultOptimizeThreshold =
+     kJitStressDefaultOptimizeThreshold / 2;
+ 
+ static constexpr uint32_t kJitDefaultWarmupThreshold = 0xffff;
+ // Different warm-up threshold constants. These default to the equivalent warmup thresholds divided
+ // by 2, but can be overridden at the command-line.
+ static constexpr uint32_t kJitStressDefaultWarmupThreshold = kJitDefaultWarmupThreshold / 2;
+-static constexpr uint32_t kJitSlowStressDefaultWarmupThreshold =
++[[maybe_unused]] static constexpr uint32_t kJitSlowStressDefaultWarmupThreshold =
+     kJitStressDefaultWarmupThreshold / 2;
+ 
+ static constexpr size_t kDefaultPriorityThreadWeightRatio = 1000;
+-- 
+2.43.0
+

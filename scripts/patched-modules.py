@@ -30,7 +30,7 @@ def main():
 
 def run(root, recipe, info_path, per_dir):
     SKIP_PROJECTS = ("kernel_",)             # jądro: lokalnie (~/bin/a50s/kernel-precheck.sh) i w pełnym buildzie
-    TEST = re.compile(r"(^|[_.-])(tests?|Tests?|testing|benchmark|fuzzer|robo|Robo)([_.-]|$)|Test(s)?$|Tests?[A-Z_]")
+    TEST = re.compile(r"(^|[_.-])(tests?|Tests?|testing|benchmarks?|fuzzers?|robo|Robo)([_.-]|$)|Test(s)?$|Tests?[A-Z_]")
 
     with open(info_path) as f:
         info = json.load(f)

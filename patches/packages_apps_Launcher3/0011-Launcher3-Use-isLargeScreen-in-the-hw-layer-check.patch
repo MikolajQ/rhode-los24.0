@@ -1,0 +1,28 @@
+From 3e01bfbf2e95dae8b6d1949d121791fb999ff406 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miko=C5=82aj?= <mikolaj.q@wp.pl>
+Date: Thu, 15 Oct 2026 17:55:29 +0000
+Subject: [PATCH] Launcher3: Use isLargeScreen in the hw layer check
+
+DeviceProperties has no isTablet on Android 17.
+
+Change-Id: I5b25029950f19065aed1c57e65c96af24df280df
+---
+ .../src/com/android/launcher3/QuickstepTransitionManager.java   | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
+index 1f5666d..3ab5ac8 100644
+--- a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
++++ b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
+@@ -733,7 +733,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+             alpha.setDuration(CONTENT_ALPHA_DURATION);
+             alpha.setInterpolator(LINEAR);
+ 
+-            if (!mDeviceProfile.getDeviceProperties().isTablet()) {
++            if (!mDeviceProfile.getDeviceProperties().isLargeScreen()) {
+                 appsView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+                 alpha.addListener(new AnimatorListenerAdapter() {
+                     @Override
+-- 
+2.43.0
+
