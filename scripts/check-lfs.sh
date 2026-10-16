@@ -15,7 +15,7 @@ if command -v repo >/dev/null && [ -d .repo ]; then
   done < <(repo list -p)
 fi
 for p in vendor/gapps external/chromium-webview; do
-  if [ -d "$p" ] && [[ " ${lfs[*]} " != *" $p "* ]]; then lfs+=("$p"); fi
+  if git -C "$p" rev-parse --show-toplevel 2>/dev/null | grep -qx "$PWD/$p" && [[ " ${lfs[*]} " != *" $p "* ]]; then lfs+=("$p"); fi
 done
 pointers() {  # pliki LFS projektu $1, które są wskaźnikami
   git -C "$1" lfs ls-files -n 2>/dev/null | while read -r f; do
