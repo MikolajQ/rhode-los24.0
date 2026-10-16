@@ -49,7 +49,9 @@ def run(root, recipe, info_path, per_dir):
         on_device = any("/target/product/" in p for p in installed) or "JAVA_LIBRARIES" in classes
         if not on_device:
             continue
-        if product is not None and name not in product and not any(c.endswith("LIBRARIES") for c in classes):
+        # biblioteki natywne też tylko z obrazu: wariant .so modułu linkowanego statycznie (libcompositionengine
+        # w LOS 24 ma UdfpsExtension.cpp podwójnie) nie buduje się, choć pełny build przechodzi (rhode 16.10)
+        if product is not None and name not in product and "JAVA_LIBRARIES" not in classes:
             continue
         for d in m.get("path") or []:
             by_dir[d.rstrip("/")].add(name)
