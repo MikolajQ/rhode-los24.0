@@ -74,7 +74,7 @@ build:
       git fetch -q --shallow-since=2026-01-01 https://github.com/LineageOS/android_kernel_motorola_sm6225 lineage-24.0
       git merge-base HEAD FETCH_HEAD > /dev/null || { echo "brak wspólnej bazy od 2026-01-01 — pogłębić fetch"; false; }
       git -c user.name=ham -c user.email=ham@localhost merge --no-edit -q FETCH_HEAD || { git merge --abort; echo "jądro: konflikt z LineageOS"; false; }
-      git log --oneline -3
+      git --no-pager log --oneline -3
 
   - name: "Patche (LineageOS + zmiany Tomoms; vendor/gapps: cięcie pakietów; media: poziomy enkodera)"
     run: /ham-recipe/scripts/apply-patches.sh /ham-build
