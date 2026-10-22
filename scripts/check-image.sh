@@ -10,12 +10,14 @@ set -euo pipefail
 MODE=${1:?pre|post}; ROOT=${2:?korzeń drzewa}
 source "$(dirname "$0")/device.env"
 OUT="$ROOT/out/target/product/$DEVICE"
-PRUNED="Velvet talkback Wellbeing GoogleRestore MarkupGoogle_v2 GoogleFeedback SpeechServicesByGoogle PrebuiltExchange3Google"
+PRUNED="Velvet VelvetTitan talkback Wellbeing GoogleRestore MarkupGoogle_v2 GoogleFeedback SpeechServicesByGoogle PrebuiltExchange3Google"
 REQUIRED="GmsSupervision"
 bad=0; err() { echo "BŁĄD: $*"; bad=1; }
 if [ "$MODE" = pre ]; then
   for f in arm64/arm64-vendor.mk common/common-vendor.mk; do
     for p in $PRUNED; do
+      # VelvetTitan stoi w MTG pod filtrem tangorpro — jego wpis zostaje, liczy się lista pakietów niżej
+      [ "$p" = VelvetTitan ] && continue
       grep -qE "^[[:space:]]+$p( |\\\\|$)" "$ROOT/vendor/gapps/$f" && err "vendor/gapps/$f nadal dodaje $p (patches/vendor_gapps/0001 nie wszedł?)"
     done
   done
@@ -27,7 +29,7 @@ if [ "$MODE" = pre ]; then
     echo "UWAGA: brak $PP — sprawdzone tylko drzewo"
   fi
 elif [ "$MODE" = post ]; then
-  for p in product/priv-app/Velvet product/app/talkback product/priv-app/Wellbeing product/priv-app/GoogleRestore \
+  for p in product/priv-app/Velvet product/priv-app/VelvetTitan product/app/talkback product/priv-app/Wellbeing product/priv-app/GoogleRestore \
            product/app/MarkupGoogle_v2 system_ext/priv-app/GoogleFeedback product/app/SpeechServicesByGoogle; do
     [ -e "$OUT/$p" ] && err "w obrazie jest $p (powinno być wycięte)"
   done

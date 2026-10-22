@@ -1,8 +1,15 @@
-# Patche na MindTheGapps (gałąź baklava)
+# Patche na MindTheGapps (gałąź cinnamonbun)
 
 Nakładane przez `scripts/apply-patches.sh` po `repo sync`, `git apply` na `vendor/gapps`.
-Wygenerowane z realnego drzewa `baklava` @f8cdcff (2026-06-12); po zmianach upstreamu: `git apply --check`,
+Wygenerowane z drzewa `cinnamonbun` @bfa45ac (22.10.2026); po zmianach upstreamu: `git apply --check`,
 w razie konfliktu wygenerować na nowo (`git diff` na sklonowanym MTG).
+
+**Definicje modułów też usunięte (22.10.2026).** Samo wycięcie z `PRODUCT_PACKAGES` nie wystarczało: w obrazach
+rhode 20261016 i a50s 20261015 były Velvet, VelvetTitan (w MTG tylko dla tangorpro!), talkback, MarkupGoogle_v2,
+Wellbeing, GoogleRestore i GoogleFeedback — na A17 trafia do obrazu każdy `android_app_import` z przestrzeni nazw
+`vendor/gapps/{arm64,common}`. Dlatego 0001 usuwa też ich bloki z `arm64/Android.bp` i `common/Android.bp`
+(oraz SpeechServicesByGoogle, PrebuiltExchange3Google, dialer.support, libjni_latinimegoogle, wellbeing.xml).
+Gdyby coś od nich zależało, wyjdzie to jako błąd soong w szybkim teście kompilacji; obraz sprawdza scripts/check-image.sh.
 
 ## 0001-prune-to-core.patch — zestaw jak NikGapps core + Android Auto
 
