@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Oliver Scott <olivercscott@gmail.com>
 Date: Fri, 25 Sep 2026 12:28:17 +0200
-Subject: [PATCH 2/2] Wi-Fi and Bluetooth timeout feature
+Subject: [PATCH] Wi-Fi and Bluetooth timeout feature
 
 Settings part of the CalyxOS feature, as carried in Tomoms/android_packages_apps_Settings@16.2:
 "Wi-Fi timeout feature", "Bluetooth timeout feature" (Oliver Scott) and "Settings: Add icon for
@@ -26,7 +26,7 @@ in SettingsLib). Polish translations added.
 
 diff --git a/res/drawable/ic_wifi_off.xml b/res/drawable/ic_wifi_off.xml
 new file mode 100644
-index 0000000..1480a59
+index 00000000..1480a59c
 --- /dev/null
 +++ b/res/drawable/ic_wifi_off.xml
 @@ -0,0 +1,25 @@
@@ -57,7 +57,7 @@ index 0000000..1480a59
 +</vector>
 \ No newline at end of file
 diff --git a/res/values-pl/cm_strings.xml b/res/values-pl/cm_strings.xml
-index a285055..734287e 100644
+index a2850559..734287e4 100644
 --- a/res/values-pl/cm_strings.xml
 +++ b/res/values-pl/cm_strings.xml
 @@ -104,4 +104,24 @@
@@ -86,13 +86,13 @@ index a285055..734287e 100644
 +    <string name="custom_timeout_summary_8hours">8 godz.</string>
  </resources>
 diff --git a/res/values/cm_strings.xml b/res/values/cm_strings.xml
-index c7381d8..3aa4e68 100644
+index 8b8d9ffa..0a881d0d 100644
 --- a/res/values/cm_strings.xml
 +++ b/res/values/cm_strings.xml
-@@ -186,4 +186,32 @@
-     <string name="battery_maximum_capacity">Maximum capacity</string>
-     <string name="battery_maximum_capacity_summary">%1$d mAh (%2$d%%)</string>
-     <string name="battery_maximum_capacity_not_available" translatable="false">@string/battery_cycle_count_not_available</string>
+@@ -191,4 +191,32 @@
+     <string name="face_enrolling_close_to_continue">Fold phone during setup</string>
+     <string name="face_enrolling_close_to_continue_description">The phone must be folded to set up or use Face Unlock</string>
+     <string name="face_enrolling_do_it_later">Do it later</string>
 +
 +    <!-- Custom Timeouts -->
 +    <string name="wifi_timeout">WiFi timeout</string>
@@ -124,7 +124,7 @@ index c7381d8..3aa4e68 100644
  </resources>
 diff --git a/res/values/lineage_arrays.xml b/res/values/lineage_arrays.xml
 new file mode 100644
-index 0000000..23fa35a
+index 00000000..23fa35ac
 --- /dev/null
 +++ b/res/values/lineage_arrays.xml
 @@ -0,0 +1,37 @@
@@ -166,7 +166,7 @@ index 0000000..23fa35a
 +    </string-array>
 +</resources>
 diff --git a/res/xml/connected_devices.xml b/res/xml/connected_devices.xml
-index 2f27721..2b2fadf 100644
+index 2f27721a..2b2fadf1 100644
 --- a/res/xml/connected_devices.xml
 +++ b/res/xml/connected_devices.xml
 @@ -65,6 +65,14 @@
@@ -185,7 +185,7 @@ index 2f27721..2b2fadf 100644
          android:key="previously_connected_devices"
          android:title="@string/connected_device_saved_title"
 diff --git a/res/xml/wifi_configure_settings.xml b/res/xml/wifi_configure_settings.xml
-index 2dfdb8c..7f78fb2 100644
+index 2dfdb8cf..7f78fb28 100644
 --- a/res/xml/wifi_configure_settings.xml
 +++ b/res/xml/wifi_configure_settings.xml
 @@ -27,6 +27,15 @@
@@ -206,7 +206,7 @@ index 2dfdb8c..7f78fb2 100644
          android:title="@string/wifi_notify_open_networks"
 diff --git a/src/com/android/settings/bluetooth/BluetoothTimeoutPreferenceController.java b/src/com/android/settings/bluetooth/BluetoothTimeoutPreferenceController.java
 new file mode 100644
-index 0000000..387390a
+index 00000000..387390a9
 --- /dev/null
 +++ b/src/com/android/settings/bluetooth/BluetoothTimeoutPreferenceController.java
 @@ -0,0 +1,121 @@
@@ -333,7 +333,7 @@ index 0000000..387390a
 +}
 diff --git a/src/com/android/settings/wifi/WifiTimeoutPreferenceController.java b/src/com/android/settings/wifi/WifiTimeoutPreferenceController.java
 new file mode 100644
-index 0000000..5368d78
+index 00000000..5368d78e
 --- /dev/null
 +++ b/src/com/android/settings/wifi/WifiTimeoutPreferenceController.java
 @@ -0,0 +1,120 @@
@@ -457,3 +457,6 @@ index 0000000..5368d78
 +        preference.setSummary(summary);
 +    }
 +}
+-- 
+2.56.0
+

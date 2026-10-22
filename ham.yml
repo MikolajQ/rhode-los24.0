@@ -137,6 +137,8 @@ build:
       m module-info || echo "UWAGA: m module-info nie wyszedł — test tylko sepolicy"
       python3 /ham-recipe/scripts/patched-modules.py /ham-build /ham-recipe "$ANDROID_PRODUCT_OUT/module-info.json" > /ham-build/precheck-modules.txt \
         || { echo "UWAGA: patched-modules.py zawiódł — test tylko sepolicy"; : > /ham-build/precheck-modules.txt; }
+      # zawartość obrazu przed kompilacją: przycięte GApps, GmsSupervision (scripts/check-image.sh)
+      bash /ham-recipe/scripts/check-image.sh pre /ham-build
       # moduł z module-info nie zawsze jest celem ninja (A17: framework-wifi.impl) — wyrzuć nieznane cele i ponów
       set -o pipefail
       for i in $(seq 10); do
@@ -169,6 +171,9 @@ build:
       else
         mka bacon
       fi
+
+  - name: "Zawartość obrazu po buildzie (druga kontrola; pierwsza w szybkim teście kompilacji)"
+    run: bash /ham-recipe/scripts/check-image.sh post /ham-build
 
   - name: "Podpis (osobny krok: wznowienie po błędzie podpisu nie powtarza builda — ham-resume.sh -s auto)"
     run: |

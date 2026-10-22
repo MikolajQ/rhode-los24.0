@@ -1,0 +1,60 @@
+From 683b54595e9adae47bcd61fe2bd3149412bf1f3c Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Sun, 18 Oct 2026 10:16:39 +0200
+Subject: [PATCH] NfcService: Don't poll with the screen off on NCI 1.0
+ controllers
+
+Commit 3e8c123a5 ("Enabling all discovery techs in case of screen
+locked state.") lowered NFC_POLLING_MODE to SCREEN_STATE_OFF_UNLOCKED,
+so polling stays enabled in every screen state. That relies on the
+NCI 2.0 power sub-states: doSetScreenState() then sets
+CON_DISCOVERY_PARAM to disable polling while the screen is off.
+
+doSetScreenState() returns early on NCI 1.0 controllers, so nothing
+ever turns polling off and the controller keeps running the full
+poll loop with the screen off. On a Samsung Galaxy A50s (PN547) the
+controller then requests its clock every ~540 ms, which wakes the AP
+about twice a second (223k wakeups / 35 h, ~90 mA standby drain).
+
+Keep the previous threshold (SCREEN_STATE_ON_UNLOCKED) for controllers
+older than NCI 2.0. NCI 2.0 behaviour is unchanged.
+
+Test: A50s (PN547, NCI 1.0), screen off: RF_DISCOVER drops to NFC-A
+      listen only and the nfc_clk wakeups go from ~220 to 0 per minute.
+      Screen on and unlocked: RF_DISCOVER carries the poll techs as before.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Dr8X39PngEfThUaxTxyj9B
+Change-Id: Ib7f0e5cf249e3cecda6764c76237cc0e27572890
+---
+ NfcNci/src/com/android/nfc/NfcService.java | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/NfcNci/src/com/android/nfc/NfcService.java b/NfcNci/src/com/android/nfc/NfcService.java
+index 9dc6a3c..46dc7a2 100644
+--- a/NfcNci/src/com/android/nfc/NfcService.java
++++ b/NfcNci/src/com/android/nfc/NfcService.java
+@@ -311,6 +311,9 @@ public class NfcService implements DeviceHostListener, ForegroundUtils.Callback
+ 
+     // minimum screen state that enables NFC polling
+     static final int NFC_POLLING_MODE = ScreenStateHelper.SCREEN_STATE_OFF_UNLOCKED;
++    // NCI 1.0 controllers have no power sub-states, so polling enabled here is never turned off
++    // by doSetScreenState() and keeps running with the screen off.
++    static final int NFC_POLLING_MODE_NCI_1_0 = ScreenStateHelper.SCREEN_STATE_ON_UNLOCKED;
+ 
+     // Time to wait for NFC controller to initialize before watchdog
+     // goes off. This time is chosen large, because firmware download
+@@ -5098,7 +5101,9 @@ public class NfcService implements DeviceHostListener, ForegroundUtils.Callback
+         // Recompute discovery parameters based on screen state
+         NfcDiscoveryParameters.Builder paramsBuilder = NfcDiscoveryParameters.newBuilder();
+         // Polling
+-        if (screenState >= NFC_POLLING_MODE && isReaderOptionEnabled()) {
++        int pollingMode =
++                (nci_version < NCI_VERSION_2_0) ? NFC_POLLING_MODE_NCI_1_0 : NFC_POLLING_MODE;
++        if (screenState >= pollingMode && isReaderOptionEnabled()) {
+             // Check if reader-mode is enabled
+             if (mReaderModeParams != null) {
+                 int techMask = 0;
+-- 
+2.56.0
+
