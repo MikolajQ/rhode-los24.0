@@ -150,6 +150,9 @@ build:
         mv /ham-build/precheck-modules.new /ham-build/precheck-modules.txt
         [ "$i" -lt 10 ] || exit 1
       done
+      # m <moduł> instaluje go do out/, a obraz zabiera wszystko z out/: bez tego do system_ext weszły Launcher3
+      # i Launcher3Go obok Launcher3QuickStep (rhode 16.10: system wybrał Go, bez widgetów). Kompilaty zostają.
+      m installclean
 
   - name: "Build"
     run: |

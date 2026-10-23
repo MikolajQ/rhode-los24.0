@@ -33,6 +33,10 @@ elif [ "$MODE" = post ]; then
            product/app/MarkupGoogle_v2 system_ext/priv-app/GoogleFeedback product/app/SpeechServicesByGoogle; do
     [ -e "$OUT/$p" ] && err "w obrazie jest $p (powinno być wycięte)"
   done
+  # jeden launcher: Launcher3/Launcher3Go obok QuickStep = śmieci z m <moduł> (system wybiera Go, bez widgetów)
+  for p in system_ext/priv-app/Launcher3 system_ext/priv-app/Launcher3Go system_ext/priv-app/Launcher3QuickStepGo; do
+    [ -e "$OUT/$p" ] && err "w obrazie jest $p obok Launcher3QuickStep"
+  done
   [ -e "$OUT/product/priv-app/GmsSupervision/GmsSupervision.apk" ] || err "w obrazie brak product/priv-app/GmsSupervision (gapps-extras, Family Link)"
 else
   echo "nieznany tryb: $MODE"; exit 2
