@@ -1,0 +1,80 @@
+From a99058efbf21f4ce645c17eb1352c4af6db43d23 Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Sun, 25 Oct 2026 14:14:56 +0100
+Subject: [PATCH] ApfFilter: drop MLD queries when no IPv6 router is known
+
+On APFv4 (and on APFv6 without MLD offload) the IPv6 filter passes
+every packet with a hop-by-hop header, so each MLD General Query a
+querier router sends (every 125s by default) wakes the device. The
+kernel answers them so that multicast snooping keeps forwarding the
+solicited-node groups that neighbor discovery with the router relies
+on; on a link without an IPv6 router nothing depends on that.
+
+When the multicast filter is on and no IPv6 router is known (no RA
+seen and no address beyond link-local), let hop-by-hop packets reach
+the multicast filter instead, which drops them if they are multicast
+(DROPPED_IPV6_NON_ICMP_MULTICAST). RAs carry no hop-by-hop header and
+still pass; a new RA or address regenerates the program.
+
+On a phone at home behind a router that runs an MLD querier but has
+no IPv6 on the WAN, these queries were most of the Wi-Fi wakeups left
+in suspend once other traffic was filtered.
+
+Assisted-by: LLM
+---
+ src/android/net/apf/ApfFilter.java | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/src/android/net/apf/ApfFilter.java b/src/android/net/apf/ApfFilter.java
+index 849d5d9..ca14caa 100644
+--- a/src/android/net/apf/ApfFilter.java
++++ b/src/android/net/apf/ApfFilter.java
+@@ -2963,6 +2963,8 @@ public class ApfFilter {
+         //       transmit MLDv2 report and drop
+         //     else it is an MLDv1 general query:
+         //       transmit MLDv1 reports (one report per multicast group) and drop
++        //   else if we're dropping multicast and no IPv6 router is known on the link:
++        //     fall through to the multicast filter below
+         //   else
+         //     pass (on APFv2+)
+         //
+@@ -3051,7 +3053,7 @@ public class ApfFilter {
+         if (enableMldOffload()) {
+             generateMldFilter((ApfV6GeneratorBase<?>) gen);
+             gen.addLoad8intoR0(IPV6_NEXT_HEADER_OFFSET);
+-        } else {
++        } else if (shouldPassHopByHop()) {
+             gen.addCountAndPassIfR0Equals(IPPROTO_HOPOPTS, PASSED_IPV6_HOPOPTS);
+         }
+ 
+@@ -4924,6 +4926,27 @@ public class ApfFilter {
+     }
+ 
+     @ChecksSdkIntAtLeast(api = 35 /* Build.VERSION_CODES.VanillaIceCream */)
++    /**
++     * Whether packets with a hop-by-hop header (MLD queries) should bypass the multicast filter.
++     *
++     * The kernel answers MLD queries so that multicast snooping keeps forwarding the
++     * solicited-node groups that neighbor discovery with an IPv6 router relies on. When no IPv6
++     * router is known on the link (no RA seen and no address beyond link-local), nothing depends
++     * on that, and the queries a querier router sends (every 125s by default) only wake the
++     * device. An RA still passes, since it carries no hop-by-hop header, and a new RA or address
++     * regenerates the program.
++     */
++    private boolean shouldPassHopByHop() {
++        if (!mMulticastFilter || !mRas.isEmpty()) return true;
++        for (Inet6Address addr : mIPv6NonTentativeAddresses) {
++            if (!addr.isLinkLocalAddress()) return true;
++        }
++        for (Inet6Address addr : mIPv6TentativeAddresses) {
++            if (!addr.isLinkLocalAddress()) return true;
++        }
++        return false;
++    }
++
+     private boolean enableMldOffload() {
+         return enableMldReportsMonitor() && mIPv6LinkLocalAddress != null
+                 && !mIPv6McastAddrsExcludeAllHost.isEmpty();
+-- 
+2.56.0
+
