@@ -1,0 +1,230 @@
+From 685baf8c717e6f0712e199a84241b104034a8ee3 Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Mon, 26 Oct 2026 10:58:53 +0100
+Subject: [PATCH] HostEmulationManager: Only bind the payment service while NFC
+ is on
+
+The preferred payment service is bound persistently to cut the latency
+of the first APDU. The binding is made on boot and whenever the
+preferred payment service changes, but it is never dropped when NFC is
+turned off, so it outlives the only state in which it can be used.
+
+The binding comes from com.android.nfc with BIND_AUTO_CREATE, which
+keeps the payment app at a visible oom_adj around the clock. Its process
+is never cached or frozen, and its jobs, alarms and network traffic are
+not deferred like those of other background apps. Users who keep NFC
+off and enable it only to pay get this cost all day for nothing.
+
+Unbind the payment service when NFC is disabled and bind it again when
+NFC is enabled. Changes of the preferred payment service while NFC is
+off are picked up on the next enable, as the service is looked up from
+the AID cache at that point.
+
+Test: OnePlus 9 Pro, banking app with an HCE payment service holding
+      the wallet role, NFC off: before, its process sat at oom_adj 100
+      (procState 6) bound by com.android.nfc for days.
+
+Assisted-by: LLM
+Change-Id: Id16e2a9aa90a23140d1f24baa3b0d9205c99620d
+---
+ .../cardemulation/CardEmulationManager.java   |  2 +
+ .../cardemulation/HostEmulationManager.java   | 41 ++++++++++++-
+ .../CardEmulationManagerTest.java             |  2 +
+ .../HostEmulationManagerTest.java             | 61 +++++++++++++++++++
+ 4 files changed, 105 insertions(+), 1 deletion(-)
+
+diff --git a/NfcNci/src/com/android/nfc/cardemulation/CardEmulationManager.java b/NfcNci/src/com/android/nfc/cardemulation/CardEmulationManager.java
+index 8d81e64..4f61cf2 100644
+--- a/NfcNci/src/com/android/nfc/cardemulation/CardEmulationManager.java
++++ b/NfcNci/src/com/android/nfc/cardemulation/CardEmulationManager.java
+@@ -436,6 +436,7 @@ public class CardEmulationManager implements RegisteredServicesCache.Callback,
+         if (DBG) Log.d(TAG, "onNfcEnabled");
+         // for HCE
+         mAidCache.onNfcEnabled();
++        mHostEmulationManager.onNfcEnabled();
+         // for HCE-F
+         mT3tIdentifiersCache.onNfcEnabled();
+     }
+@@ -444,6 +445,7 @@ public class CardEmulationManager implements RegisteredServicesCache.Callback,
+         if (DBG) Log.d(TAG, "onNfcDisabled");
+         // for HCE
+         mAidCache.onNfcDisabled();
++        mHostEmulationManager.onNfcDisabled();
+         // for HCE-F
+         mHostNfcFEmulationManager.onNfcDisabled();
+         mNfcFServicesCache.onNfcDisabled();
+diff --git a/NfcNci/src/com/android/nfc/cardemulation/HostEmulationManager.java b/NfcNci/src/com/android/nfc/cardemulation/HostEmulationManager.java
+index d199353..f2817d2 100644
+--- a/NfcNci/src/com/android/nfc/cardemulation/HostEmulationManager.java
++++ b/NfcNci/src/com/android/nfc/cardemulation/HostEmulationManager.java
+@@ -210,6 +210,10 @@ public class HostEmulationManager {
+     // latency.
+     Messenger mPaymentService;
+     boolean mPaymentServiceBound = false;
++    // The payment service is only kept bound while NFC is enabled. Otherwise
++    // the binding keeps the payment app at a visible oom_adj, so it is never
++    // cached or frozen although it cannot be used for a transaction.
++    boolean mNfcEnabled = false;
+ 
+     boolean mEnableObserveModeAfterTransaction = false;
+     boolean mEnableObserveModeOnFieldOff = false;
+@@ -395,7 +399,7 @@ public class HostEmulationManager {
+                     resetActiveService();
+                 }
+ 
+-                if (service != null && service.getComponentName() != null) {
++                if (mNfcEnabled && service != null && service.getComponentName() != null) {
+                     bindPaymentServiceLocked(service.getUserId(), service.getComponentName());
+                 } else {
+                     unbindPaymentServiceLocked();
+@@ -404,6 +408,41 @@ public class HostEmulationManager {
+         });
+     }
+ 
++    /**
++     *  NFC enabled: bind the preferred payment service so that it is ready for a transaction
++     */
++    public void onNfcEnabled() {
++        mHandler.post(() -> {
++            synchronized (mLock) {
++                mNfcEnabled = true;
++                if (mPaymentServiceBound) {
++                    return;
++                }
++                ComponentNameAndUser service = mAidCache.getPreferredPaymentService();
++                if (service != null && service.getComponentName() != null) {
++                    Log.d(TAG, "onNfcEnabled: binding payment service");
++                    bindPaymentServiceLocked(service.getUserId(), service.getComponentName());
++                }
++            }
++        });
++    }
++
++    /**
++     *  NFC disabled: drop the persistent payment service binding
++     */
++    public void onNfcDisabled() {
++        mHandler.post(() -> {
++            synchronized (mLock) {
++                mNfcEnabled = false;
++                if (mPaymentServiceBound) {
++                    Log.d(TAG, "onNfcDisabled: unbinding payment service");
++                }
++                resetActiveService();
++                unbindPaymentServiceLocked();
++            }
++        });
++    }
++
+     private Pair<Messenger, ComponentName> bindToForegroundServiceOrDefaultForPollingLoop() {
+         ComponentNameAndUser preferredService = mAidCache.getPreferredService();
+         int preferredServiceUserId = preferredService.getUserId();
+diff --git a/NfcNci/tests/unit/src/com/android/nfc/cardemulation/CardEmulationManagerTest.java b/NfcNci/tests/unit/src/com/android/nfc/cardemulation/CardEmulationManagerTest.java
+index b83dbda..1f455b3 100644
+--- a/NfcNci/tests/unit/src/com/android/nfc/cardemulation/CardEmulationManagerTest.java
++++ b/NfcNci/tests/unit/src/com/android/nfc/cardemulation/CardEmulationManagerTest.java
+@@ -435,6 +435,7 @@ public class CardEmulationManagerTest {
+ 
+         assertConstructorMethodCalls();
+         verify(mRegisteredAidCache).onNfcEnabled();
++        verify(mHostEmulationManager).onNfcEnabled();
+         verify(mRegisteredT3tIdentifiersCache).onNfcEnabled();
+     }
+ 
+@@ -444,6 +445,7 @@ public class CardEmulationManagerTest {
+ 
+         assertConstructorMethodCalls();
+         verify(mRegisteredAidCache).onNfcDisabled();
++        verify(mHostEmulationManager).onNfcDisabled();
+         verify(mHostNfcFEmulationManager).onNfcDisabled();
+         verify(mRegisteredNfcFServicesCache).onNfcDisabled();
+         verify(mEnabledNfcFServices).onNfcDisabled();
+diff --git a/NfcNci/tests/unit/src/com/android/nfc/cardemulation/HostEmulationManagerTest.java b/NfcNci/tests/unit/src/com/android/nfc/cardemulation/HostEmulationManagerTest.java
+index e2481b8..f31560b 100644
+--- a/NfcNci/tests/unit/src/com/android/nfc/cardemulation/HostEmulationManagerTest.java
++++ b/NfcNci/tests/unit/src/com/android/nfc/cardemulation/HostEmulationManagerTest.java
+@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.anyString;
+ import static org.mockito.ArgumentMatchers.eq;
+ import static org.mockito.Mockito.atLeastOnce;
+ import static org.mockito.Mockito.mock;
++import static org.mockito.Mockito.never;
+ import static org.mockito.Mockito.times;
+ import static org.mockito.Mockito.verify;
+ import static org.mockito.Mockito.verifyNoMoreInteractions;
+@@ -179,6 +180,7 @@ public class HostEmulationManagerTest {
+                 new HostEmulationManager(
+                         mContext, mTestableLooper.getLooper(), mRegisteredAidCache, mStatsdUtils,
+                         mNfcInjector);
++        mHostEmulationManager.mNfcEnabled = true;
+     }
+ 
+     @After
+@@ -266,6 +268,65 @@ public class HostEmulationManagerTest {
+         assertNotNull(mServiceConnectionArgumentCaptor.getValue());
+     }
+ 
++    @Test
++    public void testOnPreferredPaymentServiceChanged_nfcDisabled() {
++        mHostEmulationManager.mNfcEnabled = false;
++
++        mHostEmulationManager.onPreferredPaymentServiceChanged(
++                new ComponentNameAndUser(USER_ID, WALLET_PAYMENT_SERVICE));
++        mTestableLooper.processAllMessages();
++
++        verify(mContext, never()).bindServiceAsUser(any(), any(), anyInt(), any());
++        assertFalse(mHostEmulationManager.mPaymentServiceBound);
++    }
++
++    @Test
++    public void testOnNfcDisabled_unbindsPaymentService() {
++        mHostEmulationManager.mPaymentServiceBound = true;
++
++        mHostEmulationManager.onNfcDisabled();
++        mTestableLooper.processAllMessages();
++
++        verify(mContext).unbindService(eq(mHostEmulationManager.getPaymentConnection()));
++        assertFalse(mHostEmulationManager.mPaymentServiceBound);
++        assertFalse(mHostEmulationManager.mNfcEnabled);
++    }
++
++    @Test
++    public void testOnNfcEnabled_bindsPreferredPaymentService() {
++        when(mContext.bindServiceAsUser(any(), any(), anyInt(), any())).thenReturn(true);
++        when(mRegisteredAidCache.getPreferredPaymentService())
++                .thenReturn(new ComponentNameAndUser(USER_ID, WALLET_PAYMENT_SERVICE));
++        mHostEmulationManager.mNfcEnabled = false;
++
++        mHostEmulationManager.onNfcEnabled();
++        mTestableLooper.processAllMessages();
++
++        verify(mContext)
++                .bindServiceAsUser(
++                        mIntentArgumentCaptor.capture(),
++                        any(),
++                        eq(
++                                Context.BIND_AUTO_CREATE
++                                        | Context.BIND_ALLOW_BACKGROUND_ACTIVITY_STARTS),
++                        eq(UserHandle.of(USER_ID)));
++        assertEquals(WALLET_PAYMENT_SERVICE, mIntentArgumentCaptor.getValue().getComponent());
++        assertTrue(mHostEmulationManager.mPaymentServiceBound);
++        assertTrue(mHostEmulationManager.mNfcEnabled);
++    }
++
++    @Test
++    public void testOnNfcEnabled_noPreferredPaymentService() {
++        mHostEmulationManager.mNfcEnabled = false;
++
++        mHostEmulationManager.onNfcEnabled();
++        mTestableLooper.processAllMessages();
++
++        verify(mContext, never()).bindServiceAsUser(any(), any(), anyInt(), any());
++        assertFalse(mHostEmulationManager.mPaymentServiceBound);
++        assertTrue(mHostEmulationManager.mNfcEnabled);
++    }
++
+     @Test
+     public void testUpdatePollingLoopFilters() {
+         ApduServiceInfo serviceWithFilter = mock(ApduServiceInfo.class);
+-- 
+2.56.0
+
