@@ -1,0 +1,447 @@
+From da5cf504169d9090ba0a9c4200d303839a2d253e Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Mon, 26 Oct 2026 11:31:30 +0100
+Subject: [PATCH] DefaultDeviceEffectsApplier: Apply minimizeRadioUsage and a
+ location effect
+
+ZenDeviceEffects can carry minimizeRadioUsage, but the default applier
+ignores it, so modes have no way to take the device off the air for the
+night. Turning location off is just as useful for a bedtime mode and
+there is no effect for it at all.
+
+Apply minimizeRadioUsage as airplane mode and add a "disable location"
+extra effect that turns location off for the current user. Both only
+undo what the mode did: if airplane mode was already on, or location
+already off, when the mode started, they are left alone when it ends,
+and a manual change while the mode is active is not reverted when the
+effects are applied again. Whether the mode made the change is
+persisted, so it is still undone after a reboot during the mode, also
+when the mode ended while the device was off.
+
+Toggling airplane mode during a call would drop it, so the change is
+deferred until the call ends, like night mode waits for the screen to
+turn off.
+
+Both effects are hidden, so only the system (Settings) can set them.
+
+Assisted-by: LLM
+Change-Id: I6b6514608bee3e98e1505805724c6644affde7c2
+---
+ .../notification/ZenDeviceEffects.java        |   7 +
+ .../DefaultDeviceEffectsApplier.java          | 159 ++++++++++++++++++
+ .../DefaultDeviceEffectsApplierTest.java      | 123 ++++++++++++++
+ 3 files changed, 289 insertions(+)
+
+diff --git a/core/java/android/service/notification/ZenDeviceEffects.java b/core/java/android/service/notification/ZenDeviceEffects.java
+index 50b320e2cb01..8dcd8f3d48eb 100644
+--- a/core/java/android/service/notification/ZenDeviceEffects.java
++++ b/core/java/android/service/notification/ZenDeviceEffects.java
+@@ -115,6 +115,13 @@ public final class ZenDeviceEffects implements Parcelable {
+     /** @hide */
+     public static final int FIELD_BRIGHTNESS_CAP = 1 << 12;
+ 
++    /**
++     * Extra effect: turn location off while the rule is active.
++     *
++     * @hide
++     */
++    public static final String EXTRA_EFFECT_DISABLE_LOCATION = "lineageos:disable_location";
++
+     private static final int MAX_EFFECTS_LENGTH = 2_000; // characters
+     private static final float BRIGHTNESS_CAP_MIN = 0f;
+     private static final float BRIGHTNESS_CAP_MAX = 1f;
+diff --git a/services/core/java/com/android/server/notification/DefaultDeviceEffectsApplier.java b/services/core/java/com/android/server/notification/DefaultDeviceEffectsApplier.java
+index 0e1bf625da0e..a6fe5d0bfa78 100644
+--- a/services/core/java/com/android/server/notification/DefaultDeviceEffectsApplier.java
++++ b/services/core/java/com/android/server/notification/DefaultDeviceEffectsApplier.java
+@@ -22,20 +22,28 @@ import static android.app.UiModeManager.MODE_ATTENTION_THEME_OVERLAY_OFF;
+ import static com.android.server.notification.ZenLog.traceApplyDeviceEffect;
+ import static com.android.server.notification.ZenLog.traceScheduleApplyDeviceEffect;
+ 
++import android.app.ActivityManager;
+ import android.app.KeyguardManager;
+ import android.app.UiModeManager;
+ import android.app.WallpaperManager;
+ import android.content.BroadcastReceiver;
++import android.content.ContentResolver;
+ import android.content.Context;
+ import android.content.Intent;
+ import android.content.IntentFilter;
+ import android.hardware.display.ColorDisplayManager;
++import android.location.LocationManager;
++import android.net.ConnectivityManager;
+ import android.os.Binder;
+ import android.os.PowerManager;
++import android.os.UserHandle;
++import android.provider.Settings;
+ import android.service.notification.DeviceEffectsApplier;
+ import android.service.notification.ZenDeviceEffects;
+ import android.service.notification.ZenModeConfig;
+ import android.service.notification.ZenModeConfig.ConfigOrigin;
++import android.telecom.TelecomManager;
++import android.telephony.TelephonyManager;
+ import android.util.Slog;
+ 
+ import com.android.internal.annotations.GuardedBy;
+@@ -53,26 +61,43 @@ public class DefaultDeviceEffectsApplier implements DeviceEffectsApplier {
+     private static final float WALLPAPER_DIM_AMOUNT_NORMAL = 0f;
+     private static final IntentFilter SCREEN_OFF_INTENT_FILTER = new IntentFilter(
+             Intent.ACTION_SCREEN_OFF);
++    private static final IntentFilter PHONE_STATE_INTENT_FILTER = new IntentFilter(
++            TelephonyManager.ACTION_PHONE_STATE_CHANGED);
++
++    // Airplane mode and location are only turned back on by the mode if the mode turned them
++    // off, so whether it did is persisted to survive a reboot while the mode is active.
++    private static final String AIRPLANE_MODE_OWNED_SETTING = "zen_effect_airplane_mode_owned";
++    // Value: id of the user whose location the mode turned off, plus one; 0 if none.
++    private static final String LOCATION_OWNED_SETTING = "zen_effect_location_owned_user";
+ 
+     private final Context mContext;
+     private final ColorDisplayManager mColorDisplayManager;
++    private final ConnectivityManager mConnectivityManager;
+     private final KeyguardManager mKeyguardManager;
++    private final LocationManager mLocationManager;
+     private final PowerManager mPowerManager;
++    private final TelecomManager mTelecomManager;
+     private final UiModeManager mUiModeManager;
+     private final WallpaperManager mWallpaperManager;
+ 
+     private final Object mRegisterReceiverLock = new Object();
+     @GuardedBy("mRegisterReceiverLock")
+     private boolean mIsScreenOffReceiverRegistered;
++    @GuardedBy("mRegisterReceiverLock")
++    private boolean mIsPhoneStateReceiverRegistered;
+ 
+     protected ZenDeviceEffects mLastAppliedEffects = new ZenDeviceEffects.Builder().build();
+     private boolean mPendingNightMode;
++    private boolean mPendingAirplaneMode;
+ 
+     public DefaultDeviceEffectsApplier(Context context) {
+         mContext = context;
+         mColorDisplayManager = context.getSystemService(ColorDisplayManager.class);
++        mConnectivityManager = context.getSystemService(ConnectivityManager.class);
+         mKeyguardManager = context.getSystemService(KeyguardManager.class);
++        mLocationManager = context.getSystemService(LocationManager.class);
+         mPowerManager = context.getSystemService(PowerManager.class);
++        mTelecomManager = context.getSystemService(TelecomManager.class);
+         mUiModeManager = context.getSystemService(UiModeManager.class);
+         WallpaperManager wallpaperManager = context.getSystemService(WallpaperManager.class);
+         mWallpaperManager = wallpaperManager != null && wallpaperManager.isWallpaperSupported()
+@@ -87,11 +112,126 @@ public class DefaultDeviceEffectsApplier implements DeviceEffectsApplier {
+                     maybeDisplayGrayscale(effects.shouldDisplayGrayscale());
+                     maybeDimWallpaper(effects.shouldDimWallpaper(), origin);
+                     maybeUseNightMode(effects.shouldUseNightMode(), origin);
++                    maybeMinimizeRadioUsage(effects.shouldMinimizeRadioUsage());
++                    maybeDisableLocation(effects.getExtraEffects().contains(
++                            ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION));
+                 });
+ 
+         mLastAppliedEffects = effects;
+     }
+ 
++    /**
++     * Turns airplane mode on when the effect starts and back off when it ends, but only if it was
++     * off before. Toggling airplane mode while the user is in a call would end the call, so the
++     * change waits for the call to end.
++     */
++    protected void maybeMinimizeRadioUsage(boolean shouldMinimizeRadioUsage) {
++        boolean wasApplied = mLastAppliedEffects.shouldMinimizeRadioUsage();
++        boolean owned = Settings.Global.getInt(
++                mContext.getContentResolver(), AIRPLANE_MODE_OWNED_SETTING, 0) != 0;
++        // Re-applying the same effects (e.g. another mode changed) must not undo a manual change.
++        if (shouldMinimizeRadioUsage == wasApplied && (shouldMinimizeRadioUsage || !owned)) {
++            return;
++        }
++        if (shouldMinimizeRadioUsage && owned) {
++            // Turned on by this mode before a reboot.
++            return;
++        }
++        updateOrScheduleAirplaneMode(shouldMinimizeRadioUsage);
++    }
++
++    private void updateOrScheduleAirplaneMode(boolean enable) {
++        mPendingAirplaneMode = enable;
++        if (mTelecomManager != null && mTelecomManager.isInCall()) {
++            traceScheduleApplyDeviceEffect("minimizeRadioUsage", enable);
++            registerPhoneStateReceiver();
++        } else {
++            unregisterPhoneStateReceiver();
++            updateAirplaneModeImmediately(enable);
++        }
++    }
++
++    private void updateAirplaneModeImmediately(boolean enable) {
++        Binder.withCleanCallingIdentity(() -> {
++            try {
++                ContentResolver cr = mContext.getContentResolver();
++                boolean airplaneModeOn =
++                        Settings.Global.getInt(cr, Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
++                if (enable) {
++                    if (airplaneModeOn) {
++                        return;
++                    }
++                    traceApplyDeviceEffect("minimizeRadioUsage", true);
++                    Settings.Global.putInt(cr, AIRPLANE_MODE_OWNED_SETTING, 1);
++                    mConnectivityManager.setAirplaneMode(true);
++                } else {
++                    if (Settings.Global.getInt(cr, AIRPLANE_MODE_OWNED_SETTING, 0) == 0) {
++                        return;
++                    }
++                    Settings.Global.putInt(cr, AIRPLANE_MODE_OWNED_SETTING, 0);
++                    // The user may have turned it off already while the mode was active.
++                    if (airplaneModeOn) {
++                        traceApplyDeviceEffect("minimizeRadioUsage", false);
++                        mConnectivityManager.setAirplaneMode(false);
++                    }
++                }
++            } catch (Exception e) {
++                Slog.e(TAG, "Could not change airplane mode", e);
++            }
++        });
++    }
++
++    private final BroadcastReceiver mAirplaneModeWhenCallEnds = new BroadcastReceiver() {
++        @Override
++        public void onReceive(Context context, Intent intent) {
++            if (TelephonyManager.EXTRA_STATE_IDLE.equals(
++                    intent.getStringExtra(TelephonyManager.EXTRA_STATE))
++                    && (mTelecomManager == null || !mTelecomManager.isInCall())) {
++                unregisterPhoneStateReceiver();
++                updateAirplaneModeImmediately(mPendingAirplaneMode);
++            }
++        }
++    };
++
++    /**
++     * Turns location off for the current user when the effect starts and back on when it ends,
++     * but only if it was on before.
++     */
++    protected void maybeDisableLocation(boolean shouldDisableLocation) {
++        if (mLocationManager == null) {
++            return;
++        }
++        ContentResolver cr = mContext.getContentResolver();
++        int ownedUser = Settings.Global.getInt(cr, LOCATION_OWNED_SETTING, 0) - 1;
++        boolean wasApplied = mLastAppliedEffects.getExtraEffects().contains(
++                ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION);
++        try {
++            if (shouldDisableLocation) {
++                // Re-applying the same effects (e.g. another mode changed) or a reboot while the
++                // mode is active must not undo a manual change.
++                if (wasApplied || ownedUser >= 0) {
++                    return;
++                }
++                UserHandle user = UserHandle.of(ActivityManager.getCurrentUser());
++                if (!mLocationManager.isLocationEnabledForUser(user)) {
++                    return;
++                }
++                traceApplyDeviceEffect("disableLocation", true);
++                Settings.Global.putInt(cr, LOCATION_OWNED_SETTING, user.getIdentifier() + 1);
++                mLocationManager.setLocationEnabledForUser(false, user);
++            } else if (ownedUser >= 0) {
++                Settings.Global.putInt(cr, LOCATION_OWNED_SETTING, 0);
++                UserHandle user = UserHandle.of(ownedUser);
++                if (!mLocationManager.isLocationEnabledForUser(user)) {
++                    traceApplyDeviceEffect("disableLocation", false);
++                    mLocationManager.setLocationEnabledForUser(true, user);
++                }
++            }
++        } catch (Exception e) {
++            Slog.e(TAG, "Could not change location", e);
++        }
++    }
++
+     protected void maybeSuppressAmbientDisplay(boolean shouldSuppressAmbientDisplay) {
+         if (mLastAppliedEffects.shouldSuppressAmbientDisplay() != shouldSuppressAmbientDisplay) {
+             try {
+@@ -214,4 +354,23 @@ public class DefaultDeviceEffectsApplier implements DeviceEffectsApplier {
+             }
+         }
+     }
++
++    private void registerPhoneStateReceiver() {
++        synchronized (mRegisterReceiverLock) {
++            if (!mIsPhoneStateReceiverRegistered) {
++                mContext.registerReceiver(mAirplaneModeWhenCallEnds, PHONE_STATE_INTENT_FILTER,
++                        Context.RECEIVER_EXPORTED);
++                mIsPhoneStateReceiverRegistered = true;
++            }
++        }
++    }
++
++    private void unregisterPhoneStateReceiver() {
++        synchronized (mRegisterReceiverLock) {
++            if (mIsPhoneStateReceiverRegistered) {
++                mIsPhoneStateReceiverRegistered = false;
++                mContext.unregisterReceiver(mAirplaneModeWhenCallEnds);
++            }
++        }
++    }
+ }
+diff --git a/services/tests/uiservicestests/src/com/android/server/notification/DefaultDeviceEffectsApplierTest.java b/services/tests/uiservicestests/src/com/android/server/notification/DefaultDeviceEffectsApplierTest.java
+index a5702e25c938..f558977a9538 100644
+--- a/services/tests/uiservicestests/src/com/android/server/notification/DefaultDeviceEffectsApplierTest.java
++++ b/services/tests/uiservicestests/src/com/android/server/notification/DefaultDeviceEffectsApplierTest.java
+@@ -39,6 +39,7 @@ import static org.mockito.Mockito.verify;
+ import static org.mockito.Mockito.verifyNoMoreInteractions;
+ import static org.mockito.Mockito.when;
+ 
++import android.app.ActivityManager;
+ import android.app.KeyguardManager;
+ import android.app.UiModeManager;
+ import android.app.WallpaperManager;
+@@ -46,9 +47,15 @@ import android.content.BroadcastReceiver;
+ import android.content.Intent;
+ import android.content.IntentFilter;
+ import android.hardware.display.ColorDisplayManager;
++import android.location.LocationManager;
++import android.net.ConnectivityManager;
+ import android.os.PowerManager;
++import android.os.UserHandle;
+ import android.platform.test.flag.junit.SetFlagsRule;
++import android.provider.Settings;
+ import android.service.notification.ZenDeviceEffects;
++import android.telecom.TelecomManager;
++import android.telephony.TelephonyManager;
+ import android.testing.TestableContext;
+ 
+ import androidx.test.InstrumentationRegistry;
+@@ -81,6 +88,9 @@ public class DefaultDeviceEffectsApplierTest {
+     @Mock KeyguardManager mKeyguardManager;
+     @Mock UiModeManager mUiModeManager;
+     @Mock WallpaperManager mWallpaperManager;
++    @Mock ConnectivityManager mConnectivityManager;
++    @Mock LocationManager mLocationManager;
++    @Mock TelecomManager mTelecomManager;
+ 
+     private static final ZenDeviceEffects NO_EFFECTS = new ZenDeviceEffects.Builder().build();
+ 
+@@ -93,7 +103,12 @@ public class DefaultDeviceEffectsApplierTest {
+         mContext.addMockSystemService(KeyguardManager.class, mKeyguardManager);
+         mContext.addMockSystemService(UiModeManager.class, mUiModeManager);
+         mContext.addMockSystemService(WallpaperManager.class, mWallpaperManager);
++        mContext.addMockSystemService(ConnectivityManager.class, mConnectivityManager);
++        mContext.addMockSystemService(LocationManager.class, mLocationManager);
++        mContext.addMockSystemService(TelecomManager.class, mTelecomManager);
+         when(mWallpaperManager.isWallpaperSupported()).thenReturn(true);
++        Settings.Global.putInt(mContext.getContentResolver(), "zen_effect_airplane_mode_owned", 0);
++        Settings.Global.putInt(mContext.getContentResolver(), "zen_effect_location_owned_user", 0);
+ 
+         mApplier = new DefaultDeviceEffectsApplier(mContext);
+         verify(mWallpaperManager).isWallpaperSupported();
+@@ -388,4 +403,112 @@ public class DefaultDeviceEffectsApplierTest {
+         mApplier.apply(NO_EFFECTS, ORIGIN_APP);
+         verify(mWallpaperManager, never()).setWallpaperDimAmount(anyFloat());
+     }
++
++    private static final ZenDeviceEffects MINIMIZE_RADIO_USAGE =
++            new ZenDeviceEffects.Builder().setShouldMinimizeRadioUsage(true).build();
++    private static final ZenDeviceEffects DISABLE_LOCATION = new ZenDeviceEffects.Builder()
++            .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION)
++            .build();
++
++    private void setAirplaneMode(boolean on) {
++        Settings.Global.putInt(mContext.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON,
++                on ? 1 : 0);
++    }
++
++    @Test
++    public void apply_minimizeRadioUsage_togglesAirplaneMode() {
++        setAirplaneMode(false);
++
++        mApplier.apply(MINIMIZE_RADIO_USAGE, ORIGIN_USER_IN_SYSTEMUI);
++        verify(mConnectivityManager).setAirplaneMode(eq(true));
++
++        setAirplaneMode(true);
++        mApplier.apply(NO_EFFECTS, ORIGIN_USER_IN_SYSTEMUI);
++        verify(mConnectivityManager).setAirplaneMode(eq(false));
++    }
++
++    @Test
++    public void apply_minimizeRadioUsage_airplaneModeAlreadyOn_leavesItOn() {
++        setAirplaneMode(true);
++
++        mApplier.apply(MINIMIZE_RADIO_USAGE, ORIGIN_USER_IN_SYSTEMUI);
++        mApplier.apply(NO_EFFECTS, ORIGIN_USER_IN_SYSTEMUI);
++
++        verify(mConnectivityManager, never()).setAirplaneMode(anyBoolean());
++    }
++
++    @Test
++    public void apply_minimizeRadioUsage_turnedOffByUser_notTurnedOnAgain() {
++        setAirplaneMode(false);
++        mApplier.apply(MINIMIZE_RADIO_USAGE, ORIGIN_USER_IN_SYSTEMUI);
++        verify(mConnectivityManager).setAirplaneMode(eq(true));
++
++        // The user turns airplane mode off, then an unrelated change re-applies the effects.
++        setAirplaneMode(false);
++        mApplier.apply(MINIMIZE_RADIO_USAGE, ORIGIN_APP);
++        mApplier.apply(NO_EFFECTS, ORIGIN_USER_IN_SYSTEMUI);
++
++        verifyNoMoreInteractions(mConnectivityManager);
++    }
++
++    @Test
++    public void apply_minimizeRadioUsage_onBootAfterModeEnded_turnsAirplaneModeOff() {
++        setAirplaneMode(false);
++        mApplier.apply(MINIMIZE_RADIO_USAGE, ORIGIN_USER_IN_SYSTEMUI);
++        setAirplaneMode(true);
++
++        // Reboot: the mode ended while the device was off.
++        mApplier = new DefaultDeviceEffectsApplier(mContext);
++        mApplier.apply(NO_EFFECTS, ORIGIN_INIT);
++
++        verify(mConnectivityManager).setAirplaneMode(eq(false));
++    }
++
++    @Test
++    public void apply_minimizeRadioUsage_inCall_waitsForCallToEnd() {
++        setAirplaneMode(false);
++        when(mTelecomManager.isInCall()).thenReturn(true);
++        ArgumentCaptor<BroadcastReceiver> receiverCaptor =
++                ArgumentCaptor.forClass(BroadcastReceiver.class);
++
++        mApplier.apply(MINIMIZE_RADIO_USAGE, ORIGIN_APP);
++
++        verify(mConnectivityManager, never()).setAirplaneMode(anyBoolean());
++        assertThat(getZenLog()).contains("schedule_device_effect: minimizeRadioUsage -> true");
++        verify(mContext).registerReceiver(receiverCaptor.capture(),
++                argThat(filter -> filter.hasAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED)),
++                anyInt());
++
++        when(mTelecomManager.isInCall()).thenReturn(false);
++        receiverCaptor.getValue().onReceive(mContext,
++                new Intent(TelephonyManager.ACTION_PHONE_STATE_CHANGED)
++                        .putExtra(TelephonyManager.EXTRA_STATE, TelephonyManager.EXTRA_STATE_IDLE));
++
++        verify(mConnectivityManager).setAirplaneMode(eq(true));
++        verify(mContext).unregisterReceiver(eq(receiverCaptor.getValue()));
++    }
++
++    @Test
++    public void apply_disableLocation_togglesLocation() {
++        UserHandle user = UserHandle.of(ActivityManager.getCurrentUser());
++        when(mLocationManager.isLocationEnabledForUser(user)).thenReturn(true);
++
++        mApplier.apply(DISABLE_LOCATION, ORIGIN_USER_IN_SYSTEMUI);
++        verify(mLocationManager).setLocationEnabledForUser(eq(false), eq(user));
++
++        when(mLocationManager.isLocationEnabledForUser(user)).thenReturn(false);
++        mApplier.apply(NO_EFFECTS, ORIGIN_USER_IN_SYSTEMUI);
++        verify(mLocationManager).setLocationEnabledForUser(eq(true), eq(user));
++    }
++
++    @Test
++    public void apply_disableLocation_locationAlreadyOff_leavesItOff() {
++        UserHandle user = UserHandle.of(ActivityManager.getCurrentUser());
++        when(mLocationManager.isLocationEnabledForUser(user)).thenReturn(false);
++
++        mApplier.apply(DISABLE_LOCATION, ORIGIN_USER_IN_SYSTEMUI);
++        mApplier.apply(NO_EFFECTS, ORIGIN_USER_IN_SYSTEMUI);
++
++        verify(mLocationManager, never()).setLocationEnabledForUser(anyBoolean(), any());
++    }
+ }
+-- 
+2.56.0
+

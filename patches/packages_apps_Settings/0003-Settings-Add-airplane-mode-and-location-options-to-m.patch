@@ -1,0 +1,251 @@
+From 73efacf94f2c8a59b9ddc54fb67d304272c0a881 Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Mon, 26 Oct 2026 11:32:49 +0100
+Subject: [PATCH 3/4] Settings: Add airplane mode and location options to modes
+
+Let a mode turn on airplane mode and turn off location while it is
+active, e.g. for a bedtime schedule. The options sit in a new "Device
+options" section of the mode's display settings page and map to the
+minimizeRadioUsage device effect and the disable location extra
+effect, which the framework applies and undoes when the mode ends.
+
+Assisted-by: LLM
+Change-Id: Ib99ebbfb02e00366d79844eed1257e104495e26a
+---
+ res/values/cm_strings.xml                     |  9 ++
+ res/xml/modes_display_settings.xml            | 15 ++++
+ ...ModeDisplayEffectPreferenceController.java | 23 ++++++
+ .../modes/ZenModeDisplayFragment.java         |  4 +
+ .../modes/ZenModeSummaryHelper.java           | 19 +++++
+ ...DisplayEffectPreferenceControllerTest.java | 82 ++++++++++++++++++-
+ 6 files changed, 151 insertions(+), 1 deletion(-)
+
+diff --git a/res/values/cm_strings.xml b/res/values/cm_strings.xml
+index 0a881d0da1a..2279a638cfa 100644
+--- a/res/values/cm_strings.xml
++++ b/res/values/cm_strings.xml
+@@ -219,4 +219,13 @@
+     <string name="custom_timeout_summary_36hours">36 hours</string>
+     <string name="custom_timeout_summary_48hours">48 hours</string>
+     <string name="custom_timeout_summary_72hours">72 hours</string>
++
++    <!-- Modes: device options section header and effects [CHAR LIMIT=80] -->
++    <string name="mode_device_options_section">Device options</string>
++    <string name="mode_airplane_mode_title">Turn on airplane mode</string>
++    <string name="mode_airplane_mode_title_secondary_list">turn on airplane mode</string>
++    <string name="mode_airplane_mode_summary">Calls, messages and mobile data are unavailable while the mode is on</string>
++    <string name="mode_disable_location_title">Turn off location</string>
++    <string name="mode_disable_location_title_secondary_list">turn off location</string>
++    <string name="mode_disable_location_summary">Apps and services can\'t use location while the mode is on</string>
+ </resources>
+diff --git a/res/xml/modes_display_settings.xml b/res/xml/modes_display_settings.xml
+index 98db7b828e0..f8724c5ae2b 100644
+--- a/res/xml/modes_display_settings.xml
++++ b/res/xml/modes_display_settings.xml
+@@ -47,4 +47,19 @@
+                 android:summary="@string/mode_dark_theme_summary"
+                 android:icon="@drawable/ic_zen_mode_display_dark_theme" />
+     </PreferenceCategory>
++
++    <PreferenceCategory
++        android:key="device_options"
++        android:title="@string/mode_device_options_section">
++        <SwitchPreferenceCompat
++                android:key="effect_airplane_mode"
++                android:title="@string/mode_airplane_mode_title"
++                android:summary="@string/mode_airplane_mode_summary"
++                android:icon="@drawable/ic_airplanemode_active" />
++        <SwitchPreferenceCompat
++                android:key="effect_disable_location"
++                android:title="@string/mode_disable_location_title"
++                android:summary="@string/mode_disable_location_summary"
++                android:icon="@drawable/ic_location_blocked" />
++    </PreferenceCategory>
+ </PreferenceScreen>
+diff --git a/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceController.java b/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceController.java
+index afd9b76b88a..aa5da1a8db7 100644
+--- a/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceController.java
++++ b/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceController.java
+@@ -26,6 +26,9 @@ import androidx.preference.TwoStatePreference;
+ import com.android.settingslib.notification.modes.ZenMode;
+ import com.android.settingslib.notification.modes.ZenModesBackend;
+ 
++import java.util.HashSet;
++import java.util.Set;
++
+ class ZenModeDisplayEffectPreferenceController extends AbstractZenModePreferenceController
+         implements Preference.OnPreferenceChangeListener {
+ 
+@@ -51,6 +54,13 @@ class ZenModeDisplayEffectPreferenceController extends AbstractZenModePreference
+             case "effect_dark_theme":
+                 pref.setChecked(effects.shouldUseNightMode());
+                 break;
++            case "effect_airplane_mode":
++                pref.setChecked(effects.shouldMinimizeRadioUsage());
++                break;
++            case "effect_disable_location":
++                pref.setChecked(effects.getExtraEffects().contains(
++                        ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION));
++                break;
+         }
+     }
+ 
+@@ -73,6 +83,19 @@ class ZenModeDisplayEffectPreferenceController extends AbstractZenModePreference
+                 case "effect_dark_theme":
+                     updatedEffects.setShouldUseNightMode(allow);
+                     break;
++                case "effect_airplane_mode":
++                    updatedEffects.setShouldMinimizeRadioUsage(allow);
++                    break;
++                case "effect_disable_location":
++                    Set<String> extraEffects =
++                            new HashSet<>(zenMode.getDeviceEffects().getExtraEffects());
++                    if (allow) {
++                        extraEffects.add(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION);
++                    } else {
++                        extraEffects.remove(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION);
++                    }
++                    updatedEffects.setExtraEffects(extraEffects);
++                    break;
+             }
+             zenMode.setDeviceEffects(updatedEffects.build());
+             return zenMode;
+diff --git a/src/com/android/settings/notification/modes/ZenModeDisplayFragment.java b/src/com/android/settings/notification/modes/ZenModeDisplayFragment.java
+index 74ed38f96bd..51159c654b8 100644
+--- a/src/com/android/settings/notification/modes/ZenModeDisplayFragment.java
++++ b/src/com/android/settings/notification/modes/ZenModeDisplayFragment.java
+@@ -44,6 +44,10 @@ public class ZenModeDisplayFragment extends ZenModeFragmentBase {
+                 context, "effect_wallpaper", mBackend));
+         prefControllers.add(new ZenModeDisplayEffectPreferenceController(
+                 context, "effect_dark_theme", mBackend));
++        prefControllers.add(new ZenModeDisplayEffectPreferenceController(
++                context, "effect_airplane_mode", mBackend));
++        prefControllers.add(new ZenModeDisplayEffectPreferenceController(
++                context, "effect_disable_location", mBackend));
+         return prefControllers;
+     }
+ 
+diff --git a/src/com/android/settings/notification/modes/ZenModeSummaryHelper.java b/src/com/android/settings/notification/modes/ZenModeSummaryHelper.java
+index dd2ac91a218..8444c6d970c 100644
+--- a/src/com/android/settings/notification/modes/ZenModeSummaryHelper.java
++++ b/src/com/android/settings/notification/modes/ZenModeSummaryHelper.java
+@@ -258,6 +258,25 @@ public class ZenModeSummaryHelper {
+             }
+             isFirst = false;
+         }
++        if (currEffects.shouldMinimizeRadioUsage()) {
++            if (isFirst) {
++                enabledEffects.add(mContext.getString(R.string.mode_airplane_mode_title));
++            } else {
++                enabledEffects.add(mContext.getString(
++                        R.string.mode_airplane_mode_title_secondary_list));
++            }
++            isFirst = false;
++        }
++        if (currEffects.getExtraEffects().contains(
++                ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION)) {
++            if (isFirst) {
++                enabledEffects.add(mContext.getString(R.string.mode_disable_location_title));
++            } else {
++                enabledEffects.add(mContext.getString(
++                        R.string.mode_disable_location_title_secondary_list));
++            }
++            isFirst = false;
++        }
+ 
+         int numCategories = enabledEffects.size();
+         MessageFormat msgFormat = new MessageFormat(
+diff --git a/tests/robotests/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceControllerTest.java b/tests/robotests/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceControllerTest.java
+index 8db64dd7c26..d8bf6fc9365 100644
+--- a/tests/robotests/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceControllerTest.java
++++ b/tests/robotests/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceControllerTest.java
+@@ -215,4 +215,84 @@ public final class ZenModeDisplayEffectPreferenceControllerTest {
+         verify(mBackend).updateMode(captor.capture());
+         assertThat(captor.getValue().getDeviceEffects().shouldUseNightMode()).isFalse();
+     }
+-}
+\ No newline at end of file
++
++    @Test
++    public void testUpdateState_airplaneMode() {
++        TwoStatePreference preference = mock(TwoStatePreference.class);
++        ZenMode zenMode = new TestModeBuilder()
++                .setDeviceEffects(new ZenDeviceEffects.Builder()
++                        .setShouldMinimizeRadioUsage(true)
++                        .build())
++                .build();
++
++        ZenModeDisplayEffectPreferenceController controller =
++                new ZenModeDisplayEffectPreferenceController(
++                        mContext, "effect_airplane_mode", mBackend);
++
++        controller.updateZenMode(preference, zenMode);
++
++        verify(preference).setChecked(true);
++    }
++
++    @Test
++    public void testOnPreferenceChange_airplaneMode() {
++        TwoStatePreference preference = mock(TwoStatePreference.class);
++        ZenMode zenMode = new TestModeBuilder()
++                .setDeviceEffects(new ZenDeviceEffects.Builder().build())
++                .build();
++
++        ZenModeDisplayEffectPreferenceController controller =
++                new ZenModeDisplayEffectPreferenceController(
++                        mContext, "effect_airplane_mode", mBackend);
++
++        controller.updateZenMode(preference, zenMode);
++
++        controller.onPreferenceChange(preference, true);
++
++        ArgumentCaptor<ZenMode> captor = ArgumentCaptor.forClass(ZenMode.class);
++        verify(mBackend).updateMode(captor.capture());
++        assertThat(captor.getValue().getDeviceEffects().shouldMinimizeRadioUsage()).isTrue();
++    }
++
++    @Test
++    public void testUpdateState_disableLocation() {
++        TwoStatePreference preference = mock(TwoStatePreference.class);
++        ZenMode zenMode = new TestModeBuilder()
++                .setDeviceEffects(new ZenDeviceEffects.Builder()
++                        .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION)
++                        .build())
++                .build();
++
++        ZenModeDisplayEffectPreferenceController controller =
++                new ZenModeDisplayEffectPreferenceController(
++                        mContext, "effect_disable_location", mBackend);
++
++        controller.updateZenMode(preference, zenMode);
++
++        verify(preference).setChecked(true);
++    }
++
++    @Test
++    public void testOnPreferenceChange_disableLocation_keepsOtherExtraEffects() {
++        TwoStatePreference preference = mock(TwoStatePreference.class);
++        ZenMode zenMode = new TestModeBuilder()
++                .setDeviceEffects(new ZenDeviceEffects.Builder()
++                        .addExtraEffect("other")
++                        .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION)
++                        .build())
++                .build();
++
++        ZenModeDisplayEffectPreferenceController controller =
++                new ZenModeDisplayEffectPreferenceController(
++                        mContext, "effect_disable_location", mBackend);
++
++        controller.updateZenMode(preference, zenMode);
++
++        controller.onPreferenceChange(preference, false);
++
++        ArgumentCaptor<ZenMode> captor = ArgumentCaptor.forClass(ZenMode.class);
++        verify(mBackend).updateMode(captor.capture());
++        assertThat(captor.getValue().getDeviceEffects().getExtraEffects())
++                .containsExactly("other");
++    }
++}
+-- 
+2.56.0
+

@@ -1,0 +1,32 @@
+From f76999de4e2f607a776c638b9a712c419e32ad94 Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Mon, 26 Oct 2026 11:32:49 +0100
+Subject: [PATCH 4/4] Settings: Polish strings for the mode airplane mode and
+ location options
+
+Recipe-only; upstream translations come from Crowdin.
+
+Assisted-by: LLM
+---
+ res/values-pl/cm_strings.xml | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/res/values-pl/cm_strings.xml b/res/values-pl/cm_strings.xml
+index 734287e44b5..5f4c3e6849b 100644
+--- a/res/values-pl/cm_strings.xml
++++ b/res/values-pl/cm_strings.xml
+@@ -124,4 +124,11 @@
+     <string name="custom_timeout_summary_2hours">2 godz.</string>
+     <string name="custom_timeout_summary_4hours">4 godz.</string>
+     <string name="custom_timeout_summary_8hours">8 godz.</string>
++    <string name="mode_device_options_section">Opcje urządzenia</string>
++    <string name="mode_airplane_mode_title">Włącz tryb samolotowy</string>
++    <string name="mode_airplane_mode_title_secondary_list">włącz tryb samolotowy</string>
++    <string name="mode_airplane_mode_summary">Połączenia, SMS-y i dane mobilne są niedostępne, gdy tryb jest aktywny</string>
++    <string name="mode_disable_location_title">Wyłącz lokalizację</string>
++    <string name="mode_disable_location_title_secondary_list">wyłącz lokalizację</string>
++    <string name="mode_disable_location_summary">Aplikacje i usługi nie mogą korzystać z lokalizacji, gdy tryb jest aktywny</string>
+ </resources>
+-- 
+2.56.0
+
