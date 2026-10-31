@@ -1,0 +1,136 @@
+From 6433fa7bea12a1eff9776fd2cca77c11ce916c9b Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Sat, 31 Oct 2026 23:19:52 +0100
+Subject: [PATCH] ZenModeHelper: Night effects in the default bedtime rule
+
+The default bedtime ("Sleeping") rule now comes with airplane mode,
+location off and, on devices with double tap to wake, tap to wake off.
+The rule itself stays disabled, as it needs a schedule before use, so
+nothing changes until the user turns it on.
+
+Devices updated from a build without these defaults get them once when
+the config is read, but only for a disabled rule whose device effects
+were never set or changed by the user: an enabled bedtime setup or a
+deliberate choice of no effects is left alone.
+
+Recipe-only: a product default, not meant for upstream.
+
+Assisted-by: LLM
+---
+ .../server/notification/ZenModeHelper.java    | 23 ++++++++
+ .../notification/ZenModeHelperTest.java       | 54 +++++++++++++++++++
+ 2 files changed, 77 insertions(+)
+
+diff --git a/services/core/java/com/android/server/notification/ZenModeHelper.java b/services/core/java/com/android/server/notification/ZenModeHelper.java
+index a352e634ef03..c39edd6c1a43 100644
+--- a/services/core/java/com/android/server/notification/ZenModeHelper.java
++++ b/services/core/java/com/android/server/notification/ZenModeHelper.java
+@@ -1775,6 +1775,8 @@ public class ZenModeHelper {
+             }
+ 
+             SystemZenRules.maybeUpgradeRules(mContext, config);
++            // Devices updated from a build without default bedtime effects.
++            updateDefaultBedtimeEffects(mContext, config);
+ 
+             if (forRestore) {
+                 // Note: forBackup doesn't write deletedRules, but just in case.
+@@ -2304,10 +2306,31 @@ public class ZenModeHelper {
+      */
+     private static void updateDefaultConfig(Context context, ZenModeConfig defaultConfig) {
+         updateDefaultAutomaticRulePolicies(defaultConfig);
++        updateDefaultBedtimeEffects(context, defaultConfig);
+         SystemZenRules.maybeUpgradeRules(context, defaultConfig);
+         updateRuleStringsForCurrentLocale(context, defaultConfig);
+     }
+ 
++    /**
++     * Gives the default bedtime rule the device effects a night setup wants: airplane mode,
++     * location off and, where supported, tap to wake off. The rule itself stays disabled, it
++     * needs a schedule before use. Only a disabled rule whose effects were never set or changed
++     * by the user is touched, so an existing setup, including a choice of no effects, is kept.
++     */
++    private static void updateDefaultBedtimeEffects(Context context, ZenModeConfig config) {
++        ZenRule rule = config.automaticRules.get(ZenModeConfig.EVERY_NIGHT_DEFAULT_RULE_ID);
++        if (rule == null || rule.enabled || rule.zenDeviceEffectsUserModifiedFields != 0
++                || (rule.zenDeviceEffects != null && rule.zenDeviceEffects.hasEffects())) {
++            return;
++        }
++        rule.zenDeviceEffects = new ZenDeviceEffects.Builder()
++                .setShouldMinimizeRadioUsage(true)
++                .setShouldDisableTapToWake(
++                        context.getResources().getBoolean(R.bool.config_supportDoubleTapWake))
++                .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION)
++                .build();
++    }
++
+     private static void updateRuleStringsForCurrentLocale(Context context,
+             ZenModeConfig defaultConfig) {
+         for (ZenRule rule : defaultConfig.automaticRules.values()) {
+diff --git a/services/tests/uiservicestests/src/com/android/server/notification/ZenModeHelperTest.java b/services/tests/uiservicestests/src/com/android/server/notification/ZenModeHelperTest.java
+index c533ede9705e..5e72e5d52896 100644
+--- a/services/tests/uiservicestests/src/com/android/server/notification/ZenModeHelperTest.java
++++ b/services/tests/uiservicestests/src/com/android/server/notification/ZenModeHelperTest.java
+@@ -8043,6 +8043,60 @@ public class ZenModeHelperTest extends UiServiceTestCase {
+         assertThat(mZenModeHelper.hasZenModeConfig(UserHandle.of(14))).isFalse();
+     }
+ 
++    private ZenRule readBackBedtimeRule(ZenRule bedtimeRule) throws Exception {
++        bedtimeRule.id = ZenModeConfig.EVERY_NIGHT_DEFAULT_RULE_ID;
++        bedtimeRule.pkg = "android";
++        bedtimeRule.name = "Sleeping";
++        bedtimeRule.zenMode = ZEN_MODE_IMPORTANT_INTERRUPTIONS;
++        bedtimeRule.conditionId = ZenModeConfig.toScheduleConditionId(new ScheduleInfo());
++        bedtimeRule.component = ComponentName.unflattenFromString(
++                "android/com.android.server.notification.ScheduleConditionProvider");
++        mZenModeHelper.mConfig.automaticRules.put(bedtimeRule.id, bedtimeRule);
++
++        ByteArrayOutputStream baos = writeXmlAndPurge(null);
++        mZenModeHelper.readXml(getParserForByteStream(baos), false, UserHandle.USER_ALL, null);
++        return mZenModeHelper.mConfig.automaticRules.get(ZenModeConfig.EVERY_NIGHT_DEFAULT_RULE_ID);
++    }
++
++    @Test
++    public void testReadXml_disabledBedtimeRuleWithoutEffects_getsNightEffects() throws Exception {
++        ZenRule bedtimeRule = new ZenRule();
++        bedtimeRule.enabled = false;
++
++        ZenRule readRule = readBackBedtimeRule(bedtimeRule);
++
++        assertThat(readRule.enabled).isFalse();
++        assertThat(readRule.zenDeviceEffects.shouldMinimizeRadioUsage()).isTrue();
++        assertThat(readRule.zenDeviceEffects.getExtraEffects())
++                .containsExactly(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION);
++        assertThat(readRule.zenDeviceEffectsUserModifiedFields).isEqualTo(0);
++    }
++
++    @Test
++    public void testReadXml_enabledBedtimeRule_keepsItsEffects() throws Exception {
++        ZenRule bedtimeRule = new ZenRule();
++        bedtimeRule.enabled = true;
++
++        ZenRule readRule = readBackBedtimeRule(bedtimeRule);
++
++        assertThat(readRule.zenDeviceEffects == null
++                || !readRule.zenDeviceEffects.hasEffects()).isTrue();
++    }
++
++    @Test
++    public void testReadXml_bedtimeRuleEffectsTurnedOffByUser_staysWithoutEffects()
++            throws Exception {
++        ZenRule bedtimeRule = new ZenRule();
++        bedtimeRule.enabled = false;
++        bedtimeRule.zenDeviceEffects = new ZenDeviceEffects.Builder().build();
++        bedtimeRule.zenDeviceEffectsUserModifiedFields =
++                ZenDeviceEffects.FIELD_MINIMIZE_RADIO_USAGE | ZenDeviceEffects.FIELD_EXTRA_EFFECTS;
++
++        ZenRule readRule = readBackBedtimeRule(bedtimeRule);
++
++        assertThat(readRule.zenDeviceEffects.hasEffects()).isFalse();
++    }
++
+     private void verifyExemptedPackages(ArgumentCaptor<String[]> exemptPkgCaptor,
+             String[] expectedExemptedPkgs) {
+         for (String[] capturedArg: exemptPkgCaptor.getAllValues()) {
+-- 
+2.56.0
+
