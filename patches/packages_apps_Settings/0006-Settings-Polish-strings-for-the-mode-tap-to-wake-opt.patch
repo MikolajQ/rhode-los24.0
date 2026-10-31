@@ -1,6 +1,6 @@
-From 29040eb1fb9d6185aa3f4eccbde89c6bbb635578 Mon Sep 17 00:00:00 2001
+From 6472fd687472568391b2e59c731c77ee0ca3e4dc Mon Sep 17 00:00:00 2001
 From: MikolajQ <mikolaj.q@wp.pl>
-Date: Sat, 31 Oct 2026 22:54:49 +0100
+Date: Sat, 31 Oct 2026 23:20:27 +0100
 Subject: [PATCH] Settings: Polish strings for the mode tap to wake option
 
 Recipe-only; upstream translations come from Crowdin.

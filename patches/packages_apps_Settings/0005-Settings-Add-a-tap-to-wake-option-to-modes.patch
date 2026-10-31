@@ -1,27 +1,23 @@
-From 82e4aa7bdb212409eeb8898938775b4403bb858e Mon Sep 17 00:00:00 2001
+From 8c08e37142efdf1b12f81a274b2ef5bdadadc570 Mon Sep 17 00:00:00 2001
 From: MikolajQ <mikolaj.q@wp.pl>
-Date: Sat, 31 Oct 2026 22:54:49 +0100
+Date: Sat, 31 Oct 2026 23:20:27 +0100
 Subject: [PATCH] Settings: Add a tap to wake option to modes
 
 Next to the airplane mode and location options, a mode's display
 settings page gets a switch that turns tap to wake (double tap to wake)
-off while the mode is on. It is only shown on devices that support
-double tap to wake and stores the framework's "disable double tap to
-wake" extra effect.
-
-The two extra effect switches now share a helper that adds or removes
-one effect while keeping the others.
+off while the mode is on, stored as the mode's disableTapToWake device
+effect. It is only shown on devices that support double tap to wake.
 
 Assisted-by: LLM
 Change-Id: I5becace6040a05647630b5115b77beede9522cc1
 ---
  res/values/cm_strings.xml                     |  3 +
  res/xml/modes_display_settings.xml            |  5 ++
- ...ModeDisplayEffectPreferenceController.java | 37 ++++++++---
+ ...ModeDisplayEffectPreferenceController.java | 15 +++++
  .../modes/ZenModeDisplayFragment.java         |  2 +
- .../modes/ZenModeSummaryHelper.java           | 11 ++++
+ .../modes/ZenModeSummaryHelper.java           | 10 +++
  ...DisplayEffectPreferenceControllerTest.java | 65 +++++++++++++++++++
- 6 files changed, 115 insertions(+), 8 deletions(-)
+ 6 files changed, 100 insertions(+)
 
 diff --git a/res/values/cm_strings.xml b/res/values/cm_strings.xml
 index 2279a638cfa..2ba615118e3 100644
@@ -36,7 +32,7 @@ index 2279a638cfa..2ba615118e3 100644
 +    <string name="mode_disable_double_tap_to_wake_summary">Double tapping the screen doesn\'t wake the device while the mode is on</string>
  </resources>
 diff --git a/res/xml/modes_display_settings.xml b/res/xml/modes_display_settings.xml
-index f8724c5ae2b..71b7f56280f 100644
+index f8724c5ae2b..5d502519058 100644
 --- a/res/xml/modes_display_settings.xml
 +++ b/res/xml/modes_display_settings.xml
 @@ -61,5 +61,10 @@
@@ -44,14 +40,14 @@ index f8724c5ae2b..71b7f56280f 100644
                  android:summary="@string/mode_disable_location_summary"
                  android:icon="@drawable/ic_location_blocked" />
 +        <SwitchPreferenceCompat
-+                android:key="effect_disable_double_tap_to_wake"
++                android:key="effect_disable_tap_to_wake"
 +                android:title="@string/mode_disable_double_tap_to_wake_title"
 +                android:summary="@string/mode_disable_double_tap_to_wake_summary"
 +                android:icon="@drawable/ic_settings_gestures" />
      </PreferenceCategory>
  </PreferenceScreen>
 diff --git a/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceController.java b/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceController.java
-index aa5da1a8db7..dc6338c688e 100644
+index aa5da1a8db7..1cb2552fb56 100644
 --- a/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceController.java
 +++ b/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceController.java
 @@ -37,6 +37,15 @@ class ZenModeDisplayEffectPreferenceController extends AbstractZenModePreference
@@ -60,7 +56,7 @@ index aa5da1a8db7..dc6338c688e 100644
  
 +    @Override
 +    public boolean isAvailable(@NonNull ZenMode zenMode) {
-+        if ("effect_disable_double_tap_to_wake".equals(getPreferenceKey())) {
++        if ("effect_disable_tap_to_wake".equals(getPreferenceKey())) {
 +            return mContext.getResources().getBoolean(
 +                    com.android.internal.R.bool.config_supportDoubleTapWake);
 +        }
@@ -70,54 +66,28 @@ index aa5da1a8db7..dc6338c688e 100644
      @Override
      public void updateState(Preference preference, @NonNull ZenMode zenMode) {
          TwoStatePreference pref = (TwoStatePreference) preference;
-@@ -61,6 +70,10 @@ class ZenModeDisplayEffectPreferenceController extends AbstractZenModePreference
+@@ -57,6 +66,9 @@ class ZenModeDisplayEffectPreferenceController extends AbstractZenModePreference
+             case "effect_airplane_mode":
+                 pref.setChecked(effects.shouldMinimizeRadioUsage());
+                 break;
++            case "effect_disable_tap_to_wake":
++                pref.setChecked(effects.shouldDisableTapToWake());
++                break;
+             case "effect_disable_location":
                  pref.setChecked(effects.getExtraEffects().contains(
                          ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION));
-                 break;
-+            case "effect_disable_double_tap_to_wake":
-+                pref.setChecked(effects.getExtraEffects().contains(
-+                        ZenDeviceEffects.EXTRA_EFFECT_DISABLE_DOUBLE_TAP_TO_WAKE));
-+                break;
-         }
-     }
- 
-@@ -87,18 +100,26 @@ class ZenModeDisplayEffectPreferenceController extends AbstractZenModePreference
+@@ -86,6 +98,9 @@ class ZenModeDisplayEffectPreferenceController extends AbstractZenModePreference
+                 case "effect_airplane_mode":
                      updatedEffects.setShouldMinimizeRadioUsage(allow);
                      break;
-                 case "effect_disable_location":
--                    Set<String> extraEffects =
--                            new HashSet<>(zenMode.getDeviceEffects().getExtraEffects());
--                    if (allow) {
--                        extraEffects.add(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION);
--                    } else {
--                        extraEffects.remove(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION);
--                    }
--                    updatedEffects.setExtraEffects(extraEffects);
-+                    updatedEffects.setExtraEffects(withExtraEffect(zenMode,
-+                            ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION, allow));
++                case "effect_disable_tap_to_wake":
++                    updatedEffects.setShouldDisableTapToWake(allow);
 +                    break;
-+                case "effect_disable_double_tap_to_wake":
-+                    updatedEffects.setExtraEffects(withExtraEffect(zenMode,
-+                            ZenDeviceEffects.EXTRA_EFFECT_DISABLE_DOUBLE_TAP_TO_WAKE, allow));
-                     break;
-             }
-             zenMode.setDeviceEffects(updatedEffects.build());
-             return zenMode;
-         });
-     }
-+
-+    private static Set<String> withExtraEffect(ZenMode zenMode, String effect, boolean enabled) {
-+        Set<String> extraEffects = new HashSet<>(zenMode.getDeviceEffects().getExtraEffects());
-+        if (enabled) {
-+            extraEffects.add(effect);
-+        } else {
-+            extraEffects.remove(effect);
-+        }
-+        return extraEffects;
-+    }
- }
+                 case "effect_disable_location":
+                     Set<String> extraEffects =
+                             new HashSet<>(zenMode.getDeviceEffects().getExtraEffects());
 diff --git a/src/com/android/settings/notification/modes/ZenModeDisplayFragment.java b/src/com/android/settings/notification/modes/ZenModeDisplayFragment.java
-index 51159c654b8..2b09dcfc2ca 100644
+index 51159c654b8..6ae1f414d61 100644
 --- a/src/com/android/settings/notification/modes/ZenModeDisplayFragment.java
 +++ b/src/com/android/settings/notification/modes/ZenModeDisplayFragment.java
 @@ -48,6 +48,8 @@ public class ZenModeDisplayFragment extends ZenModeFragmentBase {
@@ -125,20 +95,19 @@ index 51159c654b8..2b09dcfc2ca 100644
          prefControllers.add(new ZenModeDisplayEffectPreferenceController(
                  context, "effect_disable_location", mBackend));
 +        prefControllers.add(new ZenModeDisplayEffectPreferenceController(
-+                context, "effect_disable_double_tap_to_wake", mBackend));
++                context, "effect_disable_tap_to_wake", mBackend));
          return prefControllers;
      }
  
 diff --git a/src/com/android/settings/notification/modes/ZenModeSummaryHelper.java b/src/com/android/settings/notification/modes/ZenModeSummaryHelper.java
-index 8444c6d970c..9dd8788d9c0 100644
+index 8444c6d970c..9b51b83ddea 100644
 --- a/src/com/android/settings/notification/modes/ZenModeSummaryHelper.java
 +++ b/src/com/android/settings/notification/modes/ZenModeSummaryHelper.java
-@@ -277,6 +277,17 @@ public class ZenModeSummaryHelper {
+@@ -277,6 +277,16 @@ public class ZenModeSummaryHelper {
              }
              isFirst = false;
          }
-+        if (currEffects.getExtraEffects().contains(
-+                ZenDeviceEffects.EXTRA_EFFECT_DISABLE_DOUBLE_TAP_TO_WAKE)) {
++        if (currEffects.shouldDisableTapToWake()) {
 +            if (isFirst) {
 +                enabledEffects.add(mContext.getString(
 +                        R.string.mode_disable_double_tap_to_wake_title));
@@ -152,7 +121,7 @@ index 8444c6d970c..9dd8788d9c0 100644
          int numCategories = enabledEffects.size();
          MessageFormat msgFormat = new MessageFormat(
 diff --git a/tests/robotests/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceControllerTest.java b/tests/robotests/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceControllerTest.java
-index d8bf6fc9365..cacb8d0bb17 100644
+index d8bf6fc9365..cda8ff10e22 100644
 --- a/tests/robotests/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceControllerTest.java
 +++ b/tests/robotests/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceControllerTest.java
 @@ -19,9 +19,12 @@ package com.android.settings.notification.modes;
@@ -174,17 +143,17 @@ index d8bf6fc9365..cacb8d0bb17 100644
      }
 +
 +    @Test
-+    public void testUpdateState_disableDoubleTapToWake() {
++    public void testUpdateState_disableTapToWake() {
 +        TwoStatePreference preference = mock(TwoStatePreference.class);
 +        ZenMode zenMode = new TestModeBuilder()
 +                .setDeviceEffects(new ZenDeviceEffects.Builder()
-+                        .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_DOUBLE_TAP_TO_WAKE)
++                        .setShouldDisableTapToWake(true)
 +                        .build())
 +                .build();
 +
 +        ZenModeDisplayEffectPreferenceController controller =
 +                new ZenModeDisplayEffectPreferenceController(
-+                        mContext, "effect_disable_double_tap_to_wake", mBackend);
++                        mContext, "effect_disable_tap_to_wake", mBackend);
 +
 +        controller.updateZenMode(preference, zenMode);
 +
@@ -192,7 +161,7 @@ index d8bf6fc9365..cacb8d0bb17 100644
 +    }
 +
 +    @Test
-+    public void testOnPreferenceChange_disableDoubleTapToWake_keepsOtherExtraEffects() {
++    public void testOnPreferenceChange_disableTapToWake() {
 +        TwoStatePreference preference = mock(TwoStatePreference.class);
 +        ZenMode zenMode = new TestModeBuilder()
 +                .setDeviceEffects(new ZenDeviceEffects.Builder()
@@ -202,7 +171,7 @@ index d8bf6fc9365..cacb8d0bb17 100644
 +
 +        ZenModeDisplayEffectPreferenceController controller =
 +                new ZenModeDisplayEffectPreferenceController(
-+                        mContext, "effect_disable_double_tap_to_wake", mBackend);
++                        mContext, "effect_disable_tap_to_wake", mBackend);
 +
 +        controller.updateZenMode(preference, zenMode);
 +
@@ -210,13 +179,13 @@ index d8bf6fc9365..cacb8d0bb17 100644
 +
 +        ArgumentCaptor<ZenMode> captor = ArgumentCaptor.forClass(ZenMode.class);
 +        verify(mBackend).updateMode(captor.capture());
-+        assertThat(captor.getValue().getDeviceEffects().getExtraEffects()).containsExactly(
-+                ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION,
-+                ZenDeviceEffects.EXTRA_EFFECT_DISABLE_DOUBLE_TAP_TO_WAKE);
++        assertThat(captor.getValue().getDeviceEffects().shouldDisableTapToWake()).isTrue();
++        assertThat(captor.getValue().getDeviceEffects().getExtraEffects())
++                .containsExactly(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION);
 +    }
 +
 +    @Test
-+    public void testIsAvailable_disableDoubleTapToWake_followsDeviceSupport() {
++    public void testIsAvailable_disableTapToWake_followsDeviceSupport() {
 +        Context context = spy(mContext);
 +        Resources resources = spy(mContext.getResources());
 +        when(context.getResources()).thenReturn(resources);
@@ -224,7 +193,7 @@ index d8bf6fc9365..cacb8d0bb17 100644
 +
 +        ZenModeDisplayEffectPreferenceController controller =
 +                new ZenModeDisplayEffectPreferenceController(
-+                        context, "effect_disable_double_tap_to_wake", mBackend);
++                        context, "effect_disable_tap_to_wake", mBackend);
 +
 +        when(resources.getBoolean(com.android.internal.R.bool.config_supportDoubleTapWake))
 +                .thenReturn(false);
