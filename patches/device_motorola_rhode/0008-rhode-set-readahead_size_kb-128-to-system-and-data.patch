@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Jaegeuk Kim <jaegeuk@google.com>
 Date: Sun, 17 Mar 2024 11:46:09 +0100
-Subject: [PATCH 08/10] rhode: set readahead_size_kb=128 to system and data
+Subject: [PATCH] rhode: set readahead_size_kb=128 to system and data
 
 This can avoid memory pressure.
 
@@ -13,15 +13,15 @@ Change-Id: I654c4d3bf24fa741c3fb0255431a26d8dcf5f153
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/init/fstab.qcom b/init/fstab.qcom
-index 8d1a751..4b74f18 100644
+index b7c742f..7c11cdf 100644
 --- a/init/fstab.qcom
 +++ b/init/fstab.qcom
 @@ -6,13 +6,13 @@
  # Currently we dont have e2fsck compiled. So fs check would failed.
  
  #<src>                                                 <mnt_point>               <type>  <mnt_flags and options>                            <fs_mgr_flags>
--system                                                  /system                  ext4    ro                                                   wait,slotselect,avb=vbmeta_system,avb_keys=/avb/q-gsi.avbpubkey:/avb/r-gsi.avbpubkey:/avb/s-gsi.avbpubkey,logical,first_stage_mount
-+system                                                  /system                  ext4    ro                                                   wait,slotselect,avb=vbmeta_system,avb_keys=/avb/q-gsi.avbpubkey:/avb/r-gsi.avbpubkey:/avb/s-gsi.avbpubkey,logical,first_stage_mount,readahead_size_kb=128
+-system                                                  /system                  ext4    ro                                                   wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
++system                                                  /system                  ext4    ro                                                   wait,slotselect,avb=vbmeta_system,logical,first_stage_mount,readahead_size_kb=128
  system_ext                                              /system_ext              ext4    ro                                                   wait,slotselect,avb,logical,nofail,first_stage_mount
  product                                                 /product                 ext4    ro                                                   wait,slotselect,avb,logical,nofail,first_stage_mount
  vendor                                                  /vendor                  ext4    ro                                                   wait,slotselect,avb=vbmeta,logical,first_stage_mount
@@ -32,3 +32,6 @@ index 8d1a751..4b74f18 100644
  /devices/platform/soc/4784000.sdhci/mmc_host*           auto                     auto    defaults                                             wait,voldmanaged=sdcard1:auto
  /dev/block/bootdevice/by-name/modem                     /vendor/firmware_mnt     ext4    ro,nosuid,nodev,context=u:object_r:firmware_file:s0  wait,slotselect
  /dev/block/bootdevice/by-name/dsp                       /vendor/dsp              ext4    ro,nosuid,nodev,barrier=1                            wait,slotselect
+-- 
+2.56.0
+
