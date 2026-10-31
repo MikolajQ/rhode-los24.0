@@ -1,0 +1,48 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miko=C5=82aj?= <mikolaj.q@wp.pl>
+Date: Sat, 31 Oct 2026 22:23:29 +0100
+Subject: [PATCH] sm6225-common: Use 30 media volume steps
+
+The default 15 steps make each volume key press change the music volume
+by a large jump. Use 30 steps, as other LineageOS devices do (e.g. the
+OnePlus sm8350-common odm.prop), and double the safe headphone volume
+index with them, so the hearing safety warning still appears at the
+same level as before (10 of 15).
+
+Assisted-by: LLM
+---
+ resource-overlay/common/Frameworks/res/values/config.xml | 5 +++++
+ vendor.prop                                              | 1 +
+ 2 files changed, 6 insertions(+)
+
+diff --git a/resource-overlay/common/Frameworks/res/values/config.xml b/resource-overlay/common/Frameworks/res/values/config.xml
+index 0603ca2..c7dcbf2 100644
+--- a/resource-overlay/common/Frameworks/res/values/config.xml
++++ b/resource-overlay/common/Frameworks/res/values/config.xml
+@@ -117,6 +117,11 @@
+     <!-- Whether the new Auto Selection Network UI should be shown -->
+     <bool name="config_enableNewAutoSelectNetworkUI">true</bool>
+ 
++    <!-- Safe headphone volume index. When music stream volume is below this index
++    the SPL on headphone output is compliant to EN 60950 requirements for portable music
++    players. Doubled along with ro.config.media_vol_steps, which keeps the default level. -->
++    <integer name="config_safe_media_volume_index">20</integer>
++
+     <!-- Safe USB headset gain. This value is used to ensure that the SPL on the USB
+     headset output is compliant to EN 60950 requirements for portable music players. -->
+     <integer name="config_safe_media_volume_usb_mB">-1500</integer>
+diff --git a/vendor.prop b/vendor.prop
+index 2976a23..97e52f7 100644
+--- a/vendor.prop
++++ b/vendor.prop
+@@ -16,6 +16,7 @@ persist.vendor.audio.calfile5=/vendor/etc/acdbdata/Headset_cal.acdb
+ persist.vendor.audio.calfile6=/vendor/etc/acdbdata/Speaker_cal.acdb
+ persist.vendor.audio.spv3.enable=true
+ ro.af.client_heap_size_kbyte=7168
++ro.config.media_vol_steps=30
+ ro.config.vc_call_vol_steps=8
+ ro.vendor.audio.sdk.fluencetype=none
+ vendor.audio.adm.buffering.ms=2
+-- 
+2.56.0
+

@@ -1,0 +1,56 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miko=C5=82aj?= <mikolaj.q@wp.pl>
+Date: Sat, 31 Oct 2026 22:23:20 +0100
+Subject: [PATCH] sm6225-common: Mark the UWB feature unavailable
+
+None of these devices has a UWB radio, yet the lineage-24.0 vendor
+image ships android.hardware.uwb.prebuilt.xml. With the feature
+declared, system_server starts UwbService, which waits forever for
+android.hardware.uwb.IUwb/default: every second the device is awake,
+servicemanager asks init to start the missing lazy service (hundreds
+to thousands of log lines per hour on rhode), and the service's
+AIRPLANE_MODE receiver blocks in nativeDispatcherDestroy, so every
+airplane mode toggle ends in a system_server broadcast ANR.
+
+SystemConfig removes features listed as unavailable after reading all
+permission files, so this works regardless of which module installs
+the generic prebuilt.
+
+Assisted-by: LLM
+---
+ common.mk                               | 3 ++-
+ configs/permissions/unavailable_uwb.xml | 8 ++++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
+ create mode 100644 configs/permissions/unavailable_uwb.xml
+
+diff --git a/common.mk b/common.mk
+index cc35c06..57b1cca 100644
+--- a/common.mk
++++ b/common.mk
+@@ -284,7 +284,8 @@ PRODUCT_COPY_FILES += \
+     frameworks/native/data/etc/android.software.ipsec_tunnels.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.ipsec_tunnels.xml \
+     frameworks/native/data/etc/android.software.midi.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.midi.xml \
+     frameworks/native/data/etc/android.software.verified_boot.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.verified_boot.xml \
+-    frameworks/native/data/etc/android.software.vulkan.deqp.level-2020-03-01.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.vulkan.deqp.level.xml
++    frameworks/native/data/etc/android.software.vulkan.deqp.level-2020-03-01.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.vulkan.deqp.level.xml \
++    $(LOCAL_PATH)/configs/permissions/unavailable_uwb.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/unavailable_uwb.xml
+ 
+ # Power
+ PRODUCT_PACKAGES += \
+diff --git a/configs/permissions/unavailable_uwb.xml b/configs/permissions/unavailable_uwb.xml
+new file mode 100644
+index 0000000..52b5577
+--- /dev/null
++++ b/configs/permissions/unavailable_uwb.xml
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!-- Copyright (C) 2026 The LineageOS Project
++     SPDX-License-Identifier: Apache-2.0
++-->
++<!-- None of the SM6225 Motorola devices has a UWB radio -->
++<permissions>
++    <unavailable-feature name="android.hardware.uwb" />
++</permissions>
+-- 
+2.56.0
+
