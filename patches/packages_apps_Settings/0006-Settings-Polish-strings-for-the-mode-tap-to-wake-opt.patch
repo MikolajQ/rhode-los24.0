@@ -1,0 +1,27 @@
+From 29040eb1fb9d6185aa3f4eccbde89c6bbb635578 Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Sat, 31 Oct 2026 22:54:49 +0100
+Subject: [PATCH] Settings: Polish strings for the mode tap to wake option
+
+Recipe-only; upstream translations come from Crowdin.
+
+Assisted-by: LLM
+---
+ res/values-pl/cm_strings.xml | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/res/values-pl/cm_strings.xml b/res/values-pl/cm_strings.xml
+index 5f4c3e6849b..f351ae62660 100644
+--- a/res/values-pl/cm_strings.xml
++++ b/res/values-pl/cm_strings.xml
+@@ -131,4 +131,7 @@
+     <string name="mode_disable_location_title">Wyłącz lokalizację</string>
+     <string name="mode_disable_location_title_secondary_list">wyłącz lokalizację</string>
+     <string name="mode_disable_location_summary">Aplikacje i usługi nie mogą korzystać z lokalizacji, gdy tryb jest aktywny</string>
++    <string name="mode_disable_double_tap_to_wake_title">Wyłącz wybudzanie kliknięciem</string>
++    <string name="mode_disable_double_tap_to_wake_title_secondary_list">wyłącz wybudzanie kliknięciem</string>
++    <string name="mode_disable_double_tap_to_wake_summary">Dwukrotne kliknięcie ekranu nie wybudza urządzenia, gdy tryb jest aktywny</string>
+ </resources>
+-- 
+2.56.0
+
