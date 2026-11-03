@@ -173,11 +173,13 @@ zmian Tomoms w drzewach nigdy nie działała — także na jego własnym ROM-ie:
 - **KTweak.** Zapisy `kernel.sched_*`, `perf_cpu_time_max_percent`, `printk_devkmsg` i `vfs_cache_pressure` blokuje
   SELinux (vendor_init → `proc_sched`/`proc_perf`/`proc`), więc nigdy nie działały. Łatka 0020 zostawia tylko trzy
   działające (`dirty_writeback_centisecs`, `tcp_fastopen`, `tcp_syncookies`). Bez zmiany zachowania.
-- **HAL wydajności Qualcomma (bloby `vendor/motorola/sm6225-common`).** Jądro nie ma `msm_performance`, więc każdy
-  boost próbuje zapisać nieistniejące `cpu_min_freq`/`cpu_max_freq` i loguje błąd; kompozytor wysyła podpowiedź co
-  klatkę w trakcie dotyku, więc wychodziło ~76 linii błędów na jedno przesunięcie palcem. Łatka
-  `vendor_motorola_sm6225-common/0001` oznacza te zasoby jako nieobsługiwane (`targetresourceconfigs.xml`): 229 → 8
-  błędów na trzy przesunięcia, boost GPU działa dalej. Bez zmiany zachowania.
+- **HAL wydajności Qualcomma (bloby `vendor/motorola/sm6225-common`).** Jądro Tomoms nie miało `msm_performance`, więc
+  każdy boost próbował zapisać nieistniejące `cpu_min_freq`/`cpu_max_freq` i logował błąd (~76 linii na przesunięcie
+  palcem), a boosty CPU z `perfboostsconfig.xml` były martwe. Od 24.10.2026 fork jądra ma `CONFIG_MSM_PERFORMANCE=y`
+  (`d8bffa072` w `rhode-default.config`): przy dotyku minimum 1516/1766 MHz (małe/duże), błędów 0, starty aplikacji
+  Kontakty, WhatsApp, Telefon i Spotify o 4–8% szybsze, reszta ±2% (test 23.10 na jądrze msmperf). Dawna łatka `vendor_motorola_sm6225-common/0001` (`Supported="no"`
+  w `targetresourceconfigs.xml`) usunięta 03.11 — HAL i tak jej nie respektował (wynik „229 → 8” był artefaktem
+  restartu HAL-a, który zrywał klientów), a ze sterownikiem w jądrze nie ma czego wyciszać.
 - **Boost GPU przy przewijaniu — zostaje.** Test A/B bez kabla (lista aplikacji, 4 × 47 s): bez minimum GPU 1025 MHz
   prąd spadł o ~2–6 mA z ~275 mA (1–2%), ale czasy klatek wydłużyły się (p50 8 → 11 ms, p90 11,5 → 15 ms przy
   budżecie 11,1 ms, szarpnięcia 0,8% → 1,0%). Za mało zysku jak na utratę płynności; łatka nie weszła
