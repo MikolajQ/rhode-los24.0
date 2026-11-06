@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MikolajQ <1713112+MikolajQ@users.noreply.github.com>
+Date: Thu, 1 Oct 2026 18:59:35 +0200
+Subject: [PATCH] audio: battery_listener: don't join a thread twice and
+ re-init after a health death
+
+BatteryListenerImpl::init() starts the status thread only when a HIDL
+health@2.0 service is found; upstream now checks mThread for null before
+joining it (399ade9), which covers AIDL-only health HALs (rhode:
+android.hardware.health-service.qti).
+
+serviceDied() still joins the thread without waking it, so it can wait
+forever, keeps the joined thread around, so the destructor joins it
+again and std::thread throws, and keeps the stale mHealth, so init()
+refuses to run again. Wake the thread, join it only if joinable, drop
+the old handles, then re-init.
+---
+ hal/audio_extn/battery_listener.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/hal/audio_extn/battery_listener.cpp b/hal/audio_extn/battery_listener.cpp
+index 14be797..3a9ea75 100644
+--- a/hal/audio_extn/battery_listener.cpp
++++ b/hal/audio_extn/battery_listener.cpp
+@@ -169,7 +169,8 @@ BatteryListenerImpl::BatteryListenerImpl(cb_fn_t cb) :
+ 
+ BatteryListenerImpl::~BatteryListenerImpl()
+ {
+-    if (mThread != NULL) {
++    // serviceDied() may have joined the thread already; joining twice throws.
++    if (mThread != NULL && mThread->joinable()) {
+         mThread->join();
+     }
+ }
+@@ -195,11 +196,14 @@ void BatteryListenerImpl::serviceDied(uint64_t cookie __unused,
+         }
+         ALOGI("health service died, reinit");
+         mDone = true;
++        mCond.notify_one();
+     }
+-    if (mThread != NULL) {
++    if (mThread != NULL && mThread->joinable()) {
+         mThread->join();
+     }
++    mThread.reset();
+     std::lock_guard<std::mutex> _l(mLock);
++    mHealth = nullptr;
+     init();
+ }
+ 
+-- 
+2.56.0
+
