@@ -1,0 +1,31 @@
+From 07c113ebb2a5098d46fd136c0ab403fd224bb033 Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Fri, 6 Nov 2026 21:05:19 +0100
+Subject: [PATCH] Settings: Polish strings for the mode Wi-Fi and Bluetooth
+ options
+
+Recipe-only; upstream translations come from Crowdin.
+
+Assisted-by: LLM
+---
+ res/values-pl/cm_strings.xml | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/res/values-pl/cm_strings.xml b/res/values-pl/cm_strings.xml
+index f351ae62660..74f72e64118 100644
+--- a/res/values-pl/cm_strings.xml
++++ b/res/values-pl/cm_strings.xml
+@@ -134,4 +134,10 @@
+     <string name="mode_disable_double_tap_to_wake_title">Wyłącz wybudzanie kliknięciem</string>
+     <string name="mode_disable_double_tap_to_wake_title_secondary_list">wyłącz wybudzanie kliknięciem</string>
+     <string name="mode_disable_double_tap_to_wake_summary">Dwukrotne kliknięcie ekranu nie wybudza urządzenia, gdy tryb jest aktywny</string>
++    <string name="mode_disable_wifi_title">Wyłącz Wi‑Fi</string>
++    <string name="mode_disable_wifi_title_secondary_list">wyłącz Wi‑Fi</string>
++    <string name="mode_disable_wifi_summary">Wi‑Fi pozostaje wyłączone, gdy tryb jest aktywny, także w trybie samolotowym</string>
++    <string name="mode_disable_bluetooth_title">Wyłącz Bluetooth</string>
++    <string name="mode_disable_bluetooth_title_secondary_list">wyłącz Bluetooth</string>
++    <string name="mode_disable_bluetooth_summary">Bluetooth pozostaje wyłączony, gdy tryb jest aktywny, także w trybie samolotowym</string>
+ </resources>
+-- 
+2.56.0
+

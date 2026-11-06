@@ -1,0 +1,265 @@
+From 8a125dc1f64d109e495ccf6ea767e1c032941291 Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Fri, 6 Nov 2026 21:05:03 +0100
+Subject: [PATCH] Settings: Add Wi-Fi and Bluetooth options to modes
+
+Airplane mode does not reliably turn Wi-Fi and Bluetooth off: Android
+remembers whether the user last kept them on in airplane mode, so a
+bedtime mode with airplane mode may leave Wi-Fi on one night and off
+the next.
+
+Next to the airplane mode option, a mode's display settings page gets
+switches that turn Wi-Fi and Bluetooth off while the mode is on, stored
+as the disable Wi-Fi and disable Bluetooth extra effects. They work with
+or without airplane mode, and are listed in the summary of the page.
+
+Assisted-by: LLM
+Change-Id: Idf194af78783d989b7d725943365b2550b900f93
+---
+ res/values/cm_strings.xml                     |  6 ++
+ res/xml/modes_display_settings.xml            | 10 +++
+ ...ModeDisplayEffectPreferenceController.java | 37 ++++++--
+ .../modes/ZenModeDisplayFragment.java         |  4 +
+ .../modes/ZenModeSummaryHelper.java           | 19 +++++
+ ...DisplayEffectPreferenceControllerTest.java | 84 +++++++++++++++++++
+ 6 files changed, 152 insertions(+), 8 deletions(-)
+
+diff --git a/res/values/cm_strings.xml b/res/values/cm_strings.xml
+index 2ba615118e3..fcc62905e2b 100644
+--- a/res/values/cm_strings.xml
++++ b/res/values/cm_strings.xml
+@@ -231,4 +231,10 @@
+     <string name="mode_disable_double_tap_to_wake_title">Turn off tap to wake</string>
+     <string name="mode_disable_double_tap_to_wake_title_secondary_list">turn off tap to wake</string>
+     <string name="mode_disable_double_tap_to_wake_summary">Double tapping the screen doesn\'t wake the device while the mode is on</string>
++    <string name="mode_disable_wifi_title">Turn off Wi‑Fi</string>
++    <string name="mode_disable_wifi_title_secondary_list">turn off Wi‑Fi</string>
++    <string name="mode_disable_wifi_summary">Wi‑Fi stays off while the mode is on, also in airplane mode</string>
++    <string name="mode_disable_bluetooth_title">Turn off Bluetooth</string>
++    <string name="mode_disable_bluetooth_title_secondary_list">turn off Bluetooth</string>
++    <string name="mode_disable_bluetooth_summary">Bluetooth stays off while the mode is on, also in airplane mode</string>
+ </resources>
+diff --git a/res/xml/modes_display_settings.xml b/res/xml/modes_display_settings.xml
+index 5d502519058..e133ef4f89e 100644
+--- a/res/xml/modes_display_settings.xml
++++ b/res/xml/modes_display_settings.xml
+@@ -56,6 +56,16 @@
+                 android:title="@string/mode_airplane_mode_title"
+                 android:summary="@string/mode_airplane_mode_summary"
+                 android:icon="@drawable/ic_airplanemode_active" />
++        <SwitchPreferenceCompat
++                android:key="effect_disable_wifi"
++                android:title="@string/mode_disable_wifi_title"
++                android:summary="@string/mode_disable_wifi_summary"
++                android:icon="@drawable/ic_wifi_off" />
++        <SwitchPreferenceCompat
++                android:key="effect_disable_bluetooth"
++                android:title="@string/mode_disable_bluetooth_title"
++                android:summary="@string/mode_disable_bluetooth_summary"
++                android:icon="@drawable/ic_bluetooth_disabled" />
+         <SwitchPreferenceCompat
+                 android:key="effect_disable_location"
+                 android:title="@string/mode_disable_location_title"
+diff --git a/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceController.java b/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceController.java
+index 1cb2552fb56..57a8ee7c020 100644
+--- a/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceController.java
++++ b/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceController.java
+@@ -66,6 +66,14 @@ class ZenModeDisplayEffectPreferenceController extends AbstractZenModePreference
+             case "effect_airplane_mode":
+                 pref.setChecked(effects.shouldMinimizeRadioUsage());
+                 break;
++            case "effect_disable_wifi":
++                pref.setChecked(effects.getExtraEffects().contains(
++                        ZenDeviceEffects.EXTRA_EFFECT_DISABLE_WIFI));
++                break;
++            case "effect_disable_bluetooth":
++                pref.setChecked(effects.getExtraEffects().contains(
++                        ZenDeviceEffects.EXTRA_EFFECT_DISABLE_BLUETOOTH));
++                break;
+             case "effect_disable_tap_to_wake":
+                 pref.setChecked(effects.shouldDisableTapToWake());
+                 break;
+@@ -101,19 +109,32 @@ class ZenModeDisplayEffectPreferenceController extends AbstractZenModePreference
+                 case "effect_disable_tap_to_wake":
+                     updatedEffects.setShouldDisableTapToWake(allow);
+                     break;
++                case "effect_disable_wifi":
++                    setExtraEffect(updatedEffects, zenMode,
++                            ZenDeviceEffects.EXTRA_EFFECT_DISABLE_WIFI, allow);
++                    break;
++                case "effect_disable_bluetooth":
++                    setExtraEffect(updatedEffects, zenMode,
++                            ZenDeviceEffects.EXTRA_EFFECT_DISABLE_BLUETOOTH, allow);
++                    break;
+                 case "effect_disable_location":
+-                    Set<String> extraEffects =
+-                            new HashSet<>(zenMode.getDeviceEffects().getExtraEffects());
+-                    if (allow) {
+-                        extraEffects.add(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION);
+-                    } else {
+-                        extraEffects.remove(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION);
+-                    }
+-                    updatedEffects.setExtraEffects(extraEffects);
++                    setExtraEffect(updatedEffects, zenMode,
++                            ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION, allow);
+                     break;
+             }
+             zenMode.setDeviceEffects(updatedEffects.build());
+             return zenMode;
+         });
+     }
++
++    private static void setExtraEffect(ZenDeviceEffects.Builder updatedEffects,
++            ZenMode zenMode, String extraEffect, boolean enabled) {
++        Set<String> extraEffects = new HashSet<>(zenMode.getDeviceEffects().getExtraEffects());
++        if (enabled) {
++            extraEffects.add(extraEffect);
++        } else {
++            extraEffects.remove(extraEffect);
++        }
++        updatedEffects.setExtraEffects(extraEffects);
++    }
+ }
+diff --git a/src/com/android/settings/notification/modes/ZenModeDisplayFragment.java b/src/com/android/settings/notification/modes/ZenModeDisplayFragment.java
+index 6ae1f414d61..aa40c27697b 100644
+--- a/src/com/android/settings/notification/modes/ZenModeDisplayFragment.java
++++ b/src/com/android/settings/notification/modes/ZenModeDisplayFragment.java
+@@ -46,6 +46,10 @@ public class ZenModeDisplayFragment extends ZenModeFragmentBase {
+                 context, "effect_dark_theme", mBackend));
+         prefControllers.add(new ZenModeDisplayEffectPreferenceController(
+                 context, "effect_airplane_mode", mBackend));
++        prefControllers.add(new ZenModeDisplayEffectPreferenceController(
++                context, "effect_disable_wifi", mBackend));
++        prefControllers.add(new ZenModeDisplayEffectPreferenceController(
++                context, "effect_disable_bluetooth", mBackend));
+         prefControllers.add(new ZenModeDisplayEffectPreferenceController(
+                 context, "effect_disable_location", mBackend));
+         prefControllers.add(new ZenModeDisplayEffectPreferenceController(
+diff --git a/src/com/android/settings/notification/modes/ZenModeSummaryHelper.java b/src/com/android/settings/notification/modes/ZenModeSummaryHelper.java
+index 9b51b83ddea..382df597cd0 100644
+--- a/src/com/android/settings/notification/modes/ZenModeSummaryHelper.java
++++ b/src/com/android/settings/notification/modes/ZenModeSummaryHelper.java
+@@ -267,6 +267,25 @@ public class ZenModeSummaryHelper {
+             }
+             isFirst = false;
+         }
++        if (currEffects.getExtraEffects().contains(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_WIFI)) {
++            if (isFirst) {
++                enabledEffects.add(mContext.getString(R.string.mode_disable_wifi_title));
++            } else {
++                enabledEffects.add(mContext.getString(
++                        R.string.mode_disable_wifi_title_secondary_list));
++            }
++            isFirst = false;
++        }
++        if (currEffects.getExtraEffects().contains(
++                ZenDeviceEffects.EXTRA_EFFECT_DISABLE_BLUETOOTH)) {
++            if (isFirst) {
++                enabledEffects.add(mContext.getString(R.string.mode_disable_bluetooth_title));
++            } else {
++                enabledEffects.add(mContext.getString(
++                        R.string.mode_disable_bluetooth_title_secondary_list));
++            }
++            isFirst = false;
++        }
+         if (currEffects.getExtraEffects().contains(
+                 ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION)) {
+             if (isFirst) {
+diff --git a/tests/robotests/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceControllerTest.java b/tests/robotests/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceControllerTest.java
+index cda8ff10e22..a9d86ef5c86 100644
+--- a/tests/robotests/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceControllerTest.java
++++ b/tests/robotests/src/com/android/settings/notification/modes/ZenModeDisplayEffectPreferenceControllerTest.java
+@@ -299,6 +299,90 @@ public final class ZenModeDisplayEffectPreferenceControllerTest {
+                 .containsExactly("other");
+     }
+ 
++    @Test
++    public void testUpdateState_disableWifi() {
++        TwoStatePreference preference = mock(TwoStatePreference.class);
++        ZenMode zenMode = new TestModeBuilder()
++                .setDeviceEffects(new ZenDeviceEffects.Builder()
++                        .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_WIFI)
++                        .build())
++                .build();
++
++        ZenModeDisplayEffectPreferenceController controller =
++                new ZenModeDisplayEffectPreferenceController(
++                        mContext, "effect_disable_wifi", mBackend);
++
++        controller.updateZenMode(preference, zenMode);
++
++        verify(preference).setChecked(true);
++    }
++
++    @Test
++    public void testOnPreferenceChange_disableWifi_keepsOtherExtraEffects() {
++        TwoStatePreference preference = mock(TwoStatePreference.class);
++        ZenMode zenMode = new TestModeBuilder()
++                .setDeviceEffects(new ZenDeviceEffects.Builder()
++                        .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION)
++                        .build())
++                .build();
++
++        ZenModeDisplayEffectPreferenceController controller =
++                new ZenModeDisplayEffectPreferenceController(
++                        mContext, "effect_disable_wifi", mBackend);
++
++        controller.updateZenMode(preference, zenMode);
++
++        controller.onPreferenceChange(preference, true);
++
++        ArgumentCaptor<ZenMode> captor = ArgumentCaptor.forClass(ZenMode.class);
++        verify(mBackend).updateMode(captor.capture());
++        assertThat(captor.getValue().getDeviceEffects().getExtraEffects())
++                .containsExactly(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION,
++                        ZenDeviceEffects.EXTRA_EFFECT_DISABLE_WIFI);
++    }
++
++    @Test
++    public void testUpdateState_disableBluetooth() {
++        TwoStatePreference preference = mock(TwoStatePreference.class);
++        ZenMode zenMode = new TestModeBuilder()
++                .setDeviceEffects(new ZenDeviceEffects.Builder()
++                        .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_BLUETOOTH)
++                        .build())
++                .build();
++
++        ZenModeDisplayEffectPreferenceController controller =
++                new ZenModeDisplayEffectPreferenceController(
++                        mContext, "effect_disable_bluetooth", mBackend);
++
++        controller.updateZenMode(preference, zenMode);
++
++        verify(preference).setChecked(true);
++    }
++
++    @Test
++    public void testOnPreferenceChange_disableBluetooth_off_keepsOtherExtraEffects() {
++        TwoStatePreference preference = mock(TwoStatePreference.class);
++        ZenMode zenMode = new TestModeBuilder()
++                .setDeviceEffects(new ZenDeviceEffects.Builder()
++                        .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_WIFI)
++                        .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_BLUETOOTH)
++                        .build())
++                .build();
++
++        ZenModeDisplayEffectPreferenceController controller =
++                new ZenModeDisplayEffectPreferenceController(
++                        mContext, "effect_disable_bluetooth", mBackend);
++
++        controller.updateZenMode(preference, zenMode);
++
++        controller.onPreferenceChange(preference, false);
++
++        ArgumentCaptor<ZenMode> captor = ArgumentCaptor.forClass(ZenMode.class);
++        verify(mBackend).updateMode(captor.capture());
++        assertThat(captor.getValue().getDeviceEffects().getExtraEffects())
++                .containsExactly(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_WIFI);
++    }
++
+     @Test
+     public void testUpdateState_disableTapToWake() {
+         TwoStatePreference preference = mock(TwoStatePreference.class);
+-- 
+2.56.0
+

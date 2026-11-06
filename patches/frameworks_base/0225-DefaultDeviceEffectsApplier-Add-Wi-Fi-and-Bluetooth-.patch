@@ -1,0 +1,790 @@
+From 2769f991ce6680e201652e10aa8c97ca4619d076 Mon Sep 17 00:00:00 2001
+From: MikolajQ <mikolaj.q@wp.pl>
+Date: Fri, 6 Nov 2026 21:05:44 +0100
+Subject: [PATCH] DefaultDeviceEffectsApplier: Add Wi-Fi and Bluetooth effects
+
+Airplane mode is not a reliable way to turn Wi-Fi and Bluetooth off for
+the night: with the airplane mode enhancement, Android remembers whether
+the user last kept each of them on in airplane mode, so a bedtime mode
+with minimizeRadioUsage may leave Wi-Fi on one night and off the next.
+
+Add "disable Wi-Fi" and "disable Bluetooth" extra effects, with or
+without airplane mode. Like the airplane mode and location effects they
+only undo what the mode did, persist that across reboots, and leave a
+radio the user turned back on alone.
+
+The order matters: a radio toggled while airplane mode is on becomes
+the user's airplane mode preference. So Wi-Fi and Bluetooth are turned
+off before airplane mode turns on, and back on only after airplane mode
+is off, with a short delay (holding a wake lock) as both services see
+the airplane mode change asynchronously. All radio changes, airplane
+mode included, now wait together for an ongoing call to end, as turning
+Wi-Fi or Bluetooth off could drop a Wi-Fi call or move its audio away
+from a headset. Effects applied while booting wait for the boot to
+complete before touching Wi-Fi or Bluetooth.
+
+Assisted-by: LLM
+Change-Id: I0b0c24447d6d4198248a26679e06835e23dc860e
+---
+ .../notification/ZenDeviceEffects.java        |  14 +
+ .../DefaultDeviceEffectsApplier.java          | 308 ++++++++++++++++--
+ .../DefaultDeviceEffectsApplierTest.java      | 259 +++++++++++++++
+ 3 files changed, 551 insertions(+), 30 deletions(-)
+
+diff --git a/core/java/android/service/notification/ZenDeviceEffects.java b/core/java/android/service/notification/ZenDeviceEffects.java
+index 8dcd8f3d48eb..385a05b6c78e 100644
+--- a/core/java/android/service/notification/ZenDeviceEffects.java
++++ b/core/java/android/service/notification/ZenDeviceEffects.java
+@@ -122,6 +122,20 @@ public final class ZenDeviceEffects implements Parcelable {
+      */
+     public static final String EXTRA_EFFECT_DISABLE_LOCATION = "lineageos:disable_location";
+ 
++    /**
++     * Extra effect: turn Wi-Fi off while the rule is active.
++     *
++     * @hide
++     */
++    public static final String EXTRA_EFFECT_DISABLE_WIFI = "lineageos:disable_wifi";
++
++    /**
++     * Extra effect: turn Bluetooth off while the rule is active.
++     *
++     * @hide
++     */
++    public static final String EXTRA_EFFECT_DISABLE_BLUETOOTH = "lineageos:disable_bluetooth";
++
+     private static final int MAX_EFFECTS_LENGTH = 2_000; // characters
+     private static final float BRIGHTNESS_CAP_MIN = 0f;
+     private static final float BRIGHTNESS_CAP_MAX = 1f;
+diff --git a/services/core/java/com/android/server/notification/DefaultDeviceEffectsApplier.java b/services/core/java/com/android/server/notification/DefaultDeviceEffectsApplier.java
+index bf6d7ce0d306..1447af95e2a2 100644
+--- a/services/core/java/com/android/server/notification/DefaultDeviceEffectsApplier.java
++++ b/services/core/java/com/android/server/notification/DefaultDeviceEffectsApplier.java
+@@ -26,6 +26,8 @@ import android.app.ActivityManager;
+ import android.app.KeyguardManager;
+ import android.app.UiModeManager;
+ import android.app.WallpaperManager;
++import android.bluetooth.BluetoothAdapter;
++import android.bluetooth.BluetoothManager;
+ import android.content.BroadcastReceiver;
+ import android.content.ContentResolver;
+ import android.content.Context;
+@@ -34,8 +36,10 @@ import android.content.IntentFilter;
+ import android.hardware.display.ColorDisplayManager;
+ import android.location.LocationManager;
+ import android.net.ConnectivityManager;
++import android.net.wifi.WifiManager;
+ import android.os.Binder;
+ import android.os.PowerManager;
++import android.os.SystemProperties;
+ import android.os.UserHandle;
+ import android.provider.Settings;
+ import android.service.notification.DeviceEffectsApplier;
+@@ -49,6 +53,11 @@ import android.util.Slog;
+ import com.android.internal.annotations.GuardedBy;
+ import com.android.internal.annotations.Keep;
+ 
++import java.util.ArrayList;
++import java.util.List;
++import java.util.function.BooleanSupplier;
++import java.util.function.Predicate;
++
+ /** Default implementation for {@link DeviceEffectsApplier}. */
+ @Keep
+ public class DefaultDeviceEffectsApplier implements DeviceEffectsApplier {
+@@ -63,6 +72,8 @@ public class DefaultDeviceEffectsApplier implements DeviceEffectsApplier {
+             Intent.ACTION_SCREEN_OFF);
+     private static final IntentFilter PHONE_STATE_INTENT_FILTER = new IntentFilter(
+             TelephonyManager.ACTION_PHONE_STATE_CHANGED);
++    private static final IntentFilter LOCKED_BOOT_COMPLETED_INTENT_FILTER = new IntentFilter(
++            Intent.ACTION_LOCKED_BOOT_COMPLETED);
+ 
+     // Airplane mode and location are only turned back on by the mode if the mode turned them
+     // off, so whether it did is persisted to survive a reboot while the mode is active.
+@@ -72,6 +83,20 @@ public class DefaultDeviceEffectsApplier implements DeviceEffectsApplier {
+     // Value: id of the user whose double tap to wake the mode turned off, plus one; 0 if none.
+     private static final String DOUBLE_TAP_TO_WAKE_OWNED_SETTING =
+             "zen_effect_double_tap_to_wake_owned_user";
++    // Wi-Fi and Bluetooth are device-wide: 1 if the mode turned them off, 0 otherwise.
++    private static final String WIFI_OWNED_SETTING = "zen_effect_wifi_owned";
++    private static final String BLUETOOTH_OWNED_SETTING = "zen_effect_bluetooth_owned";
++
++    // What a radio effect (airplane mode, Wi-Fi, Bluetooth) has to do the next time radio changes
++    // are made: nothing, apply the effect, or undo it.
++    private static final int RADIO_NO_CHANGE = 0;
++    private static final int RADIO_APPLY = 1;
++    private static final int RADIO_UNDO = 2;
++    // Wi-Fi and Bluetooth handle airplane mode asynchronously; one turned back on before it has
++    // seen airplane mode end would take it as the user's choice to keep it on in airplane mode.
++    private static final long RADIO_RESTORE_DELAY_MS = 2000;
++    private static final String RADIO_RESTORE_WAKE_LOCK_TAG =
++            "DefaultDeviceEffectsApplier:RadioRestore";
+ 
+     private final Context mContext;
+     private final ColorDisplayManager mColorDisplayManager;
+@@ -88,10 +113,18 @@ public class DefaultDeviceEffectsApplier implements DeviceEffectsApplier {
+     private boolean mIsScreenOffReceiverRegistered;
+     @GuardedBy("mRegisterReceiverLock")
+     private boolean mIsPhoneStateReceiverRegistered;
++    @GuardedBy("mRegisterReceiverLock")
++    private boolean mIsBootReceiverRegistered;
++    @GuardedBy("mRegisterReceiverLock")
++    private final List<Runnable> mRadioChangesAfterBoot = new ArrayList<>();
+ 
+     protected ZenDeviceEffects mLastAppliedEffects = new ZenDeviceEffects.Builder().build();
+     private boolean mPendingNightMode;
+-    private boolean mPendingAirplaneMode;
++    private int mPendingAirplaneMode = RADIO_NO_CHANGE;
++    private int mPendingWifi = RADIO_NO_CHANGE;
++    private int mPendingBluetooth = RADIO_NO_CHANGE;
++    private boolean mShouldDisableWifi;
++    private boolean mShouldDisableBluetooth;
+ 
+     public DefaultDeviceEffectsApplier(Context context) {
+         mContext = context;
+@@ -115,7 +148,7 @@ public class DefaultDeviceEffectsApplier implements DeviceEffectsApplier {
+                     maybeDisplayGrayscale(effects.shouldDisplayGrayscale());
+                     maybeDimWallpaper(effects.shouldDimWallpaper(), origin);
+                     maybeUseNightMode(effects.shouldUseNightMode(), origin);
+-                    maybeMinimizeRadioUsage(effects.shouldMinimizeRadioUsage());
++                    maybeApplyRadioEffects(effects);
+                     maybeDisableLocation(effects.getExtraEffects().contains(
+                             ZenDeviceEffects.EXTRA_EFFECT_DISABLE_LOCATION));
+                     maybeDisableTapToWake(effects.shouldDisableTapToWake());
+@@ -125,78 +158,293 @@ public class DefaultDeviceEffectsApplier implements DeviceEffectsApplier {
+     }
+ 
+     /**
+-     * Turns airplane mode on when the effect starts and back off when it ends, but only if it was
+-     * off before. Toggling airplane mode while the user is in a call would end the call, so the
+-     * change waits for the call to end.
++     * Applies the effects that change radios: airplane mode (minimizeRadioUsage), and the Wi-Fi and
++     * Bluetooth extra effects. Airplane mode is turned on, Wi-Fi and Bluetooth off, when the effect
++     * starts and back when it ends, but each only if the mode made that change. Changing radios
++     * during a call would drop it or move its audio away from a headset, so all of them wait for
++     * the call to end.
+      */
+-    protected void maybeMinimizeRadioUsage(boolean shouldMinimizeRadioUsage) {
+-        boolean wasApplied = mLastAppliedEffects.shouldMinimizeRadioUsage();
+-        boolean owned = Settings.Global.getInt(
+-                mContext.getContentResolver(), AIRPLANE_MODE_OWNED_SETTING, 0) != 0;
+-        // Re-applying the same effects (e.g. another mode changed) must not undo a manual change.
+-        if (shouldMinimizeRadioUsage == wasApplied && (shouldMinimizeRadioUsage || !owned)) {
+-            return;
+-        }
+-        if (shouldMinimizeRadioUsage && owned) {
+-            // Turned on by this mode before a reboot.
++    protected void maybeApplyRadioEffects(ZenDeviceEffects effects) {
++        mShouldDisableWifi = hasExtraEffect(effects, ZenDeviceEffects.EXTRA_EFFECT_DISABLE_WIFI);
++        mShouldDisableBluetooth =
++                hasExtraEffect(effects, ZenDeviceEffects.EXTRA_EFFECT_DISABLE_BLUETOOTH);
++        mPendingAirplaneMode = getRadioChange(mPendingAirplaneMode,
++                effects.shouldMinimizeRadioUsage(),
++                mLastAppliedEffects.shouldMinimizeRadioUsage(), AIRPLANE_MODE_OWNED_SETTING);
++        mPendingWifi = getRadioChange(mPendingWifi, mShouldDisableWifi,
++                hasExtraEffect(mLastAppliedEffects, ZenDeviceEffects.EXTRA_EFFECT_DISABLE_WIFI),
++                WIFI_OWNED_SETTING);
++        mPendingBluetooth = getRadioChange(mPendingBluetooth, mShouldDisableBluetooth,
++                hasExtraEffect(mLastAppliedEffects,
++                        ZenDeviceEffects.EXTRA_EFFECT_DISABLE_BLUETOOTH),
++                BLUETOOTH_OWNED_SETTING);
++        if (mPendingAirplaneMode == RADIO_NO_CHANGE && mPendingWifi == RADIO_NO_CHANGE
++                && mPendingBluetooth == RADIO_NO_CHANGE) {
++            unregisterPhoneStateReceiver();
+             return;
+         }
+-        updateOrScheduleAirplaneMode(shouldMinimizeRadioUsage);
+-    }
+-
+-    private void updateOrScheduleAirplaneMode(boolean enable) {
+-        mPendingAirplaneMode = enable;
+         if (mTelecomManager != null && mTelecomManager.isInCall()) {
+-            traceScheduleApplyDeviceEffect("minimizeRadioUsage", enable);
++            traceScheduledRadioChange("minimizeRadioUsage", mPendingAirplaneMode);
++            traceScheduledRadioChange("disableWifi", mPendingWifi);
++            traceScheduledRadioChange("disableBluetooth", mPendingBluetooth);
+             registerPhoneStateReceiver();
+         } else {
+             unregisterPhoneStateReceiver();
+-            updateAirplaneModeImmediately(enable);
++            applyPendingRadioChanges();
+         }
+     }
+ 
+-    private void updateAirplaneModeImmediately(boolean enable) {
+-        Binder.withCleanCallingIdentity(() -> {
++    private static boolean hasExtraEffect(ZenDeviceEffects effects, String extraEffect) {
++        return effects.getExtraEffects().contains(extraEffect);
++    }
++
++    /**
++     * Returns what a radio effect has to do. Re-applying the same effects (e.g. another mode
++     * changed) must not undo a manual change, and keeps a change that is waiting for a call to end.
++     */
++    private int getRadioChange(int pendingChange, boolean shouldApply, boolean wasApplied,
++            String ownedSetting) {
++        if (shouldApply && wasApplied) {
++            return pendingChange;
++        }
++        boolean owned = Settings.Global.getInt(
++                mContext.getContentResolver(), ownedSetting, 0) != 0;
++        if (shouldApply) {
++            // If owned, the mode made the change before a reboot.
++            return owned ? RADIO_NO_CHANGE : RADIO_APPLY;
++        }
++        return owned ? RADIO_UNDO : RADIO_NO_CHANGE;
++    }
++
++    private static void traceScheduledRadioChange(String effect, int change) {
++        if (change != RADIO_NO_CHANGE) {
++            traceScheduleApplyDeviceEffect(effect, change == RADIO_APPLY);
++        }
++    }
++
++    private void applyPendingRadioChanges() {
++        final int airplaneMode = mPendingAirplaneMode;
++        final int wifi = mPendingWifi;
++        final int bluetooth = mPendingBluetooth;
++        mPendingAirplaneMode = RADIO_NO_CHANGE;
++        mPendingWifi = RADIO_NO_CHANGE;
++        mPendingBluetooth = RADIO_NO_CHANGE;
++
++        // Wi-Fi and Bluetooth go off before airplane mode turns on and come back after it is off:
++        // a radio toggled while airplane mode is on is remembered as the user's choice for
++        // airplane mode, and would then stay on (or off) whenever airplane mode is turned on.
++        if (wifi == RADIO_APPLY || bluetooth == RADIO_APPLY) {
++            runRadioChange(() -> {
++                if (wifi == RADIO_APPLY && mShouldDisableWifi) {
++                    updateWifi(/* disable= */ true);
++                }
++                if (bluetooth == RADIO_APPLY && mShouldDisableBluetooth) {
++                    updateBluetooth(/* disable= */ true);
++                }
++            }, /* afterAirplaneModeOff= */ false);
++        }
++        boolean turnedAirplaneModeOff = false;
++        if (airplaneMode != RADIO_NO_CHANGE) {
++            boolean changed = updateAirplaneModeImmediately(airplaneMode == RADIO_APPLY);
++            turnedAirplaneModeOff = changed && airplaneMode == RADIO_UNDO;
++        }
++        if (wifi == RADIO_UNDO || bluetooth == RADIO_UNDO) {
++            runRadioChange(() -> {
++                // A mode turning them off again may have started while this was waiting.
++                if (wifi == RADIO_UNDO && !mShouldDisableWifi) {
++                    updateWifi(/* disable= */ false);
++                }
++                if (bluetooth == RADIO_UNDO && !mShouldDisableBluetooth) {
++                    updateBluetooth(/* disable= */ false);
++                }
++            }, turnedAirplaneModeOff);
++        }
++    }
++
++    /**
++     * Runs a Wi-Fi or Bluetooth change when those services can take it. While the device is
++     * booting (effects are applied as soon as the configuration is read) it waits for the boot to
++     * complete; right after the mode turned airplane mode off it waits for them to see that.
++     */
++    protected void runRadioChange(Runnable change, boolean afterAirplaneModeOff) {
++        synchronized (mRegisterReceiverLock) {
++            if (!isBootCompleted()) {
++                mRadioChangesAfterBoot.add(change);
++                if (!mIsBootReceiverRegistered) {
++                    mContext.registerReceiver(mRadioChangesAfterBootReceiver,
++                            LOCKED_BOOT_COMPLETED_INTENT_FILTER, Context.RECEIVER_NOT_EXPORTED);
++                    mIsBootReceiverRegistered = true;
++                }
++                return;
++            }
++        }
++        if (afterAirplaneModeOff) {
++            runAfterAirplaneModeOff(change);
++        } else {
++            change.run();
++        }
++    }
++
++    protected void runAfterAirplaneModeOff(Runnable change) {
++        // Keep the device awake until then, e.g. when a schedule ends the mode at night.
++        PowerManager.WakeLock wakeLock = mPowerManager.newWakeLock(
++                PowerManager.PARTIAL_WAKE_LOCK, RADIO_RESTORE_WAKE_LOCK_TAG);
++        wakeLock.acquire(RADIO_RESTORE_DELAY_MS * 2);
++        mContext.getMainThreadHandler().postDelayed(() -> {
++            try {
++                change.run();
++            } finally {
++                if (wakeLock.isHeld()) {
++                    wakeLock.release();
++                }
++            }
++        }, RADIO_RESTORE_DELAY_MS);
++    }
++
++    protected boolean isBootCompleted() {
++        return "1".equals(SystemProperties.get("sys.boot_completed"));
++    }
++
++    private final BroadcastReceiver mRadioChangesAfterBootReceiver = new BroadcastReceiver() {
++        @Override
++        public void onReceive(Context context, Intent intent) {
++            List<Runnable> changes;
++            synchronized (mRegisterReceiverLock) {
++                if (!mIsBootReceiverRegistered) {
++                    return;
++                }
++                mIsBootReceiverRegistered = false;
++                mContext.unregisterReceiver(this);
++                changes = new ArrayList<>(mRadioChangesAfterBoot);
++                mRadioChangesAfterBoot.clear();
++            }
++            Binder.withCleanCallingIdentity(() -> changes.forEach(Runnable::run));
++        }
++    };
++
++    /** Returns whether airplane mode was changed. */
++    private boolean updateAirplaneModeImmediately(boolean enable) {
++        return Binder.withCleanCallingIdentity(() -> {
+             try {
+                 ContentResolver cr = mContext.getContentResolver();
+                 boolean airplaneModeOn =
+                         Settings.Global.getInt(cr, Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
+                 if (enable) {
+                     if (airplaneModeOn) {
+-                        return;
++                        return false;
+                     }
+                     traceApplyDeviceEffect("minimizeRadioUsage", true);
+                     Settings.Global.putInt(cr, AIRPLANE_MODE_OWNED_SETTING, 1);
+                     mConnectivityManager.setAirplaneMode(true);
++                    return true;
+                 } else {
+                     if (Settings.Global.getInt(cr, AIRPLANE_MODE_OWNED_SETTING, 0) == 0) {
+-                        return;
++                        return false;
+                     }
+                     Settings.Global.putInt(cr, AIRPLANE_MODE_OWNED_SETTING, 0);
+                     // The user may have turned it off already while the mode was active.
+                     if (airplaneModeOn) {
+                         traceApplyDeviceEffect("minimizeRadioUsage", false);
+                         mConnectivityManager.setAirplaneMode(false);
++                        return true;
+                     }
++                    return false;
+                 }
+             } catch (Exception e) {
+                 Slog.e(TAG, "Could not change airplane mode", e);
++                return false;
+             }
+         });
+     }
+ 
+-    private final BroadcastReceiver mAirplaneModeWhenCallEnds = new BroadcastReceiver() {
++    private final BroadcastReceiver mRadioChangesWhenCallEnds = new BroadcastReceiver() {
+         @Override
+         public void onReceive(Context context, Intent intent) {
+             if (TelephonyManager.EXTRA_STATE_IDLE.equals(
+                     intent.getStringExtra(TelephonyManager.EXTRA_STATE))
+                     && (mTelecomManager == null || !mTelecomManager.isInCall())) {
+                 unregisterPhoneStateReceiver();
+-                updateAirplaneModeImmediately(mPendingAirplaneMode);
++                applyPendingRadioChanges();
+             }
+         }
+     };
+ 
++    private void updateWifi(boolean disable) {
++        updateRadio("disableWifi", WIFI_OWNED_SETTING, disable, this::isWifiEnabled,
++                this::setWifiEnabled);
++    }
++
++    private void updateBluetooth(boolean disable) {
++        updateRadio("disableBluetooth", BLUETOOTH_OWNED_SETTING, disable,
++                this::isBluetoothEnabled, this::setBluetoothEnabled);
++    }
++
++    private void updateRadio(String effect, String ownedSetting, boolean disable,
++            BooleanSupplier isEnabled, Predicate<Boolean> setEnabled) {
++        ContentResolver cr = mContext.getContentResolver();
++        try {
++            if (disable) {
++                if (!isEnabled.getAsBoolean()) {
++                    return;
++                }
++                traceApplyDeviceEffect(effect, true);
++                Settings.Global.putInt(cr, ownedSetting, 1);
++                if (!setEnabled.test(false)) {
++                    Settings.Global.putInt(cr, ownedSetting, 0);
++                    Slog.w(TAG, "Could not apply " + effect);
++                }
++            } else {
++                if (Settings.Global.getInt(cr, ownedSetting, 0) == 0) {
++                    return;
++                }
++                Settings.Global.putInt(cr, ownedSetting, 0);
++                // The user may have turned it on already while the mode was active.
++                if (!isEnabled.getAsBoolean()) {
++                    traceApplyDeviceEffect(effect, false);
++                    setEnabled.test(true);
++                }
++            }
++        } catch (Exception e) {
++            Slog.e(TAG, "Could not change " + effect, e);
++        }
++    }
++
++    protected boolean isWifiEnabled() {
++        WifiManager wifiManager = mContext.getSystemService(WifiManager.class);
++        if (wifiManager == null) {
++            return false;
++        }
++        int state = wifiManager.getWifiState();
++        return state == WifiManager.WIFI_STATE_ENABLED
++                || state == WifiManager.WIFI_STATE_ENABLING;
++    }
++
++    @SuppressWarnings("deprecation") // Allowed for the system.
++    protected boolean setWifiEnabled(boolean enabled) {
++        WifiManager wifiManager = mContext.getSystemService(WifiManager.class);
++        return wifiManager != null && wifiManager.setWifiEnabled(enabled);
++    }
++
++    private BluetoothAdapter getBluetoothAdapter() {
++        BluetoothManager bluetoothManager = mContext.getSystemService(BluetoothManager.class);
++        return bluetoothManager != null ? bluetoothManager.getAdapter() : null;
++    }
++
++    protected boolean isBluetoothEnabled() {
++        BluetoothAdapter adapter = getBluetoothAdapter();
++        if (adapter == null) {
++            return false;
++        }
++        int state = adapter.getState();
++        return state == BluetoothAdapter.STATE_ON || state == BluetoothAdapter.STATE_TURNING_ON;
++    }
++
++    @SuppressWarnings({"deprecation", "MissingPermission"}) // Allowed for the system.
++    protected boolean setBluetoothEnabled(boolean enabled) {
++        BluetoothAdapter adapter = getBluetoothAdapter();
++        return adapter != null && (enabled ? adapter.enable() : adapter.disable());
++    }
++
+     /**
+      * Turns location off for the current user when the effect starts and back on when it ends,
+      * but only if it was on before.
+@@ -404,7 +652,7 @@ public class DefaultDeviceEffectsApplier implements DeviceEffectsApplier {
+     private void registerPhoneStateReceiver() {
+         synchronized (mRegisterReceiverLock) {
+             if (!mIsPhoneStateReceiverRegistered) {
+-                mContext.registerReceiver(mAirplaneModeWhenCallEnds, PHONE_STATE_INTENT_FILTER,
++                mContext.registerReceiver(mRadioChangesWhenCallEnds, PHONE_STATE_INTENT_FILTER,
+                         Context.RECEIVER_EXPORTED);
+                 mIsPhoneStateReceiverRegistered = true;
+             }
+@@ -415,7 +663,7 @@ public class DefaultDeviceEffectsApplier implements DeviceEffectsApplier {
+         synchronized (mRegisterReceiverLock) {
+             if (mIsPhoneStateReceiverRegistered) {
+                 mIsPhoneStateReceiverRegistered = false;
+-                mContext.unregisterReceiver(mAirplaneModeWhenCallEnds);
++                mContext.unregisterReceiver(mRadioChangesWhenCallEnds);
+             }
+         }
+     }
+diff --git a/services/tests/uiservicestests/src/com/android/server/notification/DefaultDeviceEffectsApplierTest.java b/services/tests/uiservicestests/src/com/android/server/notification/DefaultDeviceEffectsApplierTest.java
+index 868ec4cf5e44..0dd38a0249a7 100644
+--- a/services/tests/uiservicestests/src/com/android/server/notification/DefaultDeviceEffectsApplierTest.java
++++ b/services/tests/uiservicestests/src/com/android/server/notification/DefaultDeviceEffectsApplierTest.java
+@@ -31,6 +31,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
+ import static org.mockito.ArgumentMatchers.anyString;
+ import static org.mockito.ArgumentMatchers.argThat;
+ import static org.mockito.ArgumentMatchers.eq;
++import static org.mockito.Mockito.doAnswer;
+ import static org.mockito.Mockito.doThrow;
+ import static org.mockito.Mockito.mock;
+ import static org.mockito.Mockito.never;
+@@ -44,6 +45,7 @@ import android.app.KeyguardManager;
+ import android.app.UiModeManager;
+ import android.app.WallpaperManager;
+ import android.content.BroadcastReceiver;
++import android.content.Context;
+ import android.content.Intent;
+ import android.content.IntentFilter;
+ import android.hardware.display.ColorDisplayManager;
+@@ -74,6 +76,8 @@ import org.mockito.MockitoAnnotations;
+ 
+ import java.io.PrintWriter;
+ import java.io.StringWriter;
++import java.util.ArrayList;
++import java.util.List;
+ 
+ @RunWith(TestParameterInjector.class)
+ public class DefaultDeviceEffectsApplierTest {
+@@ -111,6 +115,8 @@ public class DefaultDeviceEffectsApplierTest {
+         Settings.Global.putInt(mContext.getContentResolver(), "zen_effect_location_owned_user", 0);
+         Settings.Global.putInt(mContext.getContentResolver(),
+                 "zen_effect_double_tap_to_wake_owned_user", 0);
++        Settings.Global.putInt(mContext.getContentResolver(), "zen_effect_wifi_owned", 0);
++        Settings.Global.putInt(mContext.getContentResolver(), "zen_effect_bluetooth_owned", 0);
+         mContext.getOrCreateTestableResources().addOverride(
+                 com.android.internal.R.bool.config_supportDoubleTapWake, true);
+ 
+@@ -584,4 +590,257 @@ public class DefaultDeviceEffectsApplierTest {
+ 
+         assertThat(isDoubleTapToWakeOn()).isTrue();
+     }
++
++    /** Applier with fake Wi-Fi and Bluetooth; radio changes and airplane mode go to one log. */
++    private static class FakeRadiosApplier extends DefaultDeviceEffectsApplier {
++        boolean mWifiEnabled;
++        boolean mBluetoothEnabled;
++        boolean mBootCompleted = true;
++        final List<String> mRadioLog;
++        final List<Runnable> mAfterAirplaneModeOff = new ArrayList<>();
++
++        FakeRadiosApplier(Context context, List<String> radioLog) {
++            super(context);
++            mRadioLog = radioLog;
++        }
++
++        @Override
++        protected boolean isWifiEnabled() {
++            return mWifiEnabled;
++        }
++
++        @Override
++        protected boolean setWifiEnabled(boolean enabled) {
++            mRadioLog.add("wifi " + enabled);
++            mWifiEnabled = enabled;
++            return true;
++        }
++
++        @Override
++        protected boolean isBluetoothEnabled() {
++            return mBluetoothEnabled;
++        }
++
++        @Override
++        protected boolean setBluetoothEnabled(boolean enabled) {
++            mRadioLog.add("bluetooth " + enabled);
++            mBluetoothEnabled = enabled;
++            return true;
++        }
++
++        @Override
++        protected boolean isBootCompleted() {
++            return mBootCompleted;
++        }
++
++        @Override
++        protected void runAfterAirplaneModeOff(Runnable change) {
++            mAfterAirplaneModeOff.add(change);
++        }
++
++        void runDelayedChanges() {
++            List<Runnable> changes = new ArrayList<>(mAfterAirplaneModeOff);
++            mAfterAirplaneModeOff.clear();
++            changes.forEach(Runnable::run);
++        }
++    }
++
++    private static final ZenDeviceEffects DISABLE_WIFI = new ZenDeviceEffects.Builder()
++            .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_WIFI)
++            .build();
++
++    private static final ZenDeviceEffects DISABLE_BLUETOOTH = new ZenDeviceEffects.Builder()
++            .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_BLUETOOTH)
++            .build();
++
++    private static final ZenDeviceEffects AIRPLANE_MODE_WITHOUT_RADIOS =
++            new ZenDeviceEffects.Builder()
++                    .setShouldMinimizeRadioUsage(true)
++                    .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_WIFI)
++                    .addExtraEffect(ZenDeviceEffects.EXTRA_EFFECT_DISABLE_BLUETOOTH)
++                    .build();
++
++    private final List<String> mRadioLog = new ArrayList<>();
++
++    private FakeRadiosApplier createFakeRadiosApplier() {
++        doAnswer(invocation -> {
++            boolean on = invocation.getArgument(0);
++            mRadioLog.add("airplane " + on);
++            setAirplaneMode(on);
++            return null;
++        }).when(mConnectivityManager).setAirplaneMode(anyBoolean());
++        return new FakeRadiosApplier(mContext, mRadioLog);
++    }
++
++    @Test
++    public void apply_disableWifi_togglesWifi() {
++        FakeRadiosApplier applier = createFakeRadiosApplier();
++        applier.mWifiEnabled = true;
++
++        applier.apply(DISABLE_WIFI, ORIGIN_USER_IN_SYSTEMUI);
++        assertThat(mRadioLog).containsExactly("wifi false");
++
++        applier.apply(NO_EFFECTS, ORIGIN_USER_IN_SYSTEMUI);
++        assertThat(mRadioLog).containsExactly("wifi false", "wifi true").inOrder();
++    }
++
++    @Test
++    public void apply_disableBluetooth_togglesBluetooth() {
++        FakeRadiosApplier applier = createFakeRadiosApplier();
++        applier.mBluetoothEnabled = true;
++
++        applier.apply(DISABLE_BLUETOOTH, ORIGIN_USER_IN_SYSTEMUI);
++        applier.apply(NO_EFFECTS, ORIGIN_USER_IN_SYSTEMUI);
++
++        assertThat(mRadioLog).containsExactly("bluetooth false", "bluetooth true").inOrder();
++    }
++
++    @Test
++    public void apply_disableWifi_alreadyOff_leavesItOff() {
++        FakeRadiosApplier applier = createFakeRadiosApplier();
++        applier.mWifiEnabled = false;
++
++        applier.apply(DISABLE_WIFI, ORIGIN_USER_IN_SYSTEMUI);
++        applier.apply(NO_EFFECTS, ORIGIN_USER_IN_SYSTEMUI);
++
++        assertThat(mRadioLog).isEmpty();
++    }
++
++    @Test
++    public void apply_disableWifi_turnedOnByUser_notTurnedOffAgain() {
++        FakeRadiosApplier applier = createFakeRadiosApplier();
++        applier.mWifiEnabled = true;
++        applier.apply(DISABLE_WIFI, ORIGIN_USER_IN_SYSTEMUI);
++
++        // The user turns Wi-Fi on, then an unrelated change re-applies the effects.
++        applier.mWifiEnabled = true;
++        applier.apply(DISABLE_WIFI, ORIGIN_APP);
++        applier.apply(NO_EFFECTS, ORIGIN_USER_IN_SYSTEMUI);
++
++        assertThat(mRadioLog).containsExactly("wifi false");
++        assertThat(applier.mWifiEnabled).isTrue();
++    }
++
++    @Test
++    public void apply_disableRadiosWithAirplaneMode_offBeforeAirplaneMode_onAfterIt() {
++        setAirplaneMode(false);
++        FakeRadiosApplier applier = createFakeRadiosApplier();
++        applier.mWifiEnabled = true;
++        applier.mBluetoothEnabled = true;
++
++        applier.apply(AIRPLANE_MODE_WITHOUT_RADIOS, ORIGIN_USER_IN_SYSTEMUI);
++        assertThat(mRadioLog).containsExactly("wifi false", "bluetooth false", "airplane true")
++                .inOrder();
++
++        mRadioLog.clear();
++        applier.apply(NO_EFFECTS, ORIGIN_USER_IN_SYSTEMUI);
++        // Wi-Fi and Bluetooth wait until they have seen airplane mode end.
++        assertThat(mRadioLog).containsExactly("airplane false");
++        applier.runDelayedChanges();
++        assertThat(mRadioLog).containsExactly("airplane false", "wifi true", "bluetooth true")
++                .inOrder();
++    }
++
++    @Test
++    public void apply_disableWifiWithAirplaneMode_airplaneModeAlreadyOff_wifiBackImmediately() {
++        setAirplaneMode(false);
++        FakeRadiosApplier applier = createFakeRadiosApplier();
++        applier.mWifiEnabled = true;
++        applier.apply(AIRPLANE_MODE_WITHOUT_RADIOS, ORIGIN_USER_IN_SYSTEMUI);
++
++        // The user turns airplane mode off while the mode is active.
++        setAirplaneMode(false);
++        mRadioLog.clear();
++        applier.apply(NO_EFFECTS, ORIGIN_USER_IN_SYSTEMUI);
++
++        assertThat(mRadioLog).containsExactly("wifi true");
++    }
++
++    @Test
++    public void apply_disableWifi_modeActiveAgainBeforeRestore_staysOff() {
++        setAirplaneMode(false);
++        FakeRadiosApplier applier = createFakeRadiosApplier();
++        applier.mWifiEnabled = true;
++        applier.apply(AIRPLANE_MODE_WITHOUT_RADIOS, ORIGIN_USER_IN_SYSTEMUI);
++        applier.apply(NO_EFFECTS, ORIGIN_USER_IN_SYSTEMUI);
++
++        applier.apply(AIRPLANE_MODE_WITHOUT_RADIOS, ORIGIN_USER_IN_SYSTEMUI);
++        applier.runDelayedChanges();
++
++        assertThat(applier.mWifiEnabled).isFalse();
++        // Still owned by the mode, so it comes back when the mode ends.
++        applier.apply(NO_EFFECTS, ORIGIN_USER_IN_SYSTEMUI);
++        applier.runDelayedChanges();
++        assertThat(applier.mWifiEnabled).isTrue();
++    }
++
++    @Test
++    public void apply_disableWifi_onBootAfterModeEnded_waitsForBootThenTurnsItOn() {
++        FakeRadiosApplier applier = createFakeRadiosApplier();
++        applier.mWifiEnabled = true;
++        applier.apply(DISABLE_WIFI, ORIGIN_USER_IN_SYSTEMUI);
++        ArgumentCaptor<BroadcastReceiver> receiverCaptor =
++                ArgumentCaptor.forClass(BroadcastReceiver.class);
++
++        // Reboot: the mode ended while the device was off.
++        mRadioLog.clear();
++        applier = new FakeRadiosApplier(mContext, mRadioLog);
++        applier.mWifiEnabled = false;
++        applier.mBootCompleted = false;
++        applier.apply(NO_EFFECTS, ORIGIN_INIT);
++
++        assertThat(mRadioLog).isEmpty();
++        verify(mContext).registerReceiver(receiverCaptor.capture(),
++                argThat(filter -> filter.hasAction(Intent.ACTION_LOCKED_BOOT_COMPLETED)),
++                anyInt());
++
++        applier.mBootCompleted = true;
++        receiverCaptor.getValue().onReceive(mContext,
++                new Intent(Intent.ACTION_LOCKED_BOOT_COMPLETED));
++
++        assertThat(mRadioLog).containsExactly("wifi true");
++        verify(mContext).unregisterReceiver(eq(receiverCaptor.getValue()));
++    }
++
++    @Test
++    public void apply_disableWifi_inCall_waitsForCallToEnd() {
++        FakeRadiosApplier applier = createFakeRadiosApplier();
++        applier.mWifiEnabled = true;
++        when(mTelecomManager.isInCall()).thenReturn(true);
++        ArgumentCaptor<BroadcastReceiver> receiverCaptor =
++                ArgumentCaptor.forClass(BroadcastReceiver.class);
++
++        applier.apply(DISABLE_WIFI, ORIGIN_APP);
++
++        assertThat(mRadioLog).isEmpty();
++        assertThat(getZenLog()).contains("schedule_device_effect: disableWifi -> true");
++        verify(mContext).registerReceiver(receiverCaptor.capture(),
++                argThat(filter -> filter.hasAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED)),
++                anyInt());
++
++        when(mTelecomManager.isInCall()).thenReturn(false);
++        receiverCaptor.getValue().onReceive(mContext,
++                new Intent(TelephonyManager.ACTION_PHONE_STATE_CHANGED)
++                        .putExtra(TelephonyManager.EXTRA_STATE, TelephonyManager.EXTRA_STATE_IDLE));
++
++        assertThat(mRadioLog).containsExactly("wifi false");
++    }
++
++    @Test
++    public void apply_disableWifi_endsDuringTheCallItWaitedFor_doesNothing() {
++        FakeRadiosApplier applier = createFakeRadiosApplier();
++        applier.mWifiEnabled = true;
++        when(mTelecomManager.isInCall()).thenReturn(true);
++        ArgumentCaptor<BroadcastReceiver> receiverCaptor =
++                ArgumentCaptor.forClass(BroadcastReceiver.class);
++
++        applier.apply(DISABLE_WIFI, ORIGIN_APP);
++        verify(mContext).registerReceiver(receiverCaptor.capture(),
++                argThat(filter -> filter.hasAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED)),
++                anyInt());
++        applier.apply(NO_EFFECTS, ORIGIN_APP);
++
++        verify(mContext).unregisterReceiver(eq(receiverCaptor.getValue()));
++        assertThat(mRadioLog).isEmpty();
++    }
+ }
+-- 
+2.56.0
+
